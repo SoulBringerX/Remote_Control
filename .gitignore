@@ -6,6 +6,10 @@ bin-release/
 
 # Other files and folders
 .settings/
+LINCENSE
+README.en.md
+README.md
+.gitignore
 
 # Executables
 *.swf
