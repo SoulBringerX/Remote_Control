@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/back1.jpg</file>
+        <file>images/day1.jpg</file>
+        <file>images/moon.svg</file>
+        <file>images/night.jpg</file>
+        <file>images/sun.svg</file>
+        <file>Mainwindow.qml</file>
+        <file>Login.qml</file>
+        <file>Register.qml</file>
+        <file>images/moonback.jpg</file>
+        <file>images/sunback.jpg</file>
+    </qresource>
+</RCC>

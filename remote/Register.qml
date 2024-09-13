@@ -1,14 +1,13 @@
 import QtQuick
-import QtQuick.Controls
 
 Window {
-    id: loginWindow
+    id: root
     width: 426
     height: 440
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     Item {
-        id: loginPage
+        id: registerPage
         anchors.fill: parent // 填充整个窗口
         Image {
             id: windowBackground
@@ -193,59 +192,5 @@ Window {
                 }
             }
         }
-        Rectangle
-        {
-            id: loginButtonRectangle
-            width: 40
-            height: 25
-            anchors.left: parent.left
-            anchors.leftMargin: 70
-            anchors.top: userPasswordRectangle.bottom
-            anchors.topMargin: 50
-
-            Button {
-                id: loginButton
-                text: qsTr("登录")
-                onClicked: {
-                    //登录逻辑
-                    loginWindow.visible = false
-                    mainWinodwPage.show()
-                }
-            }
-        }
-        Rectangle
-        {
-            id: registerButtonRectangle
-            width: 40
-            height: 25
-            anchors.left: loginButtonRectangle.right
-            anchors.leftMargin: 150
-            anchors.top: userPasswordRectangle.bottom
-            anchors.topMargin: 50
-
-            Button {
-                id: registerButton
-                text: qsTr("注册")
-                onClicked: {
-                    //注册逻辑
-                    loginWindow.visible = false
-                    registerWindowPage.show()
-                }
-            }
-        }
-    }
-
-    //其他界面跳转
-    //1. 主界面
-    Mainwindow
-    {
-        id: mainWinodwPage
-        visible: false
-    }
-    //2. 注册界面
-    Register
-    {
-        id: registerWindowPage
-        visible: false
     }
 }
