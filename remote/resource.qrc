@@ -5,13 +5,15 @@
         <file>images/moon.svg</file>
         <file>images/night.jpg</file>
         <file>images/sun.svg</file>
-        <file>Mainwindow.qml</file>
-        <file>Login.qml</file>
-        <file>Register.qml</file>
         <file>images/moonback.jpg</file>
         <file>images/sunback.jpg</file>
         <file>images/NO.svg</file>
         <file>images/OK.svg</file>
         <file>images/back1.svg</file>
+        <file>images/Disk.svg</file>
+        <file>images/Computer.svg</file>
+        <file>images/Connected.svg</file>
+        <file>images/cpu.svg</file>
+        <file>images/Disconnected.svg</file>
     </qresource>
 </RCC>

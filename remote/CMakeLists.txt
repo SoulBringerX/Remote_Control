@@ -16,15 +16,16 @@ qt_add_executable(appremote
 qt_add_qml_module(appremote
     URI remote
     VERSION 1.0
-    QML_FILES Login.qml
+    QML_FILES Page/Login.qml
     SOURCES globalproperties.h globalproperties.cpp
     RESOURCES resource.qrc
-    QML_FILES Mainwindow.qml
+    QML_FILES Page/Mainwindow.qml
     SOURCES account.h account.cpp
-    QML_FILES Register.qml
+    QML_FILES Page/Register.qml
     SOURCES Login.cpp
-    QML_FILES RegisterDialog.qml
-    QML_FILES Main.qml
+    QML_FILES Page/RegisterDialog.qml
+    QML_FILES Page/Main.qml
+    QML_FILES Model/DeviceInformationModel.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/remote/Main.qml"));
+    const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
 
     QCoreApplication::setQuitLockEnabled(true);
 
