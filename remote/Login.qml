@@ -3,8 +3,10 @@ import QtQuick.Controls
 
 Window {
     id: loginWindow
-    width: 426
-    height: 440
+    maximumWidth: 426
+    maximumHeight: 440
+    minimumWidth: 426
+    minimumHeight: 440
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     Item {
@@ -208,8 +210,7 @@ Window {
                 text: qsTr("登录")
                 onClicked: {
                     //登录逻辑
-                    loginWindow.visible = false
-                    mainWinodwPage.show()
+                    loader.sourceComponent = mainWindowPage
                 }
             }
         }
@@ -227,25 +228,14 @@ Window {
                 id: registerButton
                 text: qsTr("注册")
                 onClicked: {
-                    //注册逻辑
-                    loginWindow.visible = false
-                    registerWindowPage.show()
+                    loader.sourceComponent = registerPage
                 }
             }
         }
     }
-
-    //其他界面跳转
-    //1. 主界面
-    Mainwindow
-    {
-        id: mainWinodwPage
-        visible: false
-    }
-    //2. 注册界面
-    Register
-    {
-        id: registerWindowPage
-        visible: false
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
     }
 }

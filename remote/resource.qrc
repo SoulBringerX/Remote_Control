@@ -10,5 +10,8 @@
         <file>Register.qml</file>
         <file>images/moonback.jpg</file>
         <file>images/sunback.jpg</file>
+        <file>images/NO.svg</file>
+        <file>images/OK.svg</file>
+        <file>images/back1.svg</file>
     </qresource>
 </RCC>

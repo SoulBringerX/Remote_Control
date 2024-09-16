@@ -8,7 +8,9 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/remote/Login.qml"));
+    const QUrl url(QStringLiteral("qrc:/remote/Main.qml"));
+
+    QCoreApplication::setQuitLockEnabled(true);
 
     // 直接传递 GlobalProperties::getInstance() 返回的指针给 setContextProperty
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));

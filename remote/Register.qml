@@ -1,9 +1,13 @@
 import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
 
 Window {
     id: root
-    width: 426
-    height: 440
+    maximumWidth: 426
+    maximumHeight: 440
+    minimumWidth: 426
+    minimumHeight: 440
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     Item {
@@ -13,6 +17,38 @@ Window {
             id: windowBackground
             source: "qrc:/images/sunback.jpg"
             anchors.fill: parent
+        }
+        Rectangle
+        {
+            id: loginPageBackRectangle
+            height: 32
+            width: height*3
+            anchors.left: parent.left
+            anchors.leftMargin: 5
+            color: "transparent"
+            Image{
+                id: backIcon
+                height: 18
+                width: height
+                anchors.verticalCenter: parent.verticalCenter
+                source: "qrc:/images/back1.svg"
+            }
+            Text
+            {
+                color: "white"
+                text: qsTr("返回登录")
+                font.pointSize: 12
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: backIcon.right
+                anchors.leftMargin: 5
+            }
+            MouseArea
+            {
+                anchors.fill: parent
+                onClicked:{
+                    loader.sourceComponent = loginPage
+                }
+            }
         }
         Rectangle
         {
@@ -121,7 +157,7 @@ Window {
             width: 320
             height: 24
             anchors.top: sidBar.bottom
-            anchors.left: loginWindow.left
+            anchors.left: root.left
             anchors.leftMargin: 90
             anchors.topMargin: 65
             color: "transparent"
@@ -159,7 +195,7 @@ Window {
             width: 320
             height: 24
             anchors.top: userAccountRectangle.bottom
-            anchors.left: loginWindow.left
+            anchors.left: root.left
             anchors.leftMargin: 90
             anchors.topMargin: 65
             color: "transparent"
@@ -192,5 +228,38 @@ Window {
                 }
             }
         }
+        Rectangle
+        {
+            id: registerButtonRectangle
+            width: 80
+            height: 25
+            anchors.top: userPasswordRectangle.bottom
+            anchors.topMargin: 50
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Text{
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: qsTr("确认注册")
+            }
+
+            MouseArea
+            {
+                anchors.fill: parent
+                onClicked:{
+                    registerDialog.show()
+                }
+            }
+        }
+    }
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
+    }
+
+    RegisterDialog
+    {
+        id: registerDialog
+        visible: false
     }
 }

@@ -23,6 +23,8 @@ qt_add_qml_module(appremote
     SOURCES account.h account.cpp
     QML_FILES Register.qml
     SOURCES Login.cpp
+    QML_FILES RegisterDialog.qml
+    QML_FILES Main.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
