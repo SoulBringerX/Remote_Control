@@ -16,7 +16,7 @@ ApplicationWindow {
         id: loginPage
         Login {}
     }
-
+    // 1.ssss
     Component {
         id: registerPage
         Register {}
