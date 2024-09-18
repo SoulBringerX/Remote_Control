@@ -95,17 +95,21 @@ Window {
 
                 //数据格式
                 delegate: Item {
+                    id: deviceListItem
                     width: 850
                     height: 40
                     Rectangle {
                         id: deviceInformationRectangle
                         anchors.fill: parent
+                        border.color: "black"
+                        border.width: 1
                         Image {
                             id: deviceIconImage
                             width: 16
                             height: 16
                             source: "qrc:/images/Computer.svg"
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: 10
                             anchors.left: parent.left
                             anchors.leftMargin: 20
                         }
@@ -114,17 +118,142 @@ Window {
                             anchors.left: deviceIconImage.right
                             anchors.leftMargin: 10
                             text: qsTr(deviceName)
-                            anchors.verticalCenter: parent.verticalCenter
+                             anchors.top: parent.top
+                             anchors.topMargin: 10
                         }
-                        Image {
-                            id: deviceConnectionStatusImage
+                        Rectangle
+                        {
+                            id: deviceExtendStatusRectangle
                             width: 16
                             height: 16
-                            source: model.isConnected ? "qrc:/images/Connected.svg" : "qrc:/images/Disconnected.svg"
-                            anchors.verticalCenter: parent.verticalCenter
                             anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.topMargin: 10
                             anchors.rightMargin: 20
+                            Image {
+                                id: deviceExtendStatusImage
+                                width: 16
+                                height: 16
+                                anchors.top: parent.top
+                                source: "qrc:/images/extend.svg"
+                            }
+                            MouseArea
+                            {
+                                id: userDeviceInformationExtendMouseArea
+                                property bool iconchanged: false;
+                                anchors.fill: parent
+                                onClicked: {
+                                    if(!iconchanged){
+                                        userDeviceInformationExtend.running = true
+                                        iconchanged = true
+                                    }
+                                    else
+                                    {
+                                        userDeviceInformationShrink.running = true
+                                        iconchanged = false
+                                    }
+                                }
+                            }
                         }
+                        Rectangle {
+                            id: userDeviceDetailsInformationRectangle
+                            width: parent.width - 21
+                            height: 60
+                            anchors.top: deviceExtendStatusRectangle.bottom
+                            anchors.topMargin: 5
+                            anchors.right: deviceExtendStatusRectangle.right
+                            visible: userDeviceInformationExtendMouseArea.iconchanged
+
+                            Flickable {
+                                id: flickable
+                                width: parent.width
+                                height: parent.width
+                                contentWidth: parent.width
+                                contentHeight: 160
+
+                                Rectangle {
+                                    id: userDeviceAppListRectangle
+                                    width: flickable.width
+                                    height: 160
+
+                                    //测试专用
+                                    ListModel {
+                                        id: deviceAppListModel
+                                        ListElement {
+                                            deviceIP: "192.168.1.1"
+                                            deviceName: "Computer 1"
+                                            AppName: "App 1"
+                                            RdpAppName: "App 1"
+                                            AppIconPath: "qrc:/images/wx.svg"
+                                            isConnected: true
+                                        }
+                                        ListElement {
+                                            deviceIP: "192.168.1.1"
+                                            deviceName: "Computer 1"
+                                            AppName: "App 2"
+                                            RdpAppName: "App 2"
+                                            AppIconPath: "qrc:/images/QQ.svg"
+                                            isConnected: true
+                                        }
+                                    }
+
+                                    ListView {
+                                        id: deviceAppListView
+                                        anchors.fill: parent
+                                        model: deviceAppListModel
+
+                                        delegate: Item {
+                                            id: appItem
+                                            width: parent.width
+                                            height: 32
+                                            Rectangle {
+                                                id: appItemRectangle
+                                                anchors.fill: parent
+
+                                                Image{
+                                                    id: appIcon
+                                                    width: 24
+                                                    height: 24
+                                                    source: model.AppIconPath
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    anchors.left: parent.left
+                                                    anchors.leftMargin: 20
+                                                }
+
+                                                Text{
+                                                    id: appName
+                                                    text: model.AppName
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    anchors.left: appIcon.right
+                                                    anchors.rightMargin: 10
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // 启用滚动条
+                                flickableDirection: Flickable.VerticalFlick // 垂直滚动
+                            }
+                        }
+                    }
+                    PropertyAnimation
+                    {
+                        id: userDeviceInformationExtend
+                        target: deviceListItem
+                        properties: "height"
+                        from: 40
+                        to: userDeviceList.height / userDeviceList.count
+                        duration: 250
+                    }
+                    PropertyAnimation
+                    {
+                        id: userDeviceInformationShrink
+                        target: deviceListItem
+                        properties: "height"
+                        from: userDeviceList.height /  userDeviceList.count
+                        to: 40
+                        duration: 250
                     }
                 }
             }

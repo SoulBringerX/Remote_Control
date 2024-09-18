@@ -26,6 +26,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/RegisterDialog.qml
     QML_FILES Page/Main.qml
     QML_FILES Model/DeviceInformationModel.qml
+    QML_FILES Model/DeviceAppModel.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

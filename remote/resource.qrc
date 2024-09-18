@@ -15,5 +15,8 @@
         <file>images/Connected.svg</file>
         <file>images/cpu.svg</file>
         <file>images/Disconnected.svg</file>
+        <file>images/extend.svg</file>
+        <file>images/QQ.svg</file>
+        <file>images/wx.svg</file>
     </qresource>
 </RCC>
