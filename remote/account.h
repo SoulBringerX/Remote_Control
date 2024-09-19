@@ -1,16 +1,42 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
-#include <QString>
 
-class Account
+#include <QString>
+#include <QObject>
+
+class Account : public QObject
 {
+    Q_OBJECT
+    Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
+    Q_PROPERTY(QString passWord READ passWord WRITE setPassWord NOTIFY passWordChanged)
+    Q_PROPERTY(QString userIconPath READ userIconPath WRITE setUserIconPath NOTIFY userIconPathChanged)
+
 public:
-    Account();
+    explicit Account(QObject *parent = nullptr);
+    
+    // 获得和设置userName和passWord
+    QString userName() const;
+    void setUserName(const QString &userName);
+    
+    QString passWord() const;
+    void setPassWord(const QString &passWord);
+    
+    QString userIconPath() const;
+    void setUserIconPath(const QString &path);
+
+    // 用户帐号密码的查找机制
+    bool loginCheck(const QString &userName, const QString &passWord);
+    bool registerCheck(const QString &userName, const QString &passWord);
+
+signals:
+    void userNameChanged();
+    void passWordChanged();
+    void userIconPathChanged();
+
 private:
-    QString username;
-    QString password;
-    //用户头像转码存入数据库
-    QString usericon;
+    QString m_userName;
+    QString m_passWord;
+    QString m_userIconPath;
 };
 
 #endif // ACCOUNT_H
