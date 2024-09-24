@@ -210,7 +210,14 @@ Window {
                 text: qsTr("登录")
                 onClicked: {
                     //登录逻辑
-                    loader.sourceComponent = mainWindowPage
+                    console.log(userAccountInput.text)
+                    console.log(userPasswordInput.text)
+                    if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
+                    {
+                        loader.sourceComponent = mainWindowPage
+                    }
+                    else;
+
                 }
             }
         }

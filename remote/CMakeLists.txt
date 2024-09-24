@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 11) # 指定 C++ 标准版本
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.2 COMPONENTS Quick REQUIRED)
+find_package(Qt6 6.2 COMPONENTS Sql REQUIRED)
 
 qt_add_executable(appremote
 
@@ -27,6 +28,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/Main.qml
     QML_FILES Model/DeviceInformationModel.qml
     QML_FILES Model/DeviceAppModel.qml
+    SOURCES database.h database.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
@@ -42,7 +44,7 @@ set_target_properties(appremote PROPERTIES
 )
 
 target_link_libraries(appremote
-    PRIVATE Qt6::Quick)
+    PRIVATE Qt6::Quick Qt6::Sql)
 
 include(GNUInstallDirs)
 install(TARGETS appremote

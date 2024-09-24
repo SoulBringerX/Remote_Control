@@ -8,12 +8,11 @@ class Account : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
-    Q_PROPERTY(QString passWord READ passWord WRITE setPassWord NOTIFY passWordChanged)
-    Q_PROPERTY(QString userIconPath READ userIconPath WRITE setUserIconPath NOTIFY userIconPathChanged)
+    Q_PROPERTY(QString passWord READ passWord WRITE setPassWord)
+    Q_PROPERTY(QString userIconPath READ userIconPath WRITE setUserIconPath)
 
 public:
     explicit Account(QObject *parent = nullptr);
-    
     // 获得和设置userName和passWord
     QString userName() const;
     void setUserName(const QString &userName);
@@ -25,13 +24,11 @@ public:
     void setUserIconPath(const QString &path);
 
     // 用户帐号密码的查找机制
-    bool loginCheck(const QString &userName, const QString &passWord);
-    bool registerCheck(const QString &userName, const QString &passWord);
+    Q_INVOKABLE bool loginCheck(const QString &userName, const QString &passWord);
+    Q_INVOKABLE bool registerCheck(const QString &userName, const QString &passWord);
 
 signals:
     void userNameChanged();
-    void passWordChanged();
-    void userIconPathChanged();
 
 private:
     QString m_userName;
