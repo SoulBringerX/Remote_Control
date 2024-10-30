@@ -56,4 +56,3 @@ bool DataBase::isLogin(const QString &userName, const QString &passWord)
 }
 
 bool isRegister(const QString &userName, const QString &passWord);
-
