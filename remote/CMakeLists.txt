@@ -29,6 +29,7 @@ qt_add_qml_module(appremote
     QML_FILES Model/DeviceInformationModel.qml
     QML_FILES Model/DeviceAppModel.qml
     SOURCES database.h database.cpp
+    QML_FILES Page/SystemErrorDialog.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

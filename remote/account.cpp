@@ -1,4 +1,5 @@
 #include "account.h"
+#include <QDebug>
 
 Account::Account(QObject *parent)
     : QObject(parent), m_userName(""), m_passWord(""), m_userIconPath("")
@@ -44,13 +45,17 @@ void Account::setUserIconPath(const QString &path)
 
 bool Account::loginCheck(const QString &userName, const QString &passWord)
 {
+    qDebug()<< userName;
+    qDebug()<< passWord;
+
     if (userName.isEmpty() || passWord.isEmpty()) {
         return false;
     }
-    // 连接远端数据库进行数据查看去根据用户的账户密码来确定用户是否存在
-    // if (userName == m_userName && passWord == m_passWord) {
-    //     return true;
-    // }
+    DataBase db;
+    if(db.isLogin(userName,passWord))
+        return true;
+    else
+        return false;
     return true;
 }
 

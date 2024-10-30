@@ -4,8 +4,10 @@ import "../Model" // 进入 Model 文件夹
 
 Window {
     id: root
-    width: 1280
-    height: 720
+    minimumWidth: 1280
+    minimumHeight: 720
+    maximumWidth: 1280
+    maximumHeight: 720
     visible: true
     title: qsTr("欢迎使用RemoteControl")
 
@@ -28,7 +30,7 @@ Window {
             anchors.top: parent.top
             anchors.topMargin: 10
             color: "transparent"
-            
+
             Image {
                 id: userSideBarHideButton
                 rotation: 0
@@ -53,6 +55,64 @@ Window {
                         userDeviceHideAnimation.running = true
                         backIconchanged2.running = true
                         iconchanged = true
+                    }
+                }
+            }
+
+        }
+
+        Rectangle{
+            id: directConnectionButtonRectangle
+            width: parent.width - 35
+            height: 36
+            anchors.left: parent.left
+            anchors.leftMargin: 15
+            anchors.top: userSideBarbutton.bottom
+            anchors.topMargin: 50
+            color: "transparent"
+
+            Rectangle {
+                id: directConnectionRectangle
+                width: 36
+                height: 36
+                anchors.left: parent.left
+                anchors.top: parent.top
+                color: "transparent"
+
+                Image {
+                    id: directConnectionIcon
+                    source: "qrc:/images/Directconnection2.svg"
+                }
+            }
+            Text
+            {
+                id: directConnectionText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: directConnectionRectangle.right
+                anchors.leftMargin: 10
+                text: qsTr("远程控制")
+                opacity: 1.0
+            }
+            MouseArea
+            {
+                id: directConnectionArea
+                anchors.fill: parent
+                hoverEnabled: true
+
+                onClicked:
+                {
+                    directConnectionButtonRectangle.color = "#26C2FA";
+                    directConnectionText.color = "#1296db"
+                    directConnectionIcon.source = "qrc:/images/Directconnection1.svg"
+                }
+                onHoveredChanged: {
+                    if (directConnectionArea.containsMouse)
+                    {
+                        directConnectionButtonRectangle.color = "#9EE6FF"
+                    }
+                    else
+                    {
+                        directConnectionButtonRectangle.color = "transparent"
                     }
                 }
             }
@@ -136,6 +196,7 @@ Window {
                                 height: 16
                                 anchors.top: parent.top
                                 source: "qrc:/images/extend.svg"
+                                rotation: 90
                             }
                             MouseArea
                             {
@@ -145,16 +206,35 @@ Window {
                                 onClicked: {
                                     if(!iconchanged){
                                         userDeviceInformationExtend.running = true
+                                        directionIconchanged1.running = true
                                         iconchanged = true
                                     }
                                     else
                                     {
                                         userDeviceInformationShrink.running = true
+                                        directionIconchanged2.running = true
                                         iconchanged = false
                                     }
                                 }
                             }
+                            PropertyAnimation {
+                                id: directionIconchanged1
+                                properties: "rotation"
+                                target: deviceExtendStatusImage
+                                from: 90
+                                to: 0
+                                duration: 250 // 动画持续时间，以毫秒为单位
+                            }
+                            PropertyAnimation {
+                                id:  directionIconchanged2
+                                properties: "rotation"
+                                target: deviceExtendStatusImage
+                                from: 0
+                                to: 90
+                                duration: 250 // 动画持续时间，以毫秒为单位
+                            }
                         }
+
                         Rectangle {
                             id: userDeviceDetailsInformationRectangle
                             width: parent.width - 21
@@ -265,7 +345,7 @@ Window {
             height: parent.width
             anchors.left: userDeviceStatus.right
             anchors.top: parent.top
-            color: "lightgrey"
+            color: "#EAF1F3"
         }
     }
 

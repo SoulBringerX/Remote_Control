@@ -11,7 +11,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     Account user_account;
-    DataBase db;
 
     const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
 

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QObject>
+#include "database.h"
 
 class Account : public QObject
 {
