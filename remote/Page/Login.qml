@@ -5,10 +5,10 @@ import QtQuick.Controls
 
 Window {
     id: loginWindow
-    maximumWidth: 1226
-    maximumHeight: 680
-    minimumWidth: 1226
-    minimumHeight: 680
+    maximumWidth: Screen.desktopAvailableWidth * 0.675
+    maximumHeight: Screen.desktopAvailableHeight * 0.625
+    minimumWidth: Screen.desktopAvailableWidth * 0.675
+    minimumHeight: Screen.desktopAvailableHeight * 0.625
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     Item {
@@ -23,7 +23,7 @@ Window {
         {
             id: loginRectangle
             height: parent.height
-            width: 400
+            width: parent.width*0.35
             color: "#E4F6FD"
 
             Rectangle
@@ -132,109 +132,116 @@ Window {
             Rectangle
             {
                 id: userAccountRectangle
-                width: 320
-                height: 25
+                width: parent.width*0.7
+                height: parent.height*0.0575
                 anchors.top: sidBar.bottom
                 anchors.left: loginWindow.left
                 anchors.leftMargin: 90
-                anchors.topMargin: 65
+                anchors.topMargin: loginWindow.height * 0.0875
                 color: "transparent"
 
                 Text{
                     id: accountText
                     anchors.left: parent.left
-                    anchors.leftMargin: 20
+                    anchors.leftMargin: parent.width*0.1
                     color: "black"
                     text: qsTr("帐号：")
-                    font.pixelSize: 18
+                    font.pixelSize: 16
                 }
 
                 Rectangle
                 {
-                    width: 250
+                    width: parent.width*0.9
                     height: parent.height
                     border.color: "black"
-                    border.width: 1
+                    border.width: 0.5
                     anchors.left: accountText.right
                     anchors.leftMargin: 10
-                    radius: 5
 
                     TextInput
                     {
                         id: userAccountInput
+                        width: parent.width*0.95
                         anchors.fill: parent
+                        anchors.left: parent
+                        anchors.leftMargin: 2.5
+                        anchors.horizontalCenter: parent.horizontalCenter
                         readOnly: false
-                        font.pixelSize: 18
+                        font.pixelSize: 16
                         selectionColor: "lightblue" // 选中文本的背景色
                         selectedTextColor: "white" // 选中文本的颜色
                         Keys.onEnterPressed: userPasswordInput.focus = false // 按下Enter键时取消焦点
                         Keys.onReturnPressed: userPasswordInput.focus = false // 按下Return键时取消焦点
+                        clip: true //设置组件中文字不得超出长度
                     }
                 }
             }
             Rectangle
             {
                 id: userPasswordRectangle
-                width: 320
-                height: 25
+                width: parent.width*0.7
+                height: parent.height*0.0575
                 anchors.top: userAccountRectangle.bottom
                 anchors.left: loginWindow.left
                 anchors.leftMargin: 90
-                anchors.topMargin: 65
+                anchors.topMargin: loginWindow.height * 0.1
                 color: "transparent"
 
                 Text{
                     id: passwordText
                     anchors.left: parent.left
-                    anchors.leftMargin: 20
+                    anchors.leftMargin: parent.width * 0.1
                     color: "black"
                     text: qsTr("密码：")
-                    font.pixelSize: 18
+                    font.pixelSize: 16
                 }
 
                 Rectangle
                 {
-                    width: 250
+                    width: parent.width * 0.9
                     height: parent.height
                     border.color: "black"
-                    border.width: 1
+                    border.width: 0.5
                     anchors.left: passwordText.right
                     anchors.leftMargin: 10
-                    radius: 5
 
                     TextInput
                     {
                         id: userPasswordInput
+                        width: parent.width*0.95
                         anchors.fill: parent
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.left: parent
+                        anchors.leftMargin: 2.5
                         readOnly: false
-                        font.pixelSize: 18
+                        font.pixelSize: 16
                         echoMode: TextInput.Password
                         selectionColor: "lightblue" // 选中文本的背景色
                         selectedTextColor: "white" // 选中文本的颜色
                         Keys.onEnterPressed: userPasswordInput.focus = false // 按下Enter键时取消焦点
                         Keys.onReturnPressed: userPasswordInput.focus = false // 按下Return键时取消焦点
+                        clip: true //设置组件中文字不得超出长度
                     }
                 }
             }
             Rectangle
             {
                 id: loginButtonRectangle
-                width: 200
-                height: 32
+                width: parent.width * 0.565
+                height: parent.height * 0.0785
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: userPasswordRectangle.bottom
-                anchors.topMargin: 80
-                radius: 10
+                anchors.topMargin: loginWindow.height * 0.09
                 color: "white"
                 border.color: "#26C2FA"
-                border.width: 2
+                border.width: 0.5
 
                 Text {
                     id: loginButtonText
                     anchors.centerIn: parent
                     text: qsTr("登录")
                     color: "#26C2FA"
-                    font.pixelSize: 16
+                    font.pixelSize: 12
                 }
 
                 MouseArea {
@@ -271,17 +278,16 @@ Window {
             Rectangle
             {
                 id: registerButtonRectangle
-                width: 200
-                height: 32
+                width: parent.width * 0.565
+                height: parent.height * 0.0785
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: loginButtonRectangle.bottom
-                anchors.topMargin: 15
-                radius: 10
+                anchors.topMargin: loginWindow.height * 0.04
                 color: "#26C2FA"
 
                 Text {
                     id: registerButtonText
-                    font.pixelSize: 16
+                    font.pixelSize: 12
                     anchors.centerIn: parent
                     text: qsTr("注册")
                     color: "white"
@@ -311,7 +317,7 @@ Window {
             Text
             {
                 id: systemVersion
-                text: qsTr("V0.0.1 alpha")
+                text: qsTr("V0.0.2")
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 1
                 anchors.right: parent.right
