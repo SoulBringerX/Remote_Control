@@ -1,13 +1,11 @@
 import QtQuick
 
-Window {
-    id: systemErrorWindow
-    maximumWidth: 450
-    maximumHeight: 120
-    minimumWidth: 450
-    minimumHeight: 120
-    title:"SystemError"
+Window
+{
+    property bool registerstatus: true
 
+    id: registerDialog
+    title:"SystemCall"
     Rectangle
     {
         id: registerDialogIcon
@@ -19,7 +17,7 @@ Window {
         anchors.topMargin: 55
         Image
         {
-            source: "qrc:/images/系统错误.svg"
+            source: registerstatus ? "qrc:/images/OK.svg" : "qrc:/images/NO.svg"
             anchors.fill: parent
         }
     }
@@ -28,6 +26,6 @@ Window {
         anchors.top: registerDialogIcon.top
         anchors.leftMargin: 10
         font.pointSize: 16
-        text: "ERROR："
+        text: registerstatus ? "账户注册完毕，请返回登录界面继续操作" : "账户注册失败，请确认是否存在网络或者输入问题"
     }
 }

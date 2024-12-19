@@ -1,8 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-
-
+import "./Dialog/"
 Window {
     id: loginWindow
     maximumWidth: Screen.desktopAvailableWidth * 0.565
@@ -241,15 +240,17 @@ Window {
                     onClicked:
                     {
                         //登录逻辑
-                        // if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
-                        // {
-                        //     loader.sourceComponent = mainWindowPage
-                        // }
-                        // else
-                        // {
-                        //     systemErrorWindow.show();
-                        // }
-                        loader.sourceComponent = mainWindowPage
+                        if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
+                        {
+                            loader.sourceComponent = mainWindowPage
+                        }
+                        else
+                        {
+                            systemErrorDialog.show()
+                            // 清空账户密码输入
+                            userPasswordInput.clear()
+                        }
+                        // loader.sourceComponent = mainWindowPage
                     }
                     onHoveredChanged: {
                         if (loginButtonArea.containsMouse)
@@ -315,14 +316,12 @@ Window {
             }
         }
     }
-    // 监听窗口关闭事件
+
     onClosing: {
-        // 调用 Qt.quit() 来终止程序
-        Qt.quit();
+        Qt.quit()
     }
 
-    SystemErrorDialog
-    {
-        id: systemErrorWindow
+    SystemErrorDialog{
+        id:systemErrorDialog
     }
 }

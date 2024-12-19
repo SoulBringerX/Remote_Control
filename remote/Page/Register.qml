@@ -256,10 +256,4 @@ Window {
         // 调用 Qt.quit() 来终止程序
         Qt.quit();
     }
-
-    RegisterDialog
-    {
-        id: registerDialog
-        visible: false
-    }
 }

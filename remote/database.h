@@ -13,9 +13,15 @@ public:
 
     ~DataBase();
 
+    // 用户账号密码
     bool isLogin(const QString &userName, const QString &passWord);
 
     bool isRegister(const QString &userName, const QString &passWord);
+
+    // 远端、本地App数据
+    bool pushApplicationData();
+
+    bool fetchApplicationData();
 
 private:
     QSqlDatabase db;

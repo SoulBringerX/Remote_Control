@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
+
 ApplicationWindow {
     id: appWindow
     visible: false
@@ -16,7 +17,7 @@ ApplicationWindow {
         id: loginPage
         Login {}
     }
-    // 1.ssss
+
     Component {
         id: registerPage
         Register {}
