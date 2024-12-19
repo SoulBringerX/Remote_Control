@@ -39,13 +39,15 @@ Window {
             MouseArea {
                 property bool iconchanged: true;
                 anchors.fill: parent
-                onClicked: {
+                onClicked:
+                {
                     //侧边栏动画收缩
                     if(iconchanged)
                     {
                         userSideBarHideAnimation.running = true
                         userDeviceExtendAnimation.running = true
                         backIconchanged1.running = true
+                        directConnectionTextmiss.running = true
                         iconchanged = false
                     }
                     else
@@ -53,16 +55,34 @@ Window {
                         userSideBarExtendAnimation.running = true
                         userDeviceHideAnimation.running = true
                         backIconchanged2.running = true
+                        directConnectionTextsee.running = true
                         iconchanged = true
                     }
                 }
             }
-
+            PropertyAnimation
+            {
+                id: directConnectionTextmiss
+                target: directConnectionText
+                properties: "opacity"
+                from: 1
+                to: 0
+                duration: 500
+            }
+            PropertyAnimation
+            {
+                id: directConnectionTextsee
+                target: directConnectionText
+                properties: "opacity"
+                from: 0
+                to: 1
+                duration: 500
+            }
         }
 
         Rectangle{
             id: directConnectionButtonRectangle
-            width: parent.width - 35
+            width: parent.width - 36
             height: 36
             anchors.left: parent.left
             anchors.leftMargin: 15
@@ -104,7 +124,8 @@ Window {
                     directConnectionText.color = "#1296db"
                     directConnectionIcon.source = "qrc:/images/Directconnection1.svg"
                 }
-                onHoveredChanged: {
+                onHoveredChanged:
+                {
                     if (directConnectionArea.containsMouse)
                     {
                         directConnectionButtonRectangle.color = "#9EE6FF"
