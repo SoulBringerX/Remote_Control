@@ -4,23 +4,22 @@ import "../Model" // 进入 Model 文件夹
 
 Window {
     id: root
-    minimumWidth: 1280
-    minimumHeight: 720
-    maximumWidth: 1280
-    maximumHeight: 720
+    maximumWidth: Screen.desktopAvailableWidth * 0.675
+    maximumHeight: Screen.desktopAvailableHeight * 0.625
+    minimumWidth: Screen.desktopAvailableWidth * 0.675
+    minimumHeight: Screen.desktopAvailableHeight * 0.625
     visible: true
     title: qsTr("欢迎使用RemoteControl")
 
     Rectangle
     {
         id: userSideBar
-        width: 150
+        width: root.width * 0.15
         height: parent.height
         anchors.left: parent.left
         anchors.top: parent.top
         color: "lightblue"
 
-        //侧边栏按钮收缩
         Rectangle {
             id: userSideBarbutton
             width: 36
@@ -119,16 +118,10 @@ Window {
         }
     }
 
-    // 监听窗口关闭事件
-    onClosing: {
-        // 调用 Qt.quit() 来终止程序
-        Qt.quit();
-    }
-
     Rectangle
     {
         id: userDevices
-        width: 1130
+        width: root.width * 0.85
         height: parent.height
         anchors.left: userSideBar.right
         anchors.top: parent.top
@@ -142,27 +135,27 @@ Window {
 
         Rectangle {
             id: userDeviceStatus
-            width: 850
-            height: 720
+            width: parent.width * 0.625
+            height: parent.height
             anchors.left: parent.left
             anchors.top: parent.top
 
             ListView{
                 id: userDeviceList
-                width: 850
-                height: 720
+                width: parent.width
+                height: parent.height
                 model: deviceInformationModel
 
                 //数据格式
                 delegate: Item {
                     id: deviceListItem
-                    width: 850
+                    width: parent.width
                     height: 40
                     Rectangle {
                         id: deviceInformationRectangle
                         anchors.fill: parent
                         border.color: "black"
-                        border.width: 1
+                        border.width: 0.5
                         Image {
                             id: deviceIconImage
                             width: 16
@@ -341,7 +334,7 @@ Window {
 
         Rectangle {
             id: userDeviceInformationRectangle
-            width: parent.width -  userDeviceStatus.width
+            width: parent.width * 0.475
             height: parent.width
             anchors.left: userDeviceStatus.right
             anchors.top: parent.top
@@ -349,12 +342,12 @@ Window {
         }
     }
 
-
+    // 界面框架动画组
     PropertyAnimation {
         id: userSideBarHideAnimation
         properties: "width"
         target: userSideBar
-        from: 150
+        from: root.width * 0.15
         to: 64
         duration: 500 // 动画持续时间，以毫秒为单位
     }
@@ -362,8 +355,8 @@ Window {
         id: userDeviceExtendAnimation
         properties: "width"
         target: userDevices
-        from: 1130
-        to: 1216
+        from: root.width * 0.85
+        to: root.width - 64
         duration: 500 // 动画持续时间，以毫秒为单位
     }
     PropertyAnimation {
@@ -371,15 +364,15 @@ Window {
         properties: "width"
         target: userSideBar
         from: 64
-        to: 150
+        to: root.width * 0.15
         duration: 500 // 动画持续时间，以毫秒为单位
     }
     PropertyAnimation {
         id: userDeviceHideAnimation
         properties: "width"
         target: userDevices
-        from: 1216
-        to: 1130
+        from: root.width - 64
+        to: root.width * 0.85
         duration: 500 // 动画持续时间，以毫秒为单位
     }
     PropertyAnimation {
@@ -398,4 +391,11 @@ Window {
         to: 0
         duration: 500 // 动画持续时间，以毫秒为单位
     }
+
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
+    }
+
 }

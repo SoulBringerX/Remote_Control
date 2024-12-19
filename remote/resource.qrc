@@ -25,5 +25,7 @@
         <file>images/Directconnection2.svg</file>
         <file>images/Setting1.svg</file>
         <file>images/Setting2.svg</file>
+        <file>images/Account.svg</file>
+        <file>images/password.svg</file>
     </qresource>
 </RCC>
