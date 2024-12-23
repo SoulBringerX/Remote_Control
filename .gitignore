@@ -6,7 +6,8 @@ bin-release/
 
 # Other files and folders
 .settings/
-remote/build/*
+remote/build/
+remote/.vscode/
 LINCENSE
 README.en.md
 README.md
