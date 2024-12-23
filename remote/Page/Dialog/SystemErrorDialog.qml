@@ -14,19 +14,18 @@ Window {
         width: 32
         height: 32
         anchors.left: parent.left
-        anchors.top: parent.top
         anchors.leftMargin: 15
-        anchors.topMargin: 55
+        anchors.verticalCenter: parent.verticalCenter
         Image
         {
-            source: "qrc:/images/系统错误.svg"
+            source: "qrc:/images/SystemError.svg"
             anchors.fill: parent
         }
     }
     Text{
         anchors.left: registerDialogIcon.right
-        anchors.top: registerDialogIcon.top
         anchors.leftMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
         font.pointSize: 16
         text: "ERROR："
     }

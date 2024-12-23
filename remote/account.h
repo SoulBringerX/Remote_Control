@@ -30,7 +30,7 @@ public:
 
 signals:
     void userNameChanged();
-
+    void openFileManager();
 private:
     QString m_userName;
     QString m_passWord;

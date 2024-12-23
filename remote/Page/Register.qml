@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-
+import "./Dialog/"
 Window {
     id: root
-    maximumWidth: 426
-    maximumHeight: 440
-    minimumWidth: 426
-    minimumHeight: 440
+    maximumWidth: Screen.desktopAvailableWidth * 0.265
+    maximumHeight: Screen.desktopAvailableHeight * 0.555
+    minimumWidth: Screen.desktopAvailableWidth * 0.265
+    minimumHeight: Screen.desktopAvailableHeight * 0.555
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     Item {
@@ -146,7 +146,7 @@ Window {
             width: 64
             height: width
             anchors.top: parent.top
-            anchors.topMargin: 65
+            anchors.topMargin: parent.height * 0.2
             anchors.horizontalCenter: parent.horizontalCenter
             color: "lightblue"
             radius: height / 2
@@ -154,76 +154,82 @@ Window {
         Rectangle
         {
             id: userAccountRectangle
-            width: 320
-            height: 24
+            width: parent.width
+            height: parent.height * 0.05
             anchors.top: sidBar.bottom
-            anchors.left: root.left
-            anchors.leftMargin: 90
-            anchors.topMargin: 65
+            anchors.topMargin: parent.height * 0.1
             color: "transparent"
 
             Text{
                 id: accountText
                 anchors.left: parent.left
-                anchors.leftMargin: 60
+                anchors.leftMargin: parent.width * 0.09
                 color: "white"
                 text: qsTr("帐号：")
             }
 
             Rectangle
             {
-                width: 220
+                width: parent.width * 0.7
                 height: parent.height
                 border.color: "black"
-                border.width: 1
+                border.width: 0.5
                 anchors.left: accountText.right
-                anchors.leftMargin: 20
+                anchors.leftMargin: parent.width * 0.03
 
                 TextInput
                 {
                     id: userAccountInput
                     width: parent.width
-                    height: parent.heigh
+                    anchors.centerIn: parent
                     readOnly: false
-                    font.pixelSize: 18
+                    font.pixelSize: 12
+                    selectionColor: "lightblue" // 选中文本的背景色
+                    selectedTextColor: "white" // 选中文本的颜色
+                    Keys.onEnterPressed: userAccountInput.focus = false // 按下Enter键时取消焦点
+                    Keys.onReturnPressed: userAccountInput.focus = false // 按下Return键时取消焦点
+                    clip: true //设置组件中文字不得超出长度
                 }
             }
         }
         Rectangle
         {
             id: userPasswordRectangle
-            width: 320
-            height: 24
+            width: parent.width
+            height: parent.height * 0.05
             anchors.top: userAccountRectangle.bottom
-            anchors.left: root.left
-            anchors.leftMargin: 90
-            anchors.topMargin: 65
+            anchors.topMargin: parent.height * 0.1
             color: "transparent"
 
             Text{
                 id: passwordText
                 anchors.left: parent.left
-                anchors.leftMargin: 60
+                anchors.leftMargin: parent.width * 0.09
                 color: "white"
                 text: qsTr("密码：")
             }
 
             Rectangle
             {
-                width: 220
+                width: parent.width * 0.7
                 height: parent.height
                 border.color: "black"
-                border.width: 1
+                border.width: 0.5
                 anchors.left: passwordText.right
-                anchors.leftMargin: 20
+                anchors.leftMargin: parent.width * 0.03
 
                 TextInput
                 {
                     id: userPasswordInput
                     width: parent.width
-                    height: parent.heigh
+                    anchors.centerIn: parent
                     readOnly: false
-                    font.pixelSize: 18
+                    font.pixelSize: 12
+                    selectionColor: "lightblue" // 选中文本的背景色
+                    selectedTextColor: "white" // 选中文本的颜色
+                    Keys.onEnterPressed: userAccountInput.focus = false // 按下Enter键时取消焦点
+                    Keys.onReturnPressed: userAccountInput.focus = false // 按下Return键时取消焦点
+                    clip: true //设置组件中文字不得超出长度
                     echoMode: TextInput.Password
                 }
             }
@@ -231,22 +237,38 @@ Window {
         Rectangle
         {
             id: registerButtonRectangle
-            width: 80
-            height: 25
+            width: root.width * 0.6
+            height: root.height * 0.0875
             anchors.top: userPasswordRectangle.bottom
             anchors.topMargin: 50
             anchors.horizontalCenter: parent.horizontalCenter
 
             Text{
+                id:registerButtonText
                 anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("确认注册")
             }
 
             MouseArea
             {
+                id: registerButtonArea
                 anchors.fill: parent
+                hoverEnabled: true
                 onClicked:{
                     registerDialog.show()
+                }
+                onHoveredChanged: {
+                    if (registerButtonArea.containsMouse)
+                    {
+                        registerButtonRectangle.color = "#26C2FA"
+                        registerButtonText.color = "white"
+                    }
+                    else
+                    {
+                        registerButtonRectangle.color = "white"
+                        registerButtonText.color = "#26C2FA"
+                    }
                 }
             }
         }
@@ -255,5 +277,8 @@ Window {
     onClosing: {
         // 调用 Qt.quit() 来终止程序
         Qt.quit();
+    }
+    RegisterDialog{
+        id:registerDialog
     }
 }
