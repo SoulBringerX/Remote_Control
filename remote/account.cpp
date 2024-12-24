@@ -40,19 +40,6 @@ void Account::setPassWord(const QString &passWord)
     }
 }
 
-QString Account::userIconPath() const
-{
-    return m_userIconPath;
-}
-
-// 设置用户图像路径（换用图像二进制文件输入数据库）
-// void Account::setUserIconPath(const QString &path)
-// {
-//     if (m_userIconPath != path) {
-//         m_userIconPath = path;
-//     }
-// }
-
 // 登录检查
 bool Account::loginCheck(const QString &userName, const QString &passWord)
 {
@@ -85,7 +72,7 @@ void userNameChanged()
     // 这里可以添加一些代码来处理用户名改变时的改变头像的逻辑（难度有点大，待后期实现）
 }
 
-void openFileManager() 
+void Account::openFileManager()
 {
     QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::home().absolutePath()));
 }

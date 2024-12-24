@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 11) # 指定 C++ 标准版本
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(QT_NO_SHOW_OLD_POLICY_WARNINGS ON)
 
-find_package(Qt6 6.2 COMPONENTS Quick REQUIRED)
-find_package(Qt6 6.2 COMPONENTS Sql REQUIRED)
+find_package(Qt6 COMPONENTS Sql REQUIRED)
+find_package(Qt6 COMPONENTS Quick REQUIRED)
 
 qt_add_executable(appremote
 
@@ -25,7 +25,7 @@ qt_add_qml_module(appremote
     SOURCES account.h account.cpp
     QML_FILES Page/Register.qml
     SOURCES Login.cpp
-    QML_FILES Page/Dialog/RegisterDialog.qml
+    QML_FILES Page/Dialog/SuecessDialog.qml
     QML_FILES Page/Main.qml
     QML_FILES Model/DeviceInformationModel.qml
     QML_FILES Model/DeviceAppModel.qml

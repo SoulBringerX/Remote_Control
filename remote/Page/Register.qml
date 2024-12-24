@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+
 import "./Dialog/"
 Window {
     id: root
@@ -15,7 +16,7 @@ Window {
         anchors.fill: parent // 填充整个窗口
         Image {
             id: windowBackground
-            source: "qrc:/images/sunback.jpg"
+            source: "qrc:/images/back1.jpg"
             anchors.fill: parent
         }
         Rectangle
@@ -94,7 +95,7 @@ Window {
                             themeColorChangedAnimation2.running = true
                             iconchanged = true
                             themeIcon.source = "qrc:/images/sun.svg"
-                            windowBackground.source = "qrc:/images/sunback.jpg"
+                            windowBackground.source = "qrc:/images/back1.jpg"
                             themeColorChanged2.running = true
                         }
                    }
@@ -150,6 +151,16 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
             color: "lightblue"
             radius: height / 2
+
+            MouseArea
+            {
+                id:sidBarArea
+                anchors.fill:parent
+                onClicked:{
+                    console.log("打开资源管理器")
+                    account.openFileManager()
+                }
+            }
         }
         Rectangle
         {
@@ -176,6 +187,7 @@ Window {
                 border.width: 0.5
                 anchors.left: accountText.right
                 anchors.leftMargin: parent.width * 0.03
+                color: "white"
 
                 TextInput
                 {
@@ -256,7 +268,12 @@ Window {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked:{
-                    registerDialog.show()
+                    if(account.registerCheck(userAccountInput.text,userPasswordInput.text))
+                    {
+                        registerDialog.show()
+                    }
+                    else
+                        errorDialog.show()
                 }
                 onHoveredChanged: {
                     if (registerButtonArea.containsMouse)
@@ -278,7 +295,10 @@ Window {
         // 调用 Qt.quit() 来终止程序
         Qt.quit();
     }
-    RegisterDialog{
+    SuecessDialog{
         id:registerDialog
+    }
+    SystemErrorDialog{
+        id:errorDialog
     }
 }
