@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication> // 替换 QGuiApplication
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "globalproperties.h"
@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv); // 使用 QApplication
 
     QQmlApplicationEngine engine;
     Account user_account;
@@ -18,14 +18,14 @@ int main(int argc, char *argv[])
 
     // 直接传递 GlobalProperties::getInstance() 返回的指针给 setContextProperty
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
-    //注册实例到
+    // 注册实例到 QML
     engine.rootContext()->setContextProperty("account", &user_account);
-    
+
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
+                         if (!obj && url == objUrl)
+                             QCoreApplication::exit(-1);
+                     }, Qt::QueuedConnection);
 
     engine.load(url);
 

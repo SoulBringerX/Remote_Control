@@ -16,10 +16,10 @@ public:
     // 获得和设置userName和passWord
     QString userName() const;
     void setUserName(const QString &userName);
-    
+
     QString passWord() const;
     void setPassWord(const QString &passWord);
-    
+
 
     // 用户帐号密码的查找机制
     Q_INVOKABLE bool loginCheck(const QString &userName, const QString &passWord);

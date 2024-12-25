@@ -250,6 +250,7 @@ Window {
                             // 清空账户密码输入
                             userPasswordInput.clear()
                         }
+                        // 打桩测试
                         // loader.sourceComponent = mainWindowPage
                     }
                     onHoveredChanged: {
@@ -308,7 +309,7 @@ Window {
             Text
             {
                 id: systemVersion
-                text: qsTr("V0.0.2")
+                text: qsTr("V0.0.4")
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 1
                 anchors.right: parent.right

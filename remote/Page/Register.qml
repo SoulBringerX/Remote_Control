@@ -268,12 +268,14 @@ Window {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked:{
-                    if(account.registerCheck(userAccountInput.text,userPasswordInput.text))
-                    {
-                        registerDialog.show()
-                    }
-                    else
-                        errorDialog.show()
+                    // if(account.registerCheck(userAccountInput.text,userPasswordInput.text))
+                    // {
+                    //     registerDialog.show()
+                    // }
+                    // else
+                    //     errorDialog.show()
+                    // 打桩测试
+                    registerDialog.show()
                 }
                 onHoveredChanged: {
                     if (registerButtonArea.containsMouse)

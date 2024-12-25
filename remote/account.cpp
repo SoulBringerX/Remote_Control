@@ -1,9 +1,10 @@
 #include "account.h"
 #include <QDebug>
-#include <QDesktopServices>
 #include <QUrl>
 #include <QQmlContext>
 #include <QDir>
+#include <QImage>
+#include <QFileDialog>
 
 Account::Account(QObject *parent)
     : QObject(parent), m_userName(""), m_passWord(""), m_userIconPath("")
@@ -74,5 +75,26 @@ void userNameChanged()
 
 void Account::openFileManager()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::home().absolutePath()));
+    QString fileName = QFileDialog::getOpenFileName(
+        nullptr,
+        tr("选择头像"),
+        QDir::homePath(),
+        tr("Image Files (*.png *.jpg *.jpeg *.bmp)")
+        );
+
+    if (!fileName.isEmpty())
+    {
+        QImage image(fileName);
+        if (!image.isNull())
+        {
+            // 处理图片，例如调整大小或裁剪
+            qDebug() << "选中图片文件：" << fileName;
+            // 分析图片
+        }
+        else
+        {
+            qDebug() << "加载图片失败";
+        }
+    }
 }
+

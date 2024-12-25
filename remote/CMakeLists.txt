@@ -10,6 +10,7 @@ set(QT_NO_SHOW_OLD_POLICY_WARNINGS ON)
 
 find_package(Qt6 COMPONENTS Sql REQUIRED)
 find_package(Qt6 COMPONENTS Quick REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 qt_add_executable(appremote
 
@@ -33,6 +34,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/Dialog/SystemErrorDialog.qml
     SOURCES devicedate.h
     SOURCES applicationData.h
+    SOURCES imageresource.h imageresource.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
@@ -49,6 +51,8 @@ set_target_properties(appremote PROPERTIES
 
 target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
+target_link_libraries(appremote
+    PRIVATE Qt6::Widgets)
 
 include(GNUInstallDirs)
 install(TARGETS appremote

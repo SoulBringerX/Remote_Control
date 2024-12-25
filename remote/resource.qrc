@@ -27,5 +27,6 @@
         <file>images/Setting2.svg</file>
         <file>images/Account.svg</file>
         <file>images/password.svg</file>
+        <file>images/close.svg</file>
     </qresource>
 </RCC>
