@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import QtMultimedia
 import "./Dialog/"
 Window {
     id: loginWindow
@@ -10,22 +11,128 @@ Window {
     minimumHeight: Screen.desktopAvailableHeight * 0.655
     visible: true
     title: qsTr("欢迎使用RemoteControl")
+    flags: Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
+
+    property bool registerstatus: true
+    property int dragX: 0
+    property int dragY: 0
+    property bool dragging: false
+    property bool isplaying: false
 
     Item {
         id: loginPage
         anchors.fill: parent
+
         Image {
             id: windowBackground
             source: "qrc:/images/sunback.jpg"
             anchors.fill: parent
         }
 
-        Rectangle
-        {
+        Rectangle{
             id: loginRectangle
             height: parent.height
             width: parent.width*0.35
             color: "#E4F6FD"
+            opacity: 0.8
+
+            Rectangle
+            {
+                id:backgroundMediaPlayer
+                width: parent.width * 0.65
+                height: 20
+                anchors.verticalCenter: themeColorChangedRectangle.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: parent.width * 0.01
+                color:"transparent"
+                opacity: 0.8
+
+                MediaPlayer {
+                    id: mediaPlayer
+                    source: "qrc:/music/TAK,Lily - Stellar Dream.mp3"
+                    onDurationChanged: {
+                        progress.sDuration = " / " + msecs2String(duration);
+                    }
+                    audioOutput: AudioOutput {
+                        id: audioOut
+                        volume: 0.4
+                    }
+                }
+
+                Rectangle {
+                    width: parent.width * 0.5
+                    height: parent.height
+                    color:"transparent"
+
+                    Text {
+                        id: songName
+                        width: parent.width
+                        height: parent.height
+                        text: "TAK, Lily - Stellar Dream"
+
+                        // 使用一个持续的滚动动画
+                        SequentialAnimation {
+                            loops: Animation.Infinite
+                            running: true
+
+                            // 从右侧开始滚动
+                            NumberAnimation {
+                                target: songName
+                                property: "x"
+                                from: parent.width
+                                to: -songName.width
+                                duration: 6000 // 设置滚动时间
+                            }
+
+                            // 在滚动完成后立即重置位置并开始下一个滚动
+                            PauseAnimation {
+                                duration: 0
+                            }
+
+                            // 立即重置位置，准备下一个循环
+                            NumberAnimation {
+                                target: songName
+                                property: "x"
+                                from: -songName.width
+                                to: parent.width
+                                duration: 0 // 立即重置
+                            }
+                        }
+                    }
+                }
+                Rectangle{
+                    id: playButton
+                    width:parent.height
+                    height:width
+                    color:"transparent"
+                    anchors.right: parent.right
+
+                    Image
+                    {
+                        source:isplaying ? "qrc:/images/暂停.svg":"qrc:/images/播放.svg"
+                        anchors.centerIn: parent
+                        width: parent.width
+                        height: parent.height
+                        fillMode: Image.PreserveAspectFit
+                    }
+                    MouseArea{
+                        anchors.fill: parent
+                        onClicked: {
+                            isplaying = !isplaying
+                            if(isplaying == true)
+                            {
+                                console.log("开始播放"+mediaPlayer.audioOutput)
+                                mediaPlayer.play();
+                            }
+                            else
+                            {
+                                console.log("暂停播放"+mediaPlayer.audioOutput)
+                                mediaPlayer.pause();
+                            }
+                        }
+                    }
+                }
+            }
 
             Rectangle
             {
@@ -35,6 +142,8 @@ Window {
                 color: "lightblue"
                 anchors.right: parent.right
                 anchors.rightMargin: 5
+                anchors.top: parent.top
+                anchors.topMargin: 5
                 radius: height / 2
 
                 //加入动画以更改登录界面的主题
@@ -56,6 +165,7 @@ Window {
                     MouseArea {
                         property bool iconchanged: true;
                         anchors.fill: parent
+                        z:3
                         onClicked: {
                             // 触发动画
                             if(iconchanged)
@@ -63,7 +173,7 @@ Window {
                                 themeColorChangedAnimation1.running = true
                                 iconchanged = false
                                 themeIcon.source = "qrc:/images/moon.svg"
-                                windowBackground.source = "qrc:/images/moonback.jpg"
+                                windowBackground.source = "qrc:/images/back1.jpg"
                                 themeColorChanged1.running = true
                             }
                             else
@@ -235,6 +345,7 @@ Window {
 
                 MouseArea {
                     id: loginButtonArea
+                    z: 2
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked:
@@ -287,6 +398,7 @@ Window {
                 MouseArea
                 {
                     id: registerButtonArea
+                    z: 1
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
@@ -316,12 +428,69 @@ Window {
                 anchors.rightMargin: 1
             }
         }
+
+        // 关闭按钮
+        Rectangle {
+            width: parent.height * 0.03
+            height: parent.height * 0.03
+            anchors.top: parent.top
+            anchors.topMargin: parent.height * 0.01
+            anchors.right: parent.right
+            anchors.rightMargin: parent.width * 0.01
+            z: 1 // 确保关闭按钮在最上层
+            color:"transparent"
+
+            Image {
+                id: closeDialogImage
+                source: "qrc:/images/close.svg"
+                anchors.centerIn: parent
+                width: parent.width
+                height: parent.height
+                fillMode: Image.PreserveAspectFit
+                rotation: closeDialogImage.rotation
+
+                // 使用 Behavior 使旋转平滑
+                Behavior on rotation {
+                    RotationAnimation {
+                        duration: 300 // 动画持续时间为300ms
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    Qt.quit()
+                }
+                // 鼠标悬停时触发旋转动画
+                onHoveredChanged: {
+                    if (containsMouse) {
+                        closeDialogImage.rotation = 180
+                    } else {
+                        closeDialogImage.rotation = 0
+                    }
+                }
+            }
+        }
     }
 
-    onClosing: {
-        Qt.quit()
+    MouseArea {
+        anchors.fill: parent
+        z: -2 // 设置此 MouseArea 的 z 值为较低，确保它在文本和图标下方
+        onPressed: {
+            loginWindow.dragX = mouseX
+            loginWindow.dragY = mouseY
+            loginWindow.dragging = true
+        }
+        onReleased: loginWindow.dragging = false
+        onPositionChanged: {
+            if (loginWindow.dragging) {
+                loginWindow.x += mouseX - loginWindow.dragX
+                loginWindow.y += mouseY - loginWindow.dragY
+            }
+        }
     }
-
     SystemErrorDialog{
         id:systemErrorDialog
     }

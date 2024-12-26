@@ -28,5 +28,10 @@
         <file>images/Account.svg</file>
         <file>images/password.svg</file>
         <file>images/close.svg</file>
+        <file>images/暂停.svg</file>
+        <file>images/播放.svg</file>
+        <file>images/music.svg</file>
+        <file>music/TAK,Lily - Stellar Dream.mp3</file>
+        <file>images/专辑.svg</file>
     </qresource>
 </RCC>

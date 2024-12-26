@@ -11,6 +11,8 @@ set(QT_NO_SHOW_OLD_POLICY_WARNINGS ON)
 find_package(Qt6 COMPONENTS Sql REQUIRED)
 find_package(Qt6 COMPONENTS Quick REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+
 
 qt_add_executable(appremote
 
@@ -53,6 +55,8 @@ target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
 target_link_libraries(appremote
     PRIVATE Qt6::Widgets)
+target_link_libraries(appremote
+    PRIVATE Qt6::Multimedia)
 
 include(GNUInstallDirs)
 install(TARGETS appremote
