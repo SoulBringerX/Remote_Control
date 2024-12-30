@@ -351,18 +351,18 @@ Window {
                     onClicked:
                     {
                         //登录逻辑
-                        if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
-                        {
-                            loader.sourceComponent = mainWindowPage
-                        }
-                        else
-                        {
-                            systemErrorDialog.show()
-                            // 清空账户密码输入
-                            userPasswordInput.clear()
-                        }
-                        // 打桩测试
-                        // loader.sourceComponent = mainWindowPage
+                        // if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
+                        // {
+                        //     loader.sourceComponent = mainWindowPage
+                        // }
+                        // else
+                        // {
+                        //     systemErrorDialog.show()
+                        //     // 清空账户密码输入
+                        //     userPasswordInput.clear()
+                        // }
+                        //打桩测试
+                        loader.sourceComponent = mainWindowPage
                     }
                     onHoveredChanged: {
                         if (loginButtonArea.containsMouse)

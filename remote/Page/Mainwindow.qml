@@ -1,16 +1,24 @@
 import QtQuick
 import QtQuick.Controls
-import "../Model" // 进入 Model 文件夹
 
 Window {
     id: root
-    maximumWidth: Screen.desktopAvailableWidth * 0.675
-    maximumHeight: Screen.desktopAvailableHeight * 0.625
-    minimumWidth: Screen.desktopAvailableWidth * 0.675
-    minimumHeight: Screen.desktopAvailableHeight * 0.625
+    maximumWidth: Screen.desktopAvailableWidth * 0.625
+    maximumHeight: Screen.desktopAvailableHeight * 0.675
+    minimumWidth: Screen.desktopAvailableWidth * 0.625
+    minimumHeight: Screen.desktopAvailableHeight * 0.675
     visible: true
     title: qsTr("欢迎使用RemoteControl")
+    flags: Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
 
+    property bool registerstatus: true
+    property int dragX: 0
+    property int dragY: 0
+    property bool dragging: false
+    property bool isplaying: false
+
+
+    //用户栏
     Rectangle
     {
         id: userSideBar
@@ -22,8 +30,8 @@ Window {
 
         Rectangle {
             id: userSideBarbutton
-            width: 36
-            height: 36
+            width: 28
+            height: 28
             radius: height
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
@@ -82,8 +90,8 @@ Window {
 
         Rectangle{
             id: directConnectionButtonRectangle
-            width: parent.width - 36
-            height: 36
+            width: parent.width - 32
+            height: 32
             anchors.left: parent.left
             anchors.leftMargin: 15
             anchors.top: userSideBarbutton.bottom
@@ -92,8 +100,8 @@ Window {
 
             Rectangle {
                 id: directConnectionRectangle
-                width: 36
-                height: 36
+                width: 32
+                height: 32
                 anchors.left: parent.left
                 anchors.top: parent.top
                 color: "transparent"
@@ -108,7 +116,7 @@ Window {
                 id: directConnectionText
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: directConnectionRectangle.right
-                anchors.leftMargin: 10
+                anchors.leftMargin: 5
                 text: qsTr("远程控制")
                 opacity: 1.0
             }
@@ -146,220 +154,47 @@ Window {
         height: parent.height
         anchors.left: userSideBar.right
         anchors.top: parent.top
-
-        ListModel {
-            id: deviceInformationModel
-            ListElement { deviceName: "Computer 1"; isConnected: false }
-            ListElement { deviceName: "Computer 2"; isConnected: false }
-            ListElement { deviceName: "Computer 3"; isConnected: false }
-        }
-
         Rectangle {
             id: userDeviceStatus
             width: parent.width * 0.625
             height: parent.height
             anchors.left: parent.left
             anchors.top: parent.top
-
-            ListView{
-                id: userDeviceList
-                width: parent.width
-                height: parent.height
-                model: deviceInformationModel
-
-                //数据格式
-                delegate: Item {
-                    id: deviceListItem
-                    width: parent.width
-                    height: 40
-                    Rectangle {
-                        id: deviceInformationRectangle
-                        anchors.fill: parent
-                        border.color: "black"
-                        border.width: 0.5
-                        Image {
-                            id: deviceIconImage
-                            width: 16
-                            height: 16
-                            source: "qrc:/images/Computer.svg"
-                            anchors.top: parent.top
-                            anchors.topMargin: 10
-                            anchors.left: parent.left
-                            anchors.leftMargin: 20
-                        }
-                        Text {
-                            id: deviceNameText
-                            anchors.left: deviceIconImage.right
-                            anchors.leftMargin: 10
-                            text: qsTr(deviceName)
-                             anchors.top: parent.top
-                             anchors.topMargin: 10
-                        }
-                        Rectangle
-                        {
-                            id: deviceExtendStatusRectangle
-                            width: 16
-                            height: 16
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.topMargin: 10
-                            anchors.rightMargin: 20
-                            Image {
-                                id: deviceExtendStatusImage
-                                width: 16
-                                height: 16
-                                anchors.top: parent.top
-                                source: "qrc:/images/extend.svg"
-                                rotation: 90
-                            }
-                            MouseArea
-                            {
-                                id: userDeviceInformationExtendMouseArea
-                                property bool iconchanged: false;
-                                anchors.fill: parent
-                                onClicked: {
-                                    if(!iconchanged){
-                                        userDeviceInformationExtend.running = true
-                                        directionIconchanged1.running = true
-                                        iconchanged = true
-                                    }
-                                    else
-                                    {
-                                        userDeviceInformationShrink.running = true
-                                        directionIconchanged2.running = true
-                                        iconchanged = false
-                                    }
-                                }
-                            }
-                            PropertyAnimation {
-                                id: directionIconchanged1
-                                properties: "rotation"
-                                target: deviceExtendStatusImage
-                                from: 90
-                                to: 0
-                                duration: 250 // 动画持续时间，以毫秒为单位
-                            }
-                            PropertyAnimation {
-                                id:  directionIconchanged2
-                                properties: "rotation"
-                                target: deviceExtendStatusImage
-                                from: 0
-                                to: 90
-                                duration: 250 // 动画持续时间，以毫秒为单位
-                            }
-                        }
-
-                        Rectangle {
-                            id: userDeviceDetailsInformationRectangle
-                            width: parent.width - 21
-                            height: 60
-                            anchors.top: deviceExtendStatusRectangle.bottom
-                            anchors.topMargin: 5
-                            anchors.right: deviceExtendStatusRectangle.right
-                            visible: userDeviceInformationExtendMouseArea.iconchanged
-
-                            Flickable {
-                                id: flickable
-                                width: parent.width
-                                height: parent.width
-                                contentWidth: parent.width
-                                contentHeight: 160
-
-                                Rectangle {
-                                    id: userDeviceAppListRectangle
-                                    width: flickable.width
-                                    height: 160
-
-                                    //测试专用
-                                    ListModel {
-                                        id: deviceAppListModel
-                                        ListElement {
-                                            deviceIP: "192.168.1.1"
-                                            deviceName: "Computer 1"
-                                            AppName: "App 1"
-                                            RdpAppName: "App 1"
-                                            AppIconPath: "qrc:/images/wx.svg"
-                                            isConnected: true
-                                        }
-                                        ListElement {
-                                            deviceIP: "192.168.1.1"
-                                            deviceName: "Computer 1"
-                                            AppName: "App 2"
-                                            RdpAppName: "App 2"
-                                            AppIconPath: "qrc:/images/QQ.svg"
-                                            isConnected: true
-                                        }
-                                    }
-
-                                    ListView {
-                                        id: deviceAppListView
-                                        anchors.fill: parent
-                                        model: deviceAppListModel
-
-                                        delegate: Item {
-                                            id: appItem
-                                            width: parent.width
-                                            height: 32
-                                            Rectangle {
-                                                id: appItemRectangle
-                                                anchors.fill: parent
-
-                                                Image{
-                                                    id: appIcon
-                                                    width: 24
-                                                    height: 24
-                                                    source: model.AppIconPath
-                                                    anchors.verticalCenter: parent.verticalCenter
-                                                    anchors.left: parent.left
-                                                    anchors.leftMargin: 20
-                                                }
-
-                                                Text{
-                                                    id: appName
-                                                    text: model.AppName
-                                                    anchors.verticalCenter: parent.verticalCenter
-                                                    anchors.left: appIcon.right
-                                                    anchors.rightMargin: 10
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // 启用滚动条
-                                flickableDirection: Flickable.VerticalFlick // 垂直滚动
-                            }
-                        }
-                    }
-                    PropertyAnimation
-                    {
-                        id: userDeviceInformationExtend
-                        target: deviceListItem
-                        properties: "height"
-                        from: 40
-                        to: userDeviceList.height / userDeviceList.count
-                        duration: 250
-                    }
-                    PropertyAnimation
-                    {
-                        id: userDeviceInformationShrink
-                        target: deviceListItem
-                        properties: "height"
-                        from: userDeviceList.height /  userDeviceList.count
-                        to: 40
-                        duration: 250
-                    }
-                }
+            z: 2
+            Loader{
+                id: pageloader
+                anchors.fill: parent
+                // 初始加载主页面
+                sourceComponent: userDevicesPage
+            }
+            Component {
+                id: userDevicesPage
+                UserDevices{}
             }
         }
-
+        // 用户远程设备的信息（需登录过一次设备后方可显示对面的设备信息）
         Rectangle {
             id: userDeviceInformationRectangle
-            width: parent.width * 0.475
-            height: parent.width
+            width: parent.width * 0.375
+            height: parent.height
             anchors.left: userDeviceStatus.right
             anchors.top: parent.top
             color: "#EAF1F3"
+
+            Text{
+                id: lastLogininformation
+                text:"2024/12/30 10:30 am"
+                anchors.top: parent.top
+                anchors.topMargin: parent.height * 0.05
+                anchors.horizontalCenter: userDeviceInformationRectangle.horizontalCenter
+            }
+            Text{
+                id:userDeviceInformation
+                text:" "
+                anchors.top: lastLogininformation.bottom
+                anchors.topMargin: parent.height * 0.05
+                anchors.horizontalCenter: userDeviceInformationRectangle.horizontalCenter
+            }
         }
     }
 
@@ -413,10 +248,65 @@ Window {
         duration: 500 // 动画持续时间，以毫秒为单位
     }
 
-    // 监听窗口关闭事件
-    onClosing: {
-        // 调用 Qt.quit() 来终止程序
-        Qt.quit();
+    // 关闭按钮
+    Rectangle {
+        width: parent.height * 0.03
+        height: parent.height * 0.03
+        anchors.top: parent.top
+        anchors.topMargin: parent.height * 0.01
+        anchors.right: parent.right
+        anchors.rightMargin: parent.width * 0.01
+        z: 1 // 确保关闭按钮在最上层
+        color:"transparent"
+
+        Image {
+            id: closeDialogImage
+            source: "qrc:/images/close.svg"
+            anchors.centerIn: parent
+            width: parent.width
+            height: parent.height
+            fillMode: Image.PreserveAspectFit
+            rotation: closeDialogImage.rotation
+
+            // 使用 Behavior 使旋转平滑
+            Behavior on rotation {
+                RotationAnimation {
+                    duration: 300 // 动画持续时间为300ms
+                    easing.type: Easing.InOutQuad
+                }
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                Qt.quit()
+            }
+            // 鼠标悬停时触发旋转动画
+            onHoveredChanged: {
+                if (containsMouse) {
+                    closeDialogImage.rotation = 180
+                } else {
+                    closeDialogImage.rotation = 0
+                }
+            }
+        }
     }
 
+    MouseArea {
+        anchors.fill: parent
+        z: -2 // 设置此 MouseArea 的 z 值为较低，确保它在文本和图标下方
+        onPressed: {
+            root.dragX = mouseX
+            root.dragY = mouseY
+            root.dragging = true
+        }
+        onReleased: root.dragging = false
+        onPositionChanged: {
+            if (root.dragging) {
+                root.x += mouseX - root.dragX
+                root.y += mouseY - root.dragY
+            }
+        }
+    }
 }

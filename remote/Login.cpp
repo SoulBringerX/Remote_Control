@@ -2,8 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "globalproperties.h"
-#include "account.h"
-#include "database.h"
+#include "./Code/Users/account.h"
+#include "./Code/DataBase/database.h"
 
 int main(int argc, char *argv[])
 {

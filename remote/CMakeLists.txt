@@ -25,18 +25,19 @@ qt_add_qml_module(appremote
     SOURCES globalproperties.h globalproperties.cpp
     RESOURCES resource.qrc
     QML_FILES Page/Mainwindow.qml
-    SOURCES account.h account.cpp
+    SOURCES Code/Users/account.h Code/Users/account.cpp
     QML_FILES Page/Register.qml
     SOURCES Login.cpp
     QML_FILES Page/Dialog/SuecessDialog.qml
     QML_FILES Page/Main.qml
     QML_FILES Model/DeviceInformationModel.qml
     QML_FILES Model/DeviceAppModel.qml
-    SOURCES database.h database.cpp
+    SOURCES Code/Database/database.h Code/Database/database.cpp
     QML_FILES Page/Dialog/SystemErrorDialog.qml
-    SOURCES devicedate.h
-    SOURCES applicationData.h
+    SOURCES Code/AppData/devicedate.h
+    SOURCES Code/AppData/applicationData.h
     SOURCES imageresource.h imageresource.cpp
+    QML_FILES Page/UserDevices.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
