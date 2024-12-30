@@ -1,36 +1,24 @@
 # RemoteControl
 
-#### Description
-本仓库是基于RDP协议的远程桌面控制软件，给予FreeRDP源码操作，旨在为国产操作系统提供非适配国产操作系统软件的完整体验。
+#### Introduction
 
-#### Software Architecture
-Software architecture description
+This repository is a remote desktop control software based on the RDP protocol, derived from the FreeRDP source code, aimed at providing a complete experience for software not originally adapted for domestic operating systems on domestic operating systems.
 
-#### Installation
+#### Installation Guide
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. xxxx
+2. xxxx
+3. xxxx
 
-#### Instructions
+#### Usage Instructions
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. CMake version >= 3.20.0
+2. Qt version >= 6.5.3
 
-#### Contribution
+#### Software Update Log
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1. **2024.9.12** Launched the project and drafted the project plan.
+2. **2024.9.19** Completed the login interface and most of the main page (involving user connections to remote computer devices).
+3. **2024.12.18** Leveraged experience from the previous Android porting to HarmonyOS project, replaced the original fixed-point layout with a percentage-based layout, and modified the login page.
+4. **2024.12.25** Modified the pop-up interface, adopting a borderless design, enhancing the versatility of the text content in the pop-up.
+5. **2024.12.30** Reduced the coupling of the main page interface, using Loader to load corresponding sub-pages. Most interfaces have switched to a borderless design.
