@@ -15,7 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 
 
 qt_add_executable(appremote
-
+    App.rc
 )
 
 qt_add_qml_module(appremote

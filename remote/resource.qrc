@@ -1,11 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>images/back1.jpg</file>
-        <file>images/day1.jpg</file>
         <file>images/moon.svg</file>
-        <file>images/night.jpg</file>
         <file>images/sun.svg</file>
-        <file>images/moonback.jpg</file>
         <file>images/sunback.jpg</file>
         <file>images/NO.svg</file>
         <file>images/OK.svg</file>
@@ -19,10 +16,6 @@
         <file>images/QQ.svg</file>
         <file>images/wx.svg</file>
         <file>images/SystemError.svg</file>
-        <file>images/DeviceList1.svg</file>
-        <file>images/DeviceList2.svg</file>
-        <file>images/Directconnection1.svg</file>
-        <file>images/Directconnection2.svg</file>
         <file>images/Setting1.svg</file>
         <file>images/Setting2.svg</file>
         <file>images/Account.svg</file>
@@ -33,5 +26,10 @@
         <file>images/music.svg</file>
         <file>music/TAK,Lily - Stellar Dream.mp3</file>
         <file>images/专辑.svg</file>
+        <file>images/configureSetting1.svg</file>
+        <file>images/configureSetting2.svg</file>
+        <file>images/remoteConnecting1.svg</file>
+        <file>images/remoteConnecting2.svg</file>
+        <file>images/LOGO.ico</file>
     </qresource>
 </RCC>

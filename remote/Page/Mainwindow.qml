@@ -56,6 +56,7 @@ Window {
                         userDeviceExtendAnimation.running = true
                         backIconchanged1.running = true
                         directConnectionTextmiss.running = true
+                        rdpConnectionSettingTextmiss.running = true
                         iconchanged = false
                     }
                     else
@@ -64,6 +65,7 @@ Window {
                         userDeviceHideAnimation.running = true
                         backIconchanged2.running = true
                         directConnectionTextsee.running = true
+                        rdpConnectionSettingTextsee.running = true
                         iconchanged = true
                     }
                 }
@@ -86,6 +88,24 @@ Window {
                 to: 1
                 duration: 500
             }
+            PropertyAnimation
+            {
+                id: rdpConnectionSettingTextmiss
+                target: rdpConnectionSettingText
+                properties: "opacity"
+                from: 1
+                to: 0
+                duration: 500
+            }
+            PropertyAnimation
+            {
+                id: rdpConnectionSettingTextsee
+                target: rdpConnectionSettingText
+                properties: "opacity"
+                from: 0
+                to: 1
+                duration: 500
+            }
         }
 
         Rectangle{
@@ -93,9 +113,9 @@ Window {
             width: parent.width - 32
             height: 32
             anchors.left: parent.left
-            anchors.leftMargin: 15
+            anchors.leftMargin: parent.width * 0.25
             anchors.top: userSideBarbutton.bottom
-            anchors.topMargin: 50
+            anchors.topMargin: parent.height * 0.15
             color: "transparent"
 
             Rectangle {
@@ -107,8 +127,11 @@ Window {
                 color: "transparent"
 
                 Image {
+                    width: 32
+                    height: 32
                     id: directConnectionIcon
-                    source: "qrc:/images/Directconnection2.svg"
+                    source: "qrc:/images/remoteConnecting2.svg"
+                    fillMode: Image.PreserveAspectFit
                 }
             }
             Text
@@ -130,7 +153,7 @@ Window {
                 {
                     directConnectionButtonRectangle.color = "#26C2FA";
                     directConnectionText.color = "#1296db"
-                    directConnectionIcon.source = "qrc:/images/Directconnection1.svg"
+                    directConnectionIcon.source = "qrc:/images/remoteConnecting1.svg"
                 }
                 onHoveredChanged:
                 {
@@ -141,6 +164,66 @@ Window {
                     else
                     {
                         directConnectionButtonRectangle.color = "transparent"
+                    }
+                }
+            }
+        }
+
+        Rectangle{
+            id: rdpConnectionSettingButtonRectangle
+            width: parent.width - 32
+            height: 32
+            anchors.left: parent.left
+            anchors.leftMargin: parent.width * 0.25
+            anchors.top: directConnectionButtonRectangle.bottom
+            anchors.topMargin: parent.height * 0.15
+            color: "transparent"
+            Rectangle {
+                id: rdpConnectionSettingRectangle
+                width: 32
+                height: 32
+                anchors.left: parent.left
+                anchors.top: parent.top
+                color: "transparent"
+
+                Image {
+                    width: 32
+                    height: 32
+                    id: rdpConnectionSettingIcon
+                    source: "qrc:/images/configureSetting2.svg"
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+            Text
+            {
+                id: rdpConnectionSettingText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: rdpConnectionSettingRectangle.right
+                anchors.leftMargin: 5
+                text: qsTr("连接配置")
+                opacity: 1.0
+            }
+            MouseArea
+            {
+                id: rdpConnectionSettingArea
+                anchors.fill: parent
+                hoverEnabled: true
+
+                onClicked:
+                {
+                    rdpConnectionSettingButtonRectangle.color = "#26C2FA";
+                    rdpConnectionSettingText.color = "#1296db"
+                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting1.svg"
+                }
+                onHoveredChanged:
+                {
+                    if (rdpConnectionSettingArea.containsMouse)
+                    {
+                        rdpConnectionSettingButtonRectangle.color = "#9EE6FF"
+                    }
+                    else
+                    {
+                        rdpConnectionSettingButtonRectangle.color = "transparent"
                     }
                 }
             }
