@@ -109,7 +109,7 @@ Window {
 
                     Image
                     {
-                        source:isplaying ? "qrc:/images/暂停.svg":"qrc:/images/播放.svg"
+                        source:isplaying ? "qrc:/images/pause.svg":"qrc:/images/play.svg"
                         anchors.centerIn: parent
                         width: parent.width
                         height: parent.height

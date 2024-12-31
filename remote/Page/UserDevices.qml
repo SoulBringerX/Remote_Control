@@ -54,6 +54,7 @@ Rectangle{
                         anchors.top: parent.top
                         anchors.topMargin: 10
                         anchors.rightMargin: 20
+                        color:"transparent"
                         z:3
                         Image {
                             id: deviceExtendStatusImage
@@ -99,7 +100,29 @@ Rectangle{
                             duration: 250 // 动画持续时间，以毫秒为单位
                         }
                     }
-
+                    Rectangle {
+                        id: userDeviceInformationIcon
+                        width: 16
+                        height: 16
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: deviceExtendStatusRectangle.right
+                        anchors.rightMargin: parent.width * 0.05
+                        anchors.top: parent.top
+                        anchors.topMargin: 10
+                        Image{
+                            width: 16
+                            height: 16
+                            anchors.top: parent.top
+                            source: "qrc:/images/info.svg"
+                        }
+                        MouseArea{
+                            id: userDeviceItemInformation
+                            anchors.fill: parent
+                            onClicked: {
+                                userDeviceInformation.text = "OS:Windosw 10" + '\n'+"CPU:Intel i5-8500"
+                            }
+                        }
+                    }
                     Rectangle {
                         id: userDeviceDetailsInformationRectangle
                         width: parent.width - 21
@@ -112,7 +135,7 @@ Rectangle{
                         Flickable {
                             id: flickable
                             width: parent.width
-                            height: parent.width
+                            height: parent.height
                             contentWidth: parent.width
                             contentHeight: 160
 
@@ -176,16 +199,8 @@ Rectangle{
                                     }
                                 }
                             }
-
                             // 启用滚动条
                             flickableDirection: Flickable.VerticalFlick // 垂直滚动
-                        }
-                    }
-                    MouseArea{
-                        id: userDeviceItemInformation
-                        anchors.fill: parent
-                        onClicked: {
-                            userDeviceInformation.text = "OS:Windosw 10" + '\n'+"CPU:Intel i5-8500"
                         }
                     }
                 }

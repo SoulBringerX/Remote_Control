@@ -21,15 +21,16 @@
         <file>images/Account.svg</file>
         <file>images/password.svg</file>
         <file>images/close.svg</file>
-        <file>images/暂停.svg</file>
-        <file>images/播放.svg</file>
+        <file>images/pause.svg</file>
+        <file>images/play.svg</file>
         <file>images/music.svg</file>
         <file>music/TAK,Lily - Stellar Dream.mp3</file>
-        <file>images/专辑.svg</file>
+        <file>images/album.svg</file>
         <file>images/configureSetting1.svg</file>
         <file>images/configureSetting2.svg</file>
         <file>images/remoteConnecting1.svg</file>
         <file>images/remoteConnecting2.svg</file>
         <file>images/LOGO.ico</file>
+        <file>images/info.svg</file>
     </qresource>
 </RCC>

@@ -87,7 +87,7 @@ Window {
                             themeColorChangedAnimation1.running = true
                             iconchanged = false
                             themeIcon.source = "qrc:/images/moon.svg"
-                            windowBackground.source = "qrc:/images/moonback.jpg"
+                            windowBackground.source = "qrc:/images/sunback.jpg"
                             themeColorChanged1.running = true
                         }
                         else
@@ -95,7 +95,7 @@ Window {
                             themeColorChangedAnimation2.running = true
                             iconchanged = true
                             themeIcon.source = "qrc:/images/sun.svg"
-                            windowBackground.source = "qrc:/images/back1.jpg"
+                            windowBackground.source = "qrc:/images/moonback.jpg"
                             themeColorChanged2.running = true
                         }
                    }
