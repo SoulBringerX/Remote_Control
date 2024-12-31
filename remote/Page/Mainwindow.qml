@@ -17,7 +17,6 @@ Window {
     property bool dragging: false
     property bool isplaying: false
 
-
     //用户栏
     Rectangle
     {
@@ -57,6 +56,7 @@ Window {
                         backIconchanged1.running = true
                         directConnectionTextmiss.running = true
                         rdpConnectionSettingTextmiss.running = true
+                        rdpDeviceTextmiss.running = true
                         iconchanged = false
                     }
                     else
@@ -66,6 +66,7 @@ Window {
                         backIconchanged2.running = true
                         directConnectionTextsee.running = true
                         rdpConnectionSettingTextsee.running = true
+                        rdpDeviceTextsee.running = true
                         iconchanged = true
                     }
                 }
@@ -101,6 +102,24 @@ Window {
             {
                 id: rdpConnectionSettingTextsee
                 target: rdpConnectionSettingText
+                properties: "opacity"
+                from: 0
+                to: 1
+                duration: 500
+            }
+            PropertyAnimation
+            {
+                id: rdpDeviceTextmiss
+                target: rdpDeviceText
+                properties: "opacity"
+                from: 1
+                to: 0
+                duration: 500
+            }
+            PropertyAnimation
+            {
+                id: rdpDeviceTextsee
+                target: rdpDeviceText
                 properties: "opacity"
                 from: 0
                 to: 1
@@ -153,7 +172,9 @@ Window {
                 {
                     directConnectionButtonRectangle.color = "#26C2FA";
                     directConnectionText.color = "#1296db"
-                    directConnectionIcon.source = "qrc:/images/remoteConnecting1.svg"
+                    directConnectionIcon.source = "qrc:/images/remoteConnecting1.svg";
+                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
+                    rdpConnectionSettingText.color = "black";
                 }
                 onHoveredChanged:
                 {
@@ -208,12 +229,14 @@ Window {
                 id: rdpConnectionSettingArea
                 anchors.fill: parent
                 hoverEnabled: true
-
                 onClicked:
                 {
                     rdpConnectionSettingButtonRectangle.color = "#26C2FA";
-                    rdpConnectionSettingText.color = "#1296db"
-                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting1.svg"
+                    rdpConnectionSettingText.color = "#1296db";
+                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting1.svg";
+                    directConnectionIcon.source = "qrc:/images/remoteConnecting2.svg";
+                    directConnectionText.color = "black";
+                    pageloader.sourceComponent = remoteSettingPage
                 }
                 onHoveredChanged:
                 {
@@ -224,6 +247,68 @@ Window {
                     else
                     {
                         rdpConnectionSettingButtonRectangle.color = "transparent"
+                    }
+                }
+            }
+        }
+
+        Rectangle{
+            id: rdpDeviceButtonRectangle
+            width: parent.width - 32
+            height: 32
+            anchors.left: parent.left
+            anchors.leftMargin: parent.width * 0.25
+            anchors.top: rdpConnectionSettingButtonRectangle.bottom
+            anchors.topMargin: parent.height * 0.15
+            color: "transparent"
+            Rectangle {
+                id: rdpDeviceRectangle
+                width: 32
+                height: 32
+                anchors.left: parent.left
+                anchors.top: parent.top
+                color: "transparent"
+
+                Image {
+                    width: 32
+                    height: 32
+                    id: rdpDeviceIcon
+                    source: "qrc:/images/Device1.svg"
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+            Text
+            {
+                id: rdpDeviceText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: rdpDeviceRectangle.right
+                anchors.leftMargin: 5
+                text: qsTr("设备管理")
+                opacity: 1.0
+            }
+            MouseArea
+            {
+                id: rdpDeviceArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked:
+                {
+                    rdpDeviceButtonRectangle.color = "#26C2FA";
+                    rdpDeviceText.color = "#1296db";
+                    rdpDeviceIcon.source = "qrc:/images/Device2.svg";
+                    directConnectionIcon.source = "qrc:/images/remoteConnecting2.svg";
+                    directConnectionText.color = "black";
+                    pageloader.sourceComponent = userDevicesPage;
+                }
+                onHoveredChanged:
+                {
+                    if (rdpDeviceArea.containsMouse)
+                    {
+                        rdpDeviceButtonRectangle.color = "#9EE6FF"
+                    }
+                    else
+                    {
+                        rdpDeviceButtonRectangle.color = "transparent"
                     }
                 }
             }
@@ -244,6 +329,7 @@ Window {
             anchors.left: parent.left
             anchors.top: parent.top
             z: 2
+            
             Loader{
                 id: pageloader
                 anchors.fill: parent
@@ -253,6 +339,10 @@ Window {
             Component {
                 id: userDevicesPage
                 UserDevices{}
+            }
+            Component {
+                id: remoteSettingPage
+                RemoteSetting{}
             }
         }
         // 用户远程设备的信息（需登录过一次设备后方可显示对面的设备信息）

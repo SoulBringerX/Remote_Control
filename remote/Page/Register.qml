@@ -237,11 +237,11 @@ Window {
                     anchors.centerIn: parent
                     readOnly: false
                     font.pixelSize: 12
-                    selectionColor: "lightblue" // 选中文本的背景色
-                    selectedTextColor: "white" // 选中文本的颜色
-                    Keys.onEnterPressed: userAccountInput.focus = false // 按下Enter键时取消焦点
-                    Keys.onReturnPressed: userAccountInput.focus = false // 按下Return键时取消焦点
-                    clip: true //设置组件中文字不得超出长度
+                    selectionColor: "lightblue"
+                    selectedTextColor: "white"
+                    Keys.onEnterPressed: userAccountInput.focus = false
+                    Keys.onReturnPressed: userAccountInput.focus = false
+                    clip: true
                     echoMode: TextInput.Password
                 }
             }

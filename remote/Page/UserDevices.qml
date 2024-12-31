@@ -5,6 +5,7 @@ import "../Model" // 进入 Model 文件夹
 Rectangle{
     width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
     height: Screen.desktopAvailableHeight * 0.675
+    property int isExtendCount: 0
     ListModel {
         id: deviceInformationModel
         ListElement { deviceName: "Computer 1"; isConnected: true }
@@ -71,12 +72,14 @@ Rectangle{
                             anchors.fill: parent
                             onClicked: {
                                 if(!iconchanged){
+                                    isExtendCount++
                                     userDeviceInformationExtend.running = true
                                     directionIconchanged1.running = true
                                     iconchanged = true
                                 }
                                 else
                                 {
+                                    isExtendCount--
                                     userDeviceInformationShrink.running = true
                                     directionIconchanged2.running = true
                                     iconchanged = false
@@ -210,7 +213,7 @@ Rectangle{
                     target: deviceListItem
                     properties: "height"
                     from: 40
-                    to: userDeviceList.height / userDeviceList.count
+                    to: userDeviceList.height / isExtendCount - (40 * (userDeviceList.count - isExtendCount))
                     duration: 250
                 }
                 PropertyAnimation
@@ -218,7 +221,7 @@ Rectangle{
                     id: userDeviceInformationShrink
                     target: deviceListItem
                     properties: "height"
-                    from: userDeviceList.height /  userDeviceList.count
+                    from: userDeviceList.height /  isExtendCount - (40 * (userDeviceList.count - isExtendCount))
                     to: 40
                     duration: 250
                 }
