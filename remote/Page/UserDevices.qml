@@ -3,9 +3,8 @@ import QtQuick.Window
 import QtQuick.Controls
 import "../Model" // 进入 Model 文件夹
 Rectangle{
-    width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
-    height: Screen.desktopAvailableHeight * 0.675
     property int isExtendCount: 0
+    color: "transparent"
     ListModel {
         id: deviceInformationModel
         ListElement { deviceName: "Computer 1"; isConnected: true }
@@ -28,6 +27,7 @@ Rectangle{
                     anchors.fill: parent
                     border.color: "black"
                     border.width: 0.5
+                    color: "transparent"
                     Image {
                         id: deviceIconImage
                         width: 16
@@ -112,6 +112,7 @@ Rectangle{
                         anchors.rightMargin: parent.width * 0.05
                         anchors.top: parent.top
                         anchors.topMargin: 10
+                        color: "transparent"
                         Image{
                             width: 16
                             height: 16
@@ -128,19 +129,20 @@ Rectangle{
                     }
                     Rectangle {
                         id: userDeviceDetailsInformationRectangle
-                        width: parent.width - 21
-                        height: 60
+                        width: parent.width - 2
+                        height: parent.height
                         anchors.top: deviceExtendStatusRectangle.bottom
                         anchors.topMargin: 5
-                        anchors.right: deviceExtendStatusRectangle.right
+                        anchors.horizontalCenter: parent.horizontalCenter
                         visible: userDeviceInformationExtendMouseArea.iconchanged
 
                         Flickable {
                             id: flickable
                             width: parent.width
-                            height: parent.height
+                            height: parent.height - 40
                             contentWidth: parent.width
-                            contentHeight: 160
+                            contentHeight: parent.height - 40
+                            clip: false
 
                             Rectangle {
                                 id: userDeviceAppListRectangle

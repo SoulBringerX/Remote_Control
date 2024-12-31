@@ -25,7 +25,7 @@ Window {
         height: parent.height
         anchors.left: parent.left
         anchors.top: parent.top
-        color: "lightblue"
+        color: "white"
 
         Rectangle {
             id: userSideBarbutton
@@ -129,13 +129,13 @@ Window {
 
         Rectangle{
             id: directConnectionButtonRectangle
-            width: parent.width - 32
+            width: parent.width*0.75
             height: 32
-            anchors.left: parent.left
-            anchors.leftMargin: parent.width * 0.25
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: userSideBarbutton.bottom
-            anchors.topMargin: parent.height * 0.15
+            anchors.topMargin: parent.height * 0.075
             color: "transparent"
+            radius: 5
 
             Rectangle {
                 id: directConnectionRectangle
@@ -144,7 +144,6 @@ Window {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 color: "transparent"
-
                 Image {
                     width: 32
                     height: 32
@@ -192,13 +191,13 @@ Window {
 
         Rectangle{
             id: rdpConnectionSettingButtonRectangle
-            width: parent.width - 32
+            width: parent.width*0.75
             height: 32
-            anchors.left: parent.left
-            anchors.leftMargin: parent.width * 0.25
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: directConnectionButtonRectangle.bottom
-            anchors.topMargin: parent.height * 0.15
+            anchors.topMargin: parent.height * 0.075
             color: "transparent"
+            radius: 5
             Rectangle {
                 id: rdpConnectionSettingRectangle
                 width: 32
@@ -254,13 +253,13 @@ Window {
 
         Rectangle{
             id: rdpDeviceButtonRectangle
-            width: parent.width - 32
+            width: parent.width*0.75
             height: 32
-            anchors.left: parent.left
-            anchors.leftMargin: parent.width * 0.25
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: rdpConnectionSettingButtonRectangle.bottom
-            anchors.topMargin: parent.height * 0.15
+            anchors.topMargin: parent.height * 0.075
             color: "transparent"
+            radius: 5
             Rectangle {
                 id: rdpDeviceRectangle
                 width: 32
@@ -329,7 +328,7 @@ Window {
             anchors.left: parent.left
             anchors.top: parent.top
             z: 2
-            
+            color: "#4281ff"
             Loader{
                 id: pageloader
                 anchors.fill: parent
@@ -377,7 +376,7 @@ Window {
         properties: "width"
         target: userSideBar
         from: root.width * 0.15
-        to: 64
+        to: 48
         duration: 500 // 动画持续时间，以毫秒为单位
     }
     PropertyAnimation {
@@ -385,14 +384,14 @@ Window {
         properties: "width"
         target: userDevices
         from: root.width * 0.85
-        to: root.width - 64
+        to: root.width - 48
         duration: 500 // 动画持续时间，以毫秒为单位
     }
     PropertyAnimation {
         id: userSideBarExtendAnimation
         properties: "width"
         target: userSideBar
-        from: 64
+        from: 48
         to: root.width * 0.15
         duration: 500 // 动画持续时间，以毫秒为单位
     }
@@ -400,7 +399,7 @@ Window {
         id: userDeviceHideAnimation
         properties: "width"
         target: userDevices
-        from: root.width - 64
+        from: root.width - 48
         to: root.width * 0.85
         duration: 500 // 动画持续时间，以毫秒为单位
     }
