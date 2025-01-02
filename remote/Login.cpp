@@ -1,6 +1,10 @@
 #include <QApplication> // 替换 QGuiApplication
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
+#include <QObject>
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
 #include "./Code/DataBase/database.h"
@@ -29,5 +33,17 @@ int main(int argc, char *argv[])
 
     engine.load(url);
 
+    #ifdef Q_OS_WIN
+        QSystemTrayIcon trayIcon;
+        QMenu menu;
+        QAction quitAction("退出", &menu);
+        QObject::connect(&quitAction, &QAction::triggered, &app, &QApplication::quit);
+        menu.addAction(&quitAction);
+
+        trayIcon.setContextMenu(&menu);
+        trayIcon.setIcon(QIcon(":/images/tray_icon.png"));
+        trayIcon.show();
+    #endif
+    
     return app.exec();
 }

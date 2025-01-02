@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 
 Window {
     id: root
@@ -16,6 +17,8 @@ Window {
     property int dragY: 0
     property bool dragging: false
     property bool isplaying: false
+
+    signal minimizeToTray()
 
     //用户栏
     Rectangle
@@ -253,7 +256,7 @@ Window {
 
         Rectangle{
             id: rdpDeviceButtonRectangle
-            width: parent.width*0.75
+            width: parent.width*0.75 
             height: 32
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: rdpConnectionSettingButtonRectangle.bottom
@@ -452,7 +455,7 @@ Window {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                Qt.quit()
+                closeDialog.open()
             }
             // 鼠标悬停时触发旋转动画
             onHoveredChanged: {
@@ -478,6 +481,47 @@ Window {
             if (root.dragging) {
                 root.x += mouseX - root.dragX
                 root.y += mouseY - root.dragY
+            }
+        }
+    }
+            // 弹出对话框
+    Dialog {
+        id: closeDialog
+        title: "退出程序"
+        modal: true
+        width: 200
+        height: 100
+        standardButtons: Dialog.NoButton
+        // 将对话框居中显示
+        Component.onCompleted: {
+            closeDialog.anchors.centerIn = parent
+        }
+
+        contentItem: Column {
+            spacing: 10
+            Text {
+                text: "您想要关闭程序还是最小化到托盘？"
+                wrapMode: Text.WordWrap
+            }
+            Row {
+                spacing: 10
+                Button {
+                    text: "关闭程序"
+                    onClicked: {
+                        Qt.quit() // 关闭程序
+                    }
+                }
+                Button {
+                    text: "最小化到托盘"
+                    onClicked: {
+                        minimizeToTray()
+                        closeDialog.close()
+                    }
+                }
+                Button {
+                    text: "取消"
+                    onClicked: closeDialog.close()
+                }
             }
         }
     }
