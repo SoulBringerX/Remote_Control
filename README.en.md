@@ -22,3 +22,4 @@ This repository is a remote desktop control software based on the RDP protocol, 
 3. **2024.12.18** Leveraged experience from the previous Android porting to HarmonyOS project, replaced the original fixed-point layout with a percentage-based layout, and modified the login page.
 4. **2024.12.25** Modified the pop-up interface, adopting a borderless design, enhancing the versatility of the text content in the pop-up.
 5. **2024.12.30** Reduced the coupling of the main page interface, using Loader to load corresponding sub-pages. Most interfaces have switched to a borderless design.
+6. **2025.1.2** Added a tray icon, and added the functionality of minimizing to the tray and restoring from the tray (Windows-specific functionality, needs further optimization).
