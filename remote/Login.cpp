@@ -1,49 +1,75 @@
-#include <QApplication> // 替换 QGuiApplication
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QQuickwindow>
 #include <QAction>
 #include <QObject>
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
 #include "./Code/DataBase/database.h"
 
+// 用于跟踪窗口是否隐藏的全局变量
+bool isWindowHidden = false;
+
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv); // 使用 QApplication
+    QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    Account user_account;
-
     const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
-
-    QCoreApplication::setQuitLockEnabled(true);
-
-    // 直接传递 GlobalProperties::getInstance() 返回的指针给 setContextProperty
-    engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
-    // 注册实例到 QML
-    engine.rootContext()->setContextProperty("account", &user_account);
-
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-                         if (!obj && url == objUrl)
-                             QCoreApplication::exit(-1);
-                     }, Qt::QueuedConnection);
 
     engine.load(url);
 
-    #ifdef Q_OS_WIN
-        QSystemTrayIcon trayIcon;
-        QMenu menu;
-        QAction quitAction("退出", &menu);
-        QObject::connect(&quitAction, &QAction::triggered, &app, &QApplication::quit);
-        menu.addAction(&quitAction);
+    // 获取QML中的窗口对象
+    QObject *rootObject = engine.rootObjects().first();
+    QQuickWindow *mainWindow = rootObject ? rootObject->findChild<QQuickWindow *>() : nullptr;
+    if (!mainWindow) {
+        // 处理错误：找不到窗口对象
+        return -1;
+    }
 
-        trayIcon.setContextMenu(&menu);
-        trayIcon.setIcon(QIcon(":/images/tray_icon.png"));
-        trayIcon.show();
-    #endif
-    
+
+#ifdef Q_OS_WIN
+    QSystemTrayIcon trayIcon;
+    QMenu menu;
+    QAction quitAction("退出", &menu);
+    QAction showAction("显示", &menu);
+    QObject::connect(&quitAction, &QAction::triggered, &app, &QApplication::quit);
+    QObject::connect(&showAction, &QAction::triggered, [=]() {
+        if (isWindowHidden) {
+            mainWindow->show();
+            mainWindow->raise();
+            mainWindow->requestActivate();
+            isWindowHidden = false;
+        }
+    });
+    menu.addAction(&quitAction);
+    menu.addAction(&showAction);
+
+    trayIcon.setContextMenu(&menu);
+    trayIcon.setIcon(QIcon(":/images/funplayLOGO.svg"));
+    trayIcon.show();
+
+    // 连接托盘图标的activated信号
+    QObject::connect(&trayIcon, &QSystemTrayIcon::activated, [=](QSystemTrayIcon::ActivationReason reason) {
+        if (reason == QSystemTrayIcon::Trigger) {
+            if (isWindowHidden) {
+                mainWindow->show();
+                mainWindow->raise();
+                mainWindow->requestActivate();
+                isWindowHidden = false;
+            } else {
+                mainWindow->hide();
+                isWindowHidden = true;
+                if (rootObject) {
+                    QMetaObject::invokeMethod(rootObject, "minimizeToTray", Qt::QueuedConnection);
+                }
+            }
+        }
+    });
+#endif
+
     return app.exec();
 }

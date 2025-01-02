@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtQuick.Controls.Basic
 
 Window {
     id: root
@@ -486,43 +487,79 @@ Window {
     }
             // 弹出对话框
     Dialog {
-        id: closeDialog
-        title: "退出程序"
-        modal: true
-        width: 200
-        height: 100
-        standardButtons: Dialog.NoButton
-        // 将对话框居中显示
-        Component.onCompleted: {
-            closeDialog.anchors.centerIn = parent
+    id: closeDialog
+    title: "退出程序"
+    modal: true
+    width: 400
+    height: 150
+    standardButtons: Dialog.NoButton
+
+    // 将对话框居中显示
+    Component.onCompleted: {
+        closeDialog.anchors.centerIn = parent
+    }
+
+    contentItem: Column {
+        spacing: 15
+        anchors.fill: parent
+        anchors.margins: 20
+
+        Text {
+            id: closeDialogText
+            text: "您想要关闭程序还是最小化到托盘？"
+            wrapMode: Text.WordWrap
+            font.pixelSize: 16
+            color: "#333333"
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: parent.height * 0.2
         }
 
-        contentItem: Column {
+        Row {
             spacing: 10
-            Text {
-                text: "您想要关闭程序还是最小化到托盘？"
-                wrapMode: Text.WordWrap
+            anchors.top: closeDialogText.bottom
+            anchors.topMargin: parent.height * 0.125
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
+                text: "关闭程序"
+                width: 100
+                height: 40
+                font.pixelSize: 14
+                background: Rectangle{
+                    color: "#d9534f"
+                }
+                onClicked: {
+                    Qt.quit() // 关闭程序
+                }
             }
-            Row {
-                spacing: 10
-                Button {
-                    text: "关闭程序"
-                    onClicked: {
-                        Qt.quit() // 关闭程序
-                    }
+
+            Button {
+                text: "最小化到托盘"
+                width: 100
+                height: 40
+                font.pixelSize: 14
+                background: Rectangle{
+                    color: "#5bc0de"
                 }
-                Button {
-                    text: "最小化到托盘"
-                    onClicked: {
-                        minimizeToTray()
-                        closeDialog.close()
-                    }
+                onClicked: {
+                    root.close()
+                    minimizeToTray()
+                    closeDialog.close()
                 }
-                Button {
-                    text: "取消"
-                    onClicked: closeDialog.close()
+            }
+
+            Button {
+                text: "取消"
+                width: 100
+                height: 40
+                font.pixelSize: 14
+                background: Rectangle{
+                    color: "#f0ad4e"
                 }
+                onClicked: closeDialog.close()
             }
         }
     }
+}
 }

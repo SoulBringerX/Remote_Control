@@ -34,5 +34,6 @@
         <file>images/info.svg</file>
         <file>images/Device1.svg</file>
         <file>images/Device2.svg</file>
+        <file>images/funplayLOGO.svg</file>
     </qresource>
 </RCC>
