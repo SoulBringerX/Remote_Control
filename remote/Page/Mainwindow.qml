@@ -177,7 +177,10 @@ Window {
                     directConnectionText.color = "#1296db"
                     directConnectionIcon.source = "qrc:/images/remoteConnecting1.svg";
                     rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
+                    rdpDeviceIcon.source = "qrc:/images/Device1.svg";
+                    rdpDeviceText.color = "black";
                     rdpConnectionSettingText.color = "black";
+                    pageloader.sourceComponent = directConnectPage;
                 }
                 onHoveredChanged:
                 {
@@ -239,6 +242,8 @@ Window {
                     rdpConnectionSettingIcon.source = "qrc:/images/configureSetting1.svg";
                     directConnectionIcon.source = "qrc:/images/remoteConnecting2.svg";
                     directConnectionText.color = "black";
+                    rdpDeviceIcon.source = "qrc:/images/Device1.svg";
+                    rdpDeviceText.color = "black";
                     pageloader.sourceComponent = remoteSettingPage
                 }
                 onHoveredChanged:
@@ -337,7 +342,7 @@ Window {
                 id: pageloader
                 anchors.fill: parent
                 // 初始加载主页面
-                sourceComponent: userDevicesPage
+                sourceComponent: directConnectPage
             }
             Component {
                 id: userDevicesPage
@@ -346,6 +351,10 @@ Window {
             Component {
                 id: remoteSettingPage
                 RemoteSetting{}
+            }
+            Component {
+                id: directConnectPage
+                DirectConnect{}
             }
         }
         // 用户远程设备的信息（需登录过一次设备后方可显示对面的设备信息）
@@ -363,6 +372,14 @@ Window {
                 anchors.top: parent.top
                 anchors.topMargin: parent.height * 0.05
                 anchors.horizontalCenter: userDeviceInformationRectangle.horizontalCenter
+            }
+            Timer {
+                interval: 1000
+                repeat: true
+                running: true
+                onTriggered: {
+                    lastLogininformation.text = new Date().toLocaleString(Qt.locale("zh_CN"), "yyyy/MM/dd hh:mm ap")
+                }
             }
             Text{
                 id:userDeviceInformation
@@ -543,6 +560,7 @@ Window {
                     color: "#5bc0de"
                 }
                 onClicked: {
+                    // 最小化到托盘关闭当前的窗口，并隐藏主窗口
                     root.close()
                     minimizeToTray()
                     closeDialog.close()

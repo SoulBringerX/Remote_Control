@@ -44,6 +44,10 @@ int main(int argc, char *argv[])
             mainWindow->requestActivate();
             isWindowHidden = false;
         }
+        else {
+            mainWindow->hide();
+            isWindowHidden = true;
+        }
     });
     menu.addAction(&quitAction);
     menu.addAction(&showAction);
