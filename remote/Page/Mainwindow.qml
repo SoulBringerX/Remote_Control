@@ -306,6 +306,8 @@ Window {
                     rdpDeviceIcon.source = "qrc:/images/Device2.svg";
                     directConnectionIcon.source = "qrc:/images/remoteConnecting2.svg";
                     directConnectionText.color = "black";
+                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
+                    rdpConnectionSettingText.color = "black";
                     pageloader.sourceComponent = userDevicesPage;
                 }
                 onHoveredChanged:
@@ -337,7 +339,7 @@ Window {
             anchors.left: parent.left
             anchors.top: parent.top
             z: 2
-            color: "#4281ff"
+            color: "#F0EAE6"
             Loader{
                 id: pageloader
                 anchors.fill: parent

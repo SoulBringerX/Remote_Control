@@ -353,7 +353,10 @@ Window {
                         //登录逻辑
                         // if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
                         // {
-                        //     loader.sourceComponent = mainWindowPage
+                        //     if(Qt.platform.os === "windows")
+                        //         loader.sourceComponent = mainWindowPage
+                        //     else
+                        //         loader.sourceComponent = mainWindowPage
                         // }
                         // else
                         // {
@@ -362,7 +365,16 @@ Window {
                         //     userPasswordInput.clear()
                         // }
                         //打桩测试
-                        loader.sourceComponent = mainWindowPage
+                        if(Qt.platform.os === "linux")
+                        {
+                            console.log('该用户使用的是Windows')
+                            loader.sourceComponent = mainWindowPage
+                        }
+                        else
+                        {
+                            console.log('该用户使用的是windows')
+                            loader.sourceComponent = rcrmanWindowPage
+                        }
                     }
                     onHoveredChanged: {
                         if (loginButtonArea.containsMouse)

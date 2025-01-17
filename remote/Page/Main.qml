@@ -27,4 +27,9 @@ ApplicationWindow {
         id: mainWindowPage
         Mainwindow {}
     }
+
+    Component {
+        id: rcrmanWindowPage
+        RCRMainwindow {}
+    }
 }
