@@ -121,23 +121,40 @@ Rectangle {
             }
         }
 
+
         // 连接按钮
-        Button {
+        Rectangle {
             id: connectButton
-            text: "连接"
-            height: 50
-            width: directConnect.width * 0.5
+            height: parent.height * 0.0825
+            width: parent.width * 0.375
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * 0.2
             anchors.horizontalCenter: parent.horizontalCenter
-            font.pixelSize: 16
-            background: Rectangle {
-                color: "#007BFF"
-                border.color: "#0056b3"
-                border.width: 1
+            color: "#007BFF"
+            border.color: "#0056b3"
+            border.width: 1
+            Text{
+                text: "连接"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pixelSize: 16
             }
-            onClicked: {
-                // 连接逻辑
+            MouseArea{
+                id:connectButtonMouseArea
+                anchors.fill: paretnt
+                hoverEnabled: true
+                onHoveredChanged: {
+                    if(connectButtonMouseArea.containsMouse){
+                        connectButton.color = "white"
+                    }
+                    else
+                    {
+                        connectButton.color = "#007BFF"
+                    }
+                }
             }
         }
+
 
         // 状态提示
         Text {

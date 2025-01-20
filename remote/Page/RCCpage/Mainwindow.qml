@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Controls.Basic
 
+import './'
+
 Window {
     id: root
     maximumWidth: Screen.desktopAvailableWidth * 0.625

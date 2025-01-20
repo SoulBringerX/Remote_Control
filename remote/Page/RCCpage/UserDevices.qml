@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import "../Model" // 进入 Model 文件夹
+import "../../Model" // 进入 Model 文件夹
 Rectangle{
     property int isExtendCount: 0
     color: "transparent"

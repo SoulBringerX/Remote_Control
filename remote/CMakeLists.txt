@@ -24,7 +24,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/Login.qml
     SOURCES globalproperties.h globalproperties.cpp
     RESOURCES resource.qrc
-    QML_FILES Page/Mainwindow.qml
+    QML_FILES Page/RCCpage/Mainwindow.qml
     SOURCES Code/Users/account.h Code/Users/account.cpp
     QML_FILES Page/Register.qml
     SOURCES Login.cpp
@@ -37,10 +37,10 @@ qt_add_qml_module(appremote
     SOURCES Code/AppData/devicedate.h
     SOURCES Code/AppData/applicationData.h
     SOURCES imageresource.h imageresource.cpp
-    QML_FILES Page/UserDevices.qml
-    QML_FILES Page/RemoteSetting.qml
-    QML_FILES Page/DirectConnect.qml
-    QML_FILES Page/RCRMainwindow.qml
+    QML_FILES Page/RCCpage/UserDevices.qml
+    QML_FILES Page/RCCpage/RemoteSetting.qml
+    QML_FILES Page/RCCpage/DirectConnect.qml
+    QML_FILES Page/RCRpage/RCRMainwindow.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

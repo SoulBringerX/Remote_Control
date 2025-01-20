@@ -367,13 +367,14 @@ Window {
                         //打桩测试
                         if(Qt.platform.os === "linux")
                         {
-                            console.log('该用户使用的是Windows')
+                            console.log('该用户使用的是Linux')
                             loader.sourceComponent = mainWindowPage
                         }
                         else
                         {
-                            console.log('该用户使用的是windows')
-                            loader.sourceComponent = rcrmanWindowPage
+                            console.log('该用户使用的是Windows')
+                            // loader.sourceComponent = rcrmanWindowPage
+                            loader.sourceComponent = mainWindowPage
                         }
                     }
                     onHoveredChanged: {

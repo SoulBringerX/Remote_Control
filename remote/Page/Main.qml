@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
 
+import './RCCpage'
+import './RCRpage'
+
 ApplicationWindow {
     id: appWindow
     visible: false

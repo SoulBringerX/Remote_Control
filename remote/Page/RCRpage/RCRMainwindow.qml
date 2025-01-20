@@ -120,12 +120,12 @@ Window {
                     color: "#d9edf7"
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.bottom: parent.bottom
-
-                    Text {
-                        text: qsTr("这里是主要内容展示区")
-                        anchors.centerIn: parent
-                        font.pixelSize: 18
-                        color: "#31708f"
+                    
+                    Loader {
+                        id: rcmWindowPageloader
+                        anchors.fill: parent
+                        // 初始加载主页面
+                        // sourceComponent:
                     }
                 }
             }
