@@ -41,6 +41,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/RCCpage/RemoteSetting.qml
     QML_FILES Page/RCCpage/DirectConnect.qml
     QML_FILES Page/RCRpage/RCRMainwindow.qml
+    SOURCES Code/LogUntils/AppLog.cpp Code/LogUntils/AppLog.h
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

@@ -9,7 +9,7 @@
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
 #include "./Code/DataBase/database.h"
-
+#include "./Code/LogUntils/AppLog.h"
 // 用于跟踪窗口是否隐藏的全局变量
 bool isWindowHidden = false;
 
@@ -19,9 +19,14 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
-
+    Account user_account;
     engine.load(url);
 
+    // 直接传递 GlobalProperties::getInstance() 返回的指针给 setContextProperty
+    engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
+    // 注册实例到 QML
+    engine.rootContext()->setContextProperty("account", &user_account);
+    engine.rootContext()->setContextProperty("logger",&LoggerNamespace::globalLogger);
     // 获取QML中的窗口对象
     QObject *rootObject = engine.rootObjects().first();
     QQuickWindow *mainWindow = rootObject ? rootObject->findChild<QQuickWindow *>() : nullptr;

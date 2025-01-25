@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QImage>
 #include <QFileDialog>
+#include "../LogUntils/AppLog.h"
 
 Account::Account(QObject *parent)
     : QObject(parent), m_userName(""), m_passWord(""), m_userIconPath("")
@@ -44,8 +45,8 @@ void Account::setPassWord(const QString &passWord)
 // 登录检查
 bool Account::loginCheck(const QString &userName, const QString &passWord)
 {
-    qDebug()<< userName;
-    qDebug()<< passWord;
+    logger.print("Accont 用户:",userName);
+    logger.print("Accont 用户密码:",passWord);
 
     if (userName.isEmpty() || passWord.isEmpty()) {
         return false;
@@ -62,6 +63,7 @@ bool Account::loginCheck(const QString &userName, const QString &passWord)
 bool Account::registerCheck(const QString &userName, const QString &passWord)
 {
     if (userName.isEmpty() || passWord.isEmpty()) {
+        logger.print("Account 注册检查","用户名亦或是密码为空");
         return false;
     }
     return true;
@@ -88,12 +90,12 @@ void Account::openFileManager()
         if (!image.isNull())
         {
             // 处理图片，例如调整大小或裁剪
-            qDebug() << "选中图片文件：" << fileName;
+            logger.print("Class Account-选中图片文件：",fileName);
             // 分析图片
         }
         else
         {
-            qDebug() << "加载图片失败";
+            logger.print("Class Account","选中图片失败");
         }
     }
 }

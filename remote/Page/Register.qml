@@ -157,7 +157,7 @@ Window {
                 id:sidBarArea
                 anchors.fill:parent
                 onClicked:{
-                    console.log("打开资源管理器")
+                    logger.print("Register页面","打开资源管理器")
                     account.openFileManager()
                 }
             }
