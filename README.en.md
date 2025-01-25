@@ -24,3 +24,4 @@ This repository is a remote desktop control software based on the RDP protocol, 
 5. **2024.12.30** Reduced the coupling of the main page interface, using Loader to load corresponding sub-pages. Most interfaces have switched to a borderless design.
 6. **2025.1.2** Added a tray icon, and added the functionality of minimizing to the tray and restoring from the tray (Windows-specific functionality, needs further optimization).
 7. **2025.1.12** Added a page for directly connecting to a remote computer, and added a button to connect to a remote computer.
+8. **2025.1.25** Organize and categorize code/UI, and integrate global logger for log output.
