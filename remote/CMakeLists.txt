@@ -32,7 +32,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/Main.qml
     QML_FILES Model/DeviceInformationModel.qml
     QML_FILES Model/DeviceAppModel.qml
-    SOURCES Code/Database/database.h Code/Database/database.cpp
+    SOURCES Code/DataBase/database.h Code/DataBase/database.cpp
     QML_FILES Page/Dialog/SystemErrorDialog.qml
     SOURCES Code/AppData/devicedate.h
     SOURCES Code/AppData/applicationData.h

@@ -13,7 +13,7 @@ Window {
     minimumHeight: Screen.desktopAvailableHeight * 0.675
     visible: true
     title: qsTr("欢迎使用RemoteControl")
-    flags: Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
+    flags: Qt.platform.os === "linux" ? Qt.Window | Qt.WindowCloseButtonHint : Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
 
     property bool registerstatus: true
     property int dragX: 0
@@ -455,6 +455,7 @@ Window {
         anchors.rightMargin: parent.width * 0.01
         z: 1 // 确保关闭按钮在最上层
         color:"transparent"
+        visible: Qt.platform.os === "linux" ? false : true
 
         Image {
             id: closeDialogImage
@@ -492,17 +493,23 @@ Window {
 
     MouseArea {
         anchors.fill: parent
-        z: -2 // 设置此 MouseArea 的 z 值为较低，确保它在文本和图标下方
+        drag.target: root  // 指定拖拽目标为窗口本身
+        drag.axis: Drag.XAxis | Drag.YAxis  // 允许在 X 和 Y 轴上拖拽
+
         onPressed: {
             root.dragX = mouseX
             root.dragY = mouseY
             root.dragging = true
         }
-        onReleased: root.dragging = false
+        onReleased: {
+            root.dragging = false
+        }
         onPositionChanged: {
             if (root.dragging) {
                 root.x += mouseX - root.dragX
                 root.y += mouseY - root.dragY
+                root.dragX = mouseX
+                root.dragY = mouseY
             }
         }
     }
@@ -515,73 +522,78 @@ Window {
     height: 150
     standardButtons: Dialog.NoButton
 
-    // 将对话框居中显示
-    Component.onCompleted: {
-        closeDialog.anchors.centerIn = parent
-    }
+        // 将对话框居中显示
+        Component.onCompleted: {
+            closeDialog.anchors.centerIn = parent
+        }
 
-    contentItem: Column {
+        contentItem: Column {
         spacing: 15
         anchors.fill: parent
         anchors.margins: 20
 
-        Text {
-            id: closeDialogText
-            text: "您想要关闭程序还是最小化到托盘？"
-            wrapMode: Text.WordWrap
-            font.pixelSize: 16
-            color: "#333333"
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
-            anchors.topMargin: parent.height * 0.2
-        }
-
-        Row {
-            spacing: 10
-            anchors.top: closeDialogText.bottom
-            anchors.topMargin: parent.height * 0.125
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            Button {
-                text: "关闭程序"
-                width: 100
-                height: 40
-                font.pixelSize: 14
-                background: Rectangle{
-                    color: "#d9534f"
-                }
-                onClicked: {
-                    Qt.quit() // 关闭程序
-                }
+            Text {
+                id: closeDialogText
+                text: "您想要关闭程序还是最小化到托盘？"
+                wrapMode: Text.WordWrap
+                font.pixelSize: 16
+                color: "#333333"
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: parent.height * 0.2
             }
 
-            Button {
-                text: "最小化到托盘"
-                width: 100
-                height: 40
-                font.pixelSize: 14
-                background: Rectangle{
-                    color: "#5bc0de"
-                }
-                onClicked: {
-                    // 最小化到托盘关闭当前的窗口，并隐藏主窗口
-                    root.close()
-                    minimizeToTray()
-                    closeDialog.close()
-                }
-            }
+            Row {
+                spacing: 10
+                anchors.top: closeDialogText.bottom
+                anchors.topMargin: parent.height * 0.125
+                anchors.horizontalCenter: parent.horizontalCenter
 
-            Button {
-                text: "取消"
-                width: 100
-                height: 40
-                font.pixelSize: 14
-                background: Rectangle{
-                    color: "#f0ad4e"
+                Button {
+                    text: "关闭程序"
+                    width: 100
+                    height: 40
+                    font.pixelSize: 14
+                    background: Rectangle{
+                        color: "#d9534f"
+                    }
+                    onClicked: {
+                        Qt.quit() // 关闭程序
+                    }
                 }
-                onClicked: closeDialog.close()
+
+                Button {
+                    text: "最小化到托盘"
+                    width: 100
+                    height: 40
+                    font.pixelSize: 14
+                    background: Rectangle{
+                        color: "#5bc0de"
+                    }
+                    onClicked: {
+                        // 最小化到托盘关闭当前的窗口，并隐藏主窗口
+                        root.close()
+                        minimizeToTray()
+                        closeDialog.close()
+                    }
+                }
+
+                Button {
+                    text: "取消"
+                    width: 100
+                    height: 40
+                    font.pixelSize: 14
+                    background: Rectangle{
+                        color: "#f0ad4e"
+                    }
+                    onClicked: closeDialog.close()
+                }
             }
         }
     }
-}
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
+    }
 }

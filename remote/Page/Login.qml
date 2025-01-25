@@ -11,7 +11,7 @@ Window {
     minimumHeight: Screen.desktopAvailableHeight * 0.655
     visible: true
     title: qsTr("欢迎使用RemoteControl")
-    flags: Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
+    flags: Qt.platform.os === "linux" ? Qt.Window | Qt.WindowCloseButtonHint : Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
 
     property bool registerstatus: true
     property int dragX: 0
@@ -452,6 +452,7 @@ Window {
             anchors.rightMargin: parent.width * 0.01
             z: 1 // 确保关闭按钮在最上层
             color:"transparent"
+            visible: Qt.platform.os === "linux" ? false : true
 
             Image {
                 id: closeDialogImage
@@ -487,7 +488,11 @@ Window {
             }
         }
     }
-
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
+    }
     MouseArea {
         anchors.fill: parent
         z: -2 // 设置此 MouseArea 的 z 值为较低，确保它在文本和图标下方

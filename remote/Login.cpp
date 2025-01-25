@@ -3,7 +3,7 @@
 #include <QQmlContext>
 #include <QSystemTrayIcon>
 #include <QMenu>
-#include <QQuickwindow>
+#include <QQuickWindow>
 #include <QAction>
 #include <QObject>
 #include "globalproperties.h"
@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    mainWindow->setIcon(QIcon(":/images/funplayLOGO.svg"));
 
 #ifdef Q_OS_WIN
     QSystemTrayIcon trayIcon;
