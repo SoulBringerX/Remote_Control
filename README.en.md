@@ -1,36 +1,30 @@
 # RemoteControl
 
-#### Description
-本仓库是基于RDP协议的远程桌面控制软件，给予FreeRDP源码操作，旨在为国产操作系统提供非适配国产操作系统软件的完整体验。
+## Introduction
 
-#### Software Architecture
-Software architecture description
+This repository is a remote desktop control software based on the RDP protocol, built upon the FreeRDP source code. It aims to provide a complete experience for domestic operating systems that are not yet fully compatible with existing software.
 
-#### Installation
+### Windows Installation Guide
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. xxxx
+2. xxxx
+3. xxxx
 
-#### Instructions
+### Linux Installation Guide
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. xxxx
 
-#### Contribution
+### Usage Instructions
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+1. Refer to the usage documentation (currently in the code improvement phase).
 
+### Software Update Log
 
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1. 2024.9.12: Initiated the project and drafted the project plan.
+2. 2024.9.19: Completed the login interface and most of the home page (involves user connection to remote computer devices).
+3. 2024.12.18: Leveraged experience from the previous Android to HarmonyOS porting project, replaced fixed-point layout with percentage-based layout, and modified the login page.
+4. 2024.12.25: Updated the popup interface to a borderless design, enhancing the versatility of the popup content text.
+5. 2024.12.30: Reduced the coupling of the home page interface, adopted Loader to load corresponding sub-pages, and switched most interfaces to a borderless design.
+6. 2025.1.2: Added a tray icon and implemented minimize to tray and restore from tray functions (currently for Windows, further optimization needed).
+7. 2025.1.12: Added a direct remote computer connection page and included a button to connect to remote computers.
+8. 2025.1.25: Organized and categorized code/UI, and integrated global logger for log output.
