@@ -326,7 +326,7 @@ Window {
             Rectangle
             {
                 id: loginButtonRectangle
-                width: userPasswordRectangle.width
+                width: userPasswordRectangle.width 
                 height: parent.height * 0.0785
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: userPasswordRectangle.bottom
@@ -373,8 +373,7 @@ Window {
                         else
                         {
                             console.log('该用户使用的是Windows')
-                            // loader.sourceComponent = rcrmanWindowPage
-                            loader.sourceComponent = mainWindowPage
+                            loader.sourceComponent = rcrmanWindowPage
                         }
                     }
                     onHoveredChanged: {

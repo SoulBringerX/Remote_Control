@@ -495,6 +495,7 @@ Window {
         anchors.fill: parent
         drag.target: root  // 指定拖拽目标为窗口本身
         drag.axis: Drag.XAxis | Drag.YAxis  // 允许在 X 和 Y 轴上拖拽
+        z:-1
 
         onPressed: {
             root.dragX = mouseX
