@@ -46,7 +46,6 @@ void Account::setPassWord(const QString &passWord)
 bool Account::loginCheck(const QString &userName, const QString &passWord)
 {
     logger.print("Accont 用户:",userName);
-    logger.print("Accont 用户密码:",passWord);
 
     if (userName.isEmpty() || passWord.isEmpty()) {
         return false;
@@ -62,17 +61,17 @@ bool Account::loginCheck(const QString &userName, const QString &passWord)
 // 注册检查
 bool Account::registerCheck(const QString &userName, const QString &passWord)
 {
-    if (userName.isEmpty() || passWord.isEmpty()) {
-        logger.print("Account 注册检查","用户名亦或是密码为空");
+    if (DataBase::getInstance()->isRegister(userName, passWord) == false) {
+        logger.print("Account 注册检查","该账户已存在");
         return false;
     }
     return true;
 }
 
-// signals
-void userNameChanged()
-{
-    // 这里可以添加一些代码来处理用户名改变时的改变头像的逻辑（难度有点大，待后期实现）
+
+//用户检查
+bool Account::userRegister(const QString &userName, const QString &passWord) {
+    return DataBase::getInstance()->userRegister(userName, passWord);
 }
 
 void Account::openFileManager()
@@ -98,5 +97,12 @@ void Account::openFileManager()
             logger.print("Class Account","选中图片失败");
         }
     }
+}
+
+
+// signals
+void userNameChanged()
+{
+    // 这里可以添加一些代码来处理用户名改变时的改变头像的逻辑（难度有点大，待后期实现）
 }
 

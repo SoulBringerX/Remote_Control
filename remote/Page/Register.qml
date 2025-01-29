@@ -12,6 +12,9 @@ Window {
     visible: true
     title: qsTr("欢迎使用RemoteControl")
     flags: Qt.platform.os === "linux" ? Qt.Window | Qt.WindowCloseButtonHint : Qt.FramelessWindowHint | Qt.Window | Qt.WindowCloseButtonHint
+
+    property string errorMessage:''
+
     Item {
         id: registerPage
         anchors.fill: parent // 填充整个窗口
@@ -197,7 +200,7 @@ Window {
                     id: userAccountInput
                     width: parent.width
                     readOnly: false
-                    font.pixelSize: 12
+                    font.pixelSize: 18
                     selectionColor: "lightblue" // 选中文本的背景色
                     selectedTextColor: "white" // 选中文本的颜色
                     Keys.onEnterPressed: userAccountInput.focus = false // 按下Enter键时取消焦点
@@ -238,7 +241,7 @@ Window {
                     id: userPasswordInput
                     width: parent.width
                     readOnly: false
-                    font.pixelSize: 12
+                    font.pixelSize: 18
                     echoMode: TextInput.Password
                     selectionColor: "lightblue" // 选中文本的背景色
                     selectedTextColor: "white" // 选中文本的颜色
@@ -277,15 +280,24 @@ Window {
                 id: registerButtonArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked:{
-                    // if(account.registerCheck(userAccountInput.text,userPasswordInput.text))
-                    // {
-                    //     registerDialog.show()
-                    // }
-                    // else
-                    //     errorDialog.show()
+                onClicked: {
+                    if(account.registerCheck(userAccountInput.text,userPasswordInput.text)) {
+                        if(account.userRegister(userAccountInput.text,userPasswordInput.text)) {
+                            registerDialog.show()
+                        } else {
+                            errorMessage = "CE_05 账户失败"
+                            userAccountInput.clear()
+                            userPasswordInput.clear()
+                            errorDialog.show()
+                        }
+                    } else {
+                        errorMessage = "CE_04 账户已存在"
+                        userAccountInput.clear()
+                        userPasswordInput.clear()
+                        errorDialog.show()
+                    }
                     // 打桩测试
-                    registerDialog.show()
+                    // registerDialog.show()
                 }
                 onHoveredChanged: {
                     if (registerButtonArea.containsMouse)
@@ -347,10 +359,16 @@ Window {
             }
         }
     }
+    // 监听窗口关闭事件
+    onClosing: {
+        // 调用 Qt.quit() 来终止程序
+        Qt.quit();
+    }
     SuecessDialog{
         id:registerDialog
     }
     SystemErrorDialog{
         id:errorDialog
+        message: root.errorMessage
     }
 }

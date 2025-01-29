@@ -121,47 +121,41 @@ Rectangle {
             }
         }
 
-
         // 连接按钮
         Rectangle {
             id: connectButton
+            Layout.alignment: Qt.AlignHCenter
             height: parent.height * 0.0825
             width: parent.width * 0.375
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * 0.2
-            anchors.horizontalCenter: parent.horizontalCenter
             color: "#007BFF"
             border.color: "#0056b3"
             border.width: 1
-            Text{
+            Text {
                 text: "连接"
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: 16
             }
-            MouseArea{
-                id:connectButtonMouseArea
-                anchors.fill: paretnt
+            MouseArea {
+                id: connectButtonMouseArea
+                anchors.fill: parent
                 hoverEnabled: true
                 onHoveredChanged: {
-                    if(connectButtonMouseArea.containsMouse){
+                    if (connectButtonMouseArea.containsMouse) {
                         connectButton.color = "white"
-                    }
-                    else
-                    {
+                    } else {
                         connectButton.color = "#007BFF"
                     }
                 }
             }
         }
 
-
         // 状态提示
         Text {
+            Layout.alignment: Qt.AlignHCenter
             text: "已准备好连接"
             font.pixelSize: 14
             color: "#28a745"
-            horizontalAlignment: Text.AlignHCenter
         }
     }
 }

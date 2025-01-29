@@ -24,7 +24,7 @@ public:
     // 用户帐号密码的查找机制
     Q_INVOKABLE bool loginCheck(const QString &userName, const QString &passWord);
     Q_INVOKABLE bool registerCheck(const QString &userName, const QString &passWord);
-
+    Q_INVOKABLE bool userRegister(const QString &userName, const QString &passWord);
     Q_INVOKABLE void openFileManager();
 
 signals:

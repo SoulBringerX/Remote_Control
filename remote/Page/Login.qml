@@ -351,30 +351,30 @@ Window {
                     onClicked:
                     {
                         //登录逻辑
-                        // if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
-                        // {
-                        //     if(Qt.platform.os === "windows")
-                        //         loader.sourceComponent = mainWindowPage
-                        //     else
-                        //         loader.sourceComponent = mainWindowPage
-                        // }
-                        // else
-                        // {
-                        //     systemErrorDialog.show()
-                        //     // 清空账户密码输入
-                        //     userPasswordInput.clear()
-                        // }
-                        //打桩测试
-                        if(Qt.platform.os === "linux")
+                        if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
                         {
-                            console.log('该用户使用的是Linux')
-                            loader.sourceComponent = mainWindowPage
+                            if(Qt.platform.os === "windows")
+                                loader.sourceComponent = mainWindowPage
+                            else
+                                loader.sourceComponent = mainWindowPage
                         }
                         else
                         {
-                            console.log('该用户使用的是Windows')
-                            loader.sourceComponent = rcrmanWindowPage
+                            systemErrorDialog.show()
+                            // 清空账户密码输入
+                            userPasswordInput.clear()
                         }
+                        //打桩测试
+                        // if(Qt.platform.os === "linux")
+                        // {
+                        //     console.log('该用户使用的是Linux')
+                        //     loader.sourceComponent = mainWindowPage
+                        // }
+                        // else
+                        // {
+                        //     console.log('该用户使用的是Windows')
+                        //     loader.sourceComponent = rcrmanWindowPage
+                        // }
                     }
                     onHoveredChanged: {
                         if (loginButtonArea.containsMouse)

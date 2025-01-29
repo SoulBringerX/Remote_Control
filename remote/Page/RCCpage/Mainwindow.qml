@@ -264,7 +264,7 @@ Window {
 
         Rectangle{
             id: rdpDeviceButtonRectangle
-            width: parent.width*0.75 
+            width: parent.width*0.75
             height: 32
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: rdpConnectionSettingButtonRectangle.bottom
@@ -496,6 +496,8 @@ Window {
         drag.target: root  // 指定拖拽目标为窗口本身
         drag.axis: Drag.XAxis | Drag.YAxis  // 允许在 X 和 Y 轴上拖拽
         z:-1
+        // 仅在 Windows 系统上启用拖拽功能
+        enabled: Qt.platform.os === "windows"
 
         onPressed: {
             root.dragX = mouseX
