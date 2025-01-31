@@ -12,8 +12,6 @@ find_package(Qt6 COMPONENTS Sql REQUIRED)
 find_package(Qt6 COMPONENTS Quick REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Multimedia)
-
-
 qt_add_executable(appremote
     App.rc
 )
@@ -42,6 +40,9 @@ qt_add_qml_module(appremote
     QML_FILES Page/RCCpage/DirectConnect.qml
     QML_FILES Page/RCRpage/RCRMainwindow.qml
     SOURCES Code/LogUntils/AppLog.cpp Code/LogUntils/AppLog.h
+    SOURCES Code/PID/AdaptivePIDController.h
+    SOURCES Code/PID/AdaptivePIDController.cpp
+    SOURCES Code/RDP/remotecontrol.h Code/RDP/remotecontrol.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
@@ -55,7 +56,17 @@ qt_add_qml_module(appremote
 set_target_properties(appremote PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
+# 查找 FreeRDP 和 WinPR
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FREERDP REQUIRED freerdp2)
+pkg_check_modules(WINPR REQUIRED winpr2)
 
+# 包含头文件路径
+include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
+# 链接库
+target_link_libraries(appremote PRIVATE
+    ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
+)
 target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
 target_link_libraries(appremote

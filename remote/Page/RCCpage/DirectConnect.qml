@@ -147,6 +147,14 @@ Rectangle {
                         connectButton.color = "#007BFF"
                     }
                 }
+                onClicked:{
+                    if (client.initialize())
+                    {
+                        if (client.connect("192.168.31.8", "kirito", "20030801")) {
+                            client.runEventLoop();
+                        }
+                    }
+                }
             }
         }
 
