@@ -1,6 +1,7 @@
 #ifndef REMOTECONTROL_H
 #define REMOTECONTROL_H
 
+#ifdef LINUX
 // FreeRDP 核心头文件
 #include <freerdp/freerdp.h>          // FreeRDP 核心功能
 #include <freerdp/api.h>              // FreeRDP API 定义
@@ -50,5 +51,5 @@ private:
     rdpContext* _context;     // FreeRDP 上下文
     rdpSettings* _settings;   // FreeRDP 设置
 };
-
+#endif
 #endif // REMOTECONTROL_H

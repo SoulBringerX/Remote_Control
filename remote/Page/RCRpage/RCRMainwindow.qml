@@ -40,13 +40,75 @@ Window {
                 anchors.margins: 10
                 z:10
 
-                // 用户信息和操作按钮
-                Text {
-                    text: qsTr("用户信息")
-                    font.pixelSize: 18
-                    color: "#333333"
-                    anchors.horizontalCenter: parent.horizontalCenter
+                // 用户信息显示区域
+                Rectangle {
+                    id: userInfoRect
+                    color: "#ffffff"
+                    radius: 5
+                    width: parent.width
+                    height: userPanel.height * 0.5 // 根据内容调整高度
+
+                    Column {
+                        spacing: 5
+                        anchors.centerIn: parent
+
+                        // 用户头像
+                        Image {
+                            id: userAvatar
+                            source: "qrc:/images/xb2.jpg" // 替换为实际头像路径
+                            width: 96
+                            height: 96
+                            fillMode: Image.PreserveAspectFit
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        // 用户昵称
+                        Text {
+                            text: qsTr("昵称：Xenoblade")
+                            font.pixelSize: 14
+                            color: "#333333"
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        // 欢迎标语
+                        Text {
+                            text: qsTr("欢迎使用 FreeRDPControl！")
+                            font.pixelSize: 12
+                            color: "#666666"
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    }
                 }
+
+                Button {
+                    id: appRemoteControlSettingsButton
+                    width: parent.width * 0.9
+                    height: 40
+                    anchors.bottom: personalSettingsButton.bottom
+                    anchors.bottomMargin: parent.height * 0.15
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    background: Rectangle
+                    {
+                        anchors.fill: parent
+                        color: 'transparent'
+                        radius: 2
+                        border.color: "gray"
+                        border.width: 0.5
+                    }
+
+                    Text{
+                        text: qsTr("本地应用预览")
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 13
+                    }
+                    onClicked:{
+                        rcmWindowPageloader.sourceComponent = personalSettingPage
+                    }
+                }
+
 
                 Button {
                     id: personalSettingsButton
@@ -69,6 +131,9 @@ Window {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         font.pixelSize: 13
+                    }
+                    onClicked:{
+                        rcmWindowPageloader.sourceComponent = personalSettingPage
                     }
                 }
 
@@ -125,7 +190,11 @@ Window {
                         id: rcmWindowPageloader
                         anchors.fill: parent
                         // 初始加载主页面
-                        // sourceComponent:
+                        sourceComponent: personalSettingPage
+                    }
+                    Component {
+                        id: personalSettingPage
+                        PersonalSetting{}
                     }
                 }
             }

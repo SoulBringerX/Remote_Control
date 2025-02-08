@@ -1,3 +1,4 @@
+#ifdef LINUX
 #include "remotecontrol.h"
 #include <QDebug>
 #define TAG "RemoteControl"
@@ -89,3 +90,4 @@ void RemoteControl::runEventLoop() {
         }
     }
 }
+#endif

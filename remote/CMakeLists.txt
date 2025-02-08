@@ -33,16 +33,19 @@ qt_add_qml_module(appremote
     SOURCES Code/DataBase/database.h Code/DataBase/database.cpp
     QML_FILES Page/Dialog/SystemErrorDialog.qml
     SOURCES Code/AppData/devicedate.h
-    SOURCES Code/AppData/applicationData.h
     SOURCES imageresource.h imageresource.cpp
     QML_FILES Page/RCCpage/UserDevices.qml
     QML_FILES Page/RCCpage/RemoteSetting.qml
     QML_FILES Page/RCCpage/DirectConnect.qml
     QML_FILES Page/RCRpage/RCRMainwindow.qml
+    QML_FILES Page/RCRpage/PersonalSetting.qml
+    QML_FILES Page/RCRpage/WinApplicationPreview.qml
     SOURCES Code/LogUntils/AppLog.cpp Code/LogUntils/AppLog.h
     SOURCES Code/PID/AdaptivePIDController.h
     SOURCES Code/PID/AdaptivePIDController.cpp
     SOURCES Code/RDP/remotecontrol.h Code/RDP/remotecontrol.cpp
+    SOURCES Code/AppData/installedSoftware.cpp
+    SOURCES Code/AppData/installedSoftware.h
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
@@ -56,17 +59,27 @@ qt_add_qml_module(appremote
 set_target_properties(appremote PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
-# 查找 FreeRDP 和 WinPR
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FREERDP REQUIRED freerdp2)
-pkg_check_modules(WINPR REQUIRED winpr2)
 
-# 包含头文件路径
-include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
-# 链接库
-target_link_libraries(appremote PRIVATE
-    ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
-)
+# 判断操作系统类型
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "Compiling for Linux")
+
+    # 查找 FreeRDP 和 WinPR
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FREERDP REQUIRED freerdp2)
+    pkg_check_modules(WINPR REQUIRED winpr2)
+
+    # 包含头文件路径
+    include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
+
+    # 链接库
+    target_link_libraries(appremote PRIVATE
+        ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
+    )
+
+    # 添加 Linux 特定的编译定义
+    add_definitions(-DLINUX)
+endif()
 target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
 target_link_libraries(appremote
