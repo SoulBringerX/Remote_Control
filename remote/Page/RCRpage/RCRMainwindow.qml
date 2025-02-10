@@ -105,7 +105,7 @@ Window {
                         font.pixelSize: 13
                     }
                     onClicked:{
-                        rcmWindowPageloader.sourceComponent = personalSettingPage
+                        rcmWindowPageloader.sourceComponent = winApplicationPreviewPage
                     }
                 }
 
@@ -195,6 +195,10 @@ Window {
                     Component {
                         id: personalSettingPage
                         PersonalSetting{}
+                    }
+                    Component {
+                        id: winApplicationPreviewPage
+                        WinApplicationPreview{}
                     }
                 }
             }

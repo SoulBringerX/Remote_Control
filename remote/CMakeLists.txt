@@ -21,7 +21,6 @@ qt_add_qml_module(appremote
     VERSION 1.0
     QML_FILES Page/Login.qml
     SOURCES globalproperties.h globalproperties.cpp
-    RESOURCES resource.qrc
     QML_FILES Page/RCCpage/Mainwindow.qml
     SOURCES Code/Users/account.h Code/Users/account.cpp
     QML_FILES Page/Register.qml
@@ -38,6 +37,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/RCCpage/RemoteSetting.qml
     QML_FILES Page/RCCpage/DirectConnect.qml
     QML_FILES Page/RCRpage/RCRMainwindow.qml
+    RESOURCES resource.qrc
     QML_FILES Page/RCRpage/PersonalSetting.qml
     QML_FILES Page/RCRpage/WinApplicationPreview.qml
     SOURCES Code/LogUntils/AppLog.cpp Code/LogUntils/AppLog.h
@@ -80,6 +80,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # 添加 Linux 特定的编译定义
     add_definitions(-DLINUX)
 endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    message(STATUS "Compiling for Windows")
+    find_library(SHLWAPI_LIBRARY shlwapi)
+
+    if(SHLWAPI_LIBRARY)
+        message(STATUS "Found shlwapi.lib: ${SHLWAPI_LIBRARY}")
+        target_link_libraries(apprremote PRIVATE ${SHLWAPI_LIBRARY})
+    else()
+        message(WARNING "shlwapi.lib not found. Ensure it is installed and in the system library path.")
+    endif()
+endif()
+
 target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
 target_link_libraries(appremote

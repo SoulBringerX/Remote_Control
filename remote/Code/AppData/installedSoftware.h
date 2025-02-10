@@ -1,3 +1,5 @@
+
+#ifdef WIN32
 #ifndef INSTALLEDSOFTWARE_H
 #define INSTALLEDSOFTWARE_H
 
@@ -23,3 +25,5 @@ private:
 };
 
 #endif // INSTALLEDSOFTWARE_H
+
+#endif
