@@ -25,3 +25,5 @@ This repository is a remote desktop control software based on the RDP protocol, 
 6. **2025.1.2** Added a tray icon, and added the functionality of minimizing to the tray and restoring from the tray (Windows-specific functionality, needs further optimization).
 7. **2025.1.12** Added a page for directly connecting to a remote computer, and added a button to connect to a remote computer.
 8. **2025.1.25** Organize and categorize code/UI, and integrate global logger for log output.
+9. **2025.2.10** Successfully connected to the database, and the login and registration function tests have been completed. On the Linux side, some connections to the FreeRDP library have been successfully established, and the initial remote connection code has been completed, pending testing. On the Windows side, a new interface for previewing locally installed applications has been added, and it is still necessary to obtain the list of local applications through the registry (including application icons, application exe file paths, and paths for uninstallation).
+
