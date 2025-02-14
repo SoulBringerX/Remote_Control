@@ -8,6 +8,8 @@
 #include <QObject>
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
+#include <QDir>
+#include <QLockFile>
 #ifdef WIN32
 #include "./Code/AppData/installedSoftware.h"
 #include <shellapi.h>
@@ -24,7 +26,9 @@ bool isWindowHidden = false;
 void requestAdminPrivileges() {
     char szPath[MAX_PATH];
     GetModuleFileNameA(NULL, szPath, MAX_PATH);
-    if ((UINT_PTR)ShellExecuteA(NULL, "runas", szPath, NULL, NULL, SW_SHOW) <= 32) {
+    if ((UINT_PTR)ShellExecuteA(NULL, "runas", szPath, NULL, NULL, SW_SHOW) > 32) {
+        QCoreApplication::exit(0); // 提升成功后退出当前进程
+    } else {
         qDebug() << "无法提升管理员权限";
     }
 }
@@ -45,6 +49,13 @@ void toggleMainWindow(QQuickWindow *mainWindow) {
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    // 单实例检查
+    QLockFile lockFile(QDir::temp().absoluteFilePath("remote_control.lock"));
+    if (!lockFile.tryLock(100)) {
+        qDebug() << "程序已在运行";
+        return 0;
+    }
 
 #ifdef WIN32
     requestAdminPrivileges();

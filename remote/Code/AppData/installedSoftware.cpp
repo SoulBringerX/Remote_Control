@@ -3,78 +3,84 @@
 #include "installedsoftware.h"
 #include <QVariantList>
 #include <QDebug>
+#include <QSettings>
 #include <shlwapi.h>
 
 InstalledSoftware::InstalledSoftware(QObject *parent)
-    : QObject(parent)
-{
+    : QObject(parent) {
     refreshSoftwareList();
 }
 
-QVariantList InstalledSoftware::softwareList() const
-{
+QVariantList InstalledSoftware::softwareList() const {
     return softwareList_;
 }
 
-void InstalledSoftware::refreshSoftwareList()
-{
+void InstalledSoftware::refreshSoftwareList() {
     softwareList_.clear();
 
-    HKEY hKey;
-    QString path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, reinterpret_cast<const wchar_t*>(path.utf16()), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-    {
-        wchar_t subkeyName[2048];
-        DWORD subkeyNameSize = 2048;
-        DWORD i = 0;
+    // 获取桌面路径
+    QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
 
-        while (RegEnumKeyExW(hKey, i, subkeyName, &subkeyNameSize, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS)
-        {
-            HKEY subKey;
-            if (RegOpenKeyExW(hKey, subkeyName, 0, KEY_READ, &subKey) == ERROR_SUCCESS)
-            {
-                wchar_t displayName[2048];
-                wchar_t displayVersion[2048];
-                wchar_t installDate[2048];
+    // 检查并遍历注册表中的卸载信息路径
+    QStringList regPaths = {
+        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",
+        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\"
+    };
 
-                DWORD displayNameSize = 2048 * sizeof(wchar_t);
-                DWORD displayVersionSize = 2048 * sizeof(wchar_t);
-                DWORD installDateSize = 2048 * sizeof(wchar_t);
+    for (const QString& regPath : regPaths) {
+        QSettings settings(regPath, QSettings::NativeFormat);
 
-                QString name, version, date;
+        // 遍历各个子项
+        for (const QString& regItem : settings.childGroups()) {
+            settings.beginGroup(regItem);
 
-                if (RegQueryValueExW(subKey, L"DisplayName", nullptr, nullptr, reinterpret_cast<LPBYTE>(displayName), &displayNameSize) == ERROR_SUCCESS)
-                {
-                    name = QString::fromUtf16(reinterpret_cast<const char16_t*>(displayName));
+            // 获取软件信息
+            QString displayName = settings.value("DisplayName").toString();
+            QString displayVersion = settings.value("DisplayVersion").toString();
+            QString installLocation = settings.value("InstallLocation").toString();
+            QString publisher = settings.value("Publisher").toString();
+            QString uninstallString = settings.value("UninstallString").toString();
+            QString installDate = settings.value("InstallDate").toString();
+
+            // 检查软件在桌面上是否有快捷方式
+            QStringList shortcuts = QDir(desktopPath).entryList(QStringList() << "*.lnk" << "*.url", QDir::Files);
+            bool hasShortcut = false;
+
+            foreach (const QString& shortcut, shortcuts) {
+                // 忽略文件扩展名，检查软件名是否包含在快捷方式名称中
+                QString shortcutName = QFileInfo(shortcut).baseName(); // 获取快捷方式名称
+                if (shortcutName.contains(displayName, Qt::CaseInsensitive)) {
+                    hasShortcut = true;
+                    break;
                 }
-                if (RegQueryValueExW(subKey, L"DisplayVersion", nullptr, nullptr, reinterpret_cast<LPBYTE>(displayVersion), &displayVersionSize) == ERROR_SUCCESS)
-                {
-                    version = QString::fromUtf16(reinterpret_cast<const char16_t*>(displayVersion));
-                }
-                if (RegQueryValueExW(subKey, L"InstallDate", nullptr, nullptr, reinterpret_cast<LPBYTE>(installDate), &installDateSize) == ERROR_SUCCESS)
-                {
-                    date = QString::fromUtf16(reinterpret_cast<const char16_t*>(installDate));
-                }
-
-                if (!name.isEmpty())
-                {
-                    QVariantMap software;
-                    software["name"] = name;
-                    software["version"] = version;
-                    software["installDate"] = date;
-                    softwareList_.append(software);
-                }
-
-                RegCloseKey(subKey);
             }
 
-            subkeyNameSize = 2048;
-            i++;
+            // 仅当软件名不为空且拥有桌面快捷方式时添加到软件列表中
+            if (!displayName.isEmpty() && hasShortcut) {
+                QVariantMap softwareInfo;
+                softwareInfo.insert("name", displayName);
+                softwareInfo.insert("version", displayVersion);
+                softwareInfo.insert("installLocation", installLocation);
+                softwareInfo.insert("publisher", publisher);
+                softwareInfo.insert("uninstallPath", uninstallString);
+                softwareInfo.insert("installDate", installDate);
+
+                softwareList_.append(softwareInfo);
+            }
+
+            settings.endGroup();
         }
-        RegCloseKey(hKey);
     }
 
+    // 打印日志，验证数据是否正确填充
+    qDebug() << "Software List:";
+    for (const auto &item : softwareList_) {
+        qDebug() << "Name:" << item.toMap()["name"].toString();
+        qDebug() << "Version:" << item.toMap()["version"].toString();
+        qDebug() << "Install Date:" << item.toMap()["installDate"].toString();
+    }
+
+    // 发出信号，通知 QML 数据已更新
     emit softwareListChanged();
 }
-
 #endif

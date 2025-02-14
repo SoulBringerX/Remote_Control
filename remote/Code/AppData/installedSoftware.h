@@ -1,4 +1,3 @@
-
 #ifdef WIN32
 #ifndef INSTALLEDSOFTWARE_H
 #define INSTALLEDSOFTWARE_H
@@ -6,7 +5,13 @@
 #include <QObject>
 #include <QStringList>
 #include <QVariantList>
+#include <QVariantMap>
+#include <QSettings>
+#include <QDir>
+#include <QStandardPaths>
+#include <shlwapi.h>
 #include <windows.h>
+
 
 class InstalledSoftware : public QObject {
     Q_OBJECT
@@ -25,5 +30,4 @@ private:
 };
 
 #endif // INSTALLEDSOFTWARE_H
-
 #endif

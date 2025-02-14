@@ -2,10 +2,11 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Item {
+Rectangle {
     id: root
-    width: 360
-    height: 640
+    width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
+    height: Screen.desktopAvailableHeight * 0.675
+    color: "transparent"
 
     ColumnLayout {
         anchors.fill: parent
