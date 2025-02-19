@@ -17,6 +17,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 150
             color: "#f5f5f5"
+            anchors.top: parent.top
 
             RowLayout {
                 anchors.centerIn: parent

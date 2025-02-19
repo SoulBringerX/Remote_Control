@@ -18,7 +18,7 @@ QVariantList InstalledSoftware::softwareList() const {
 void InstalledSoftware::refreshSoftwareList() {
     softwareList_.clear();
 
-    // 获取桌面路径
+    // 桌面路径（暂时未使用）
     QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
 
     // 检查并遍历注册表中的卸载信息路径
@@ -42,21 +42,23 @@ void InstalledSoftware::refreshSoftwareList() {
             QString uninstallString = settings.value("UninstallString").toString();
             QString installDate = settings.value("InstallDate").toString();
 
-            // 检查软件在桌面上是否有快捷方式
-            QStringList shortcuts = QDir(desktopPath).entryList(QStringList() << "*.lnk" << "*.url", QDir::Files);
-            bool hasShortcut = false;
+            // 检查是否同时具有卸载程序和具体执行程序
+            bool hasUninstallProgram = !uninstallString.isEmpty();
+            bool hasExecutable = false;
 
-            foreach (const QString& shortcut, shortcuts) {
-                // 忽略文件扩展名，检查软件名是否包含在快捷方式名称中
-                QString shortcutName = QFileInfo(shortcut).baseName(); // 获取快捷方式名称
-                if (shortcutName.contains(displayName, Qt::CaseInsensitive)) {
-                    hasShortcut = true;
-                    break;
+            // 检查安装路径是否有效，并搜索可执行文件 (*.exe)
+            if (!installLocation.isEmpty()) {
+                QDir dir(installLocation);
+                if (dir.exists()) {
+                    QStringList exeFiles = dir.entryList(QStringList() << "*.exe", QDir::Files);
+                    if (!exeFiles.isEmpty()) {
+                        hasExecutable = true;
+                    }
                 }
             }
 
-            // 仅当软件名不为空且拥有桌面快捷方式时添加到软件列表中
-            if (!displayName.isEmpty() && hasShortcut) {
+            // 同时满足条件的软件才会被添加到列表中
+            if (!displayName.isEmpty() && hasUninstallProgram && hasExecutable) {
                 QVariantMap softwareInfo;
                 softwareInfo.insert("name", displayName);
                 softwareInfo.insert("version", displayVersion);
@@ -74,10 +76,14 @@ void InstalledSoftware::refreshSoftwareList() {
 
     // 打印日志，验证数据是否正确填充
     qDebug() << "Software List:";
-    for (const auto &item : softwareList_) {
+    for (const auto& item : softwareList_) {
         qDebug() << "Name:" << item.toMap()["name"].toString();
         qDebug() << "Version:" << item.toMap()["version"].toString();
         qDebug() << "Install Date:" << item.toMap()["installDate"].toString();
+        qDebug() << "Uninstall Path:" << item.toMap()["uninstallPath"].toString();
+        qDebug() << "Install Location:" << item.toMap()["installLocation"].toString();
+        qDebug() << "Publisher:" << item.toMap()["publisher"].toString();
+        qDebug() << "----------------------------------------";
     }
 
     // 发出信号，通知 QML 数据已更新
