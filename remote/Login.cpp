@@ -8,6 +8,7 @@
 #include <QObject>
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
+#include "./Code/AppData/tcpconnection.h"
 #include <QDir>
 #include <QLockFile>
 #ifdef WIN32
@@ -76,9 +77,10 @@ int main(int argc, char *argv[])
     InstalledSoftware softwareManager;
     engine.rootContext()->setContextProperty("softwareManager", &softwareManager);
 #endif
-
+    tcpConnection tcpcn;
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
     engine.rootContext()->setContextProperty("account", &user_account);
+    engine.rootContext()->setContextProperty("tcp", &tcpcn);
 
 #ifdef LINUX
     RemoteControl client;

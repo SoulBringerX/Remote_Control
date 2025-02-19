@@ -89,4 +89,27 @@ void InstalledSoftware::refreshSoftwareList() {
     // 发出信号，通知 QML 数据已更新
     emit softwareListChanged();
 }
+QByteArray InstalledSoftware::getIconBinaryData(const QString &exePath) const
+{
+    QByteArray iconData;
+
+    // 使用 QPixmap 从 exe 文件中提取图标
+    QPixmap pixmap;
+    QIcon icon(exePath);
+    if (icon.isNull()) {
+        return iconData;
+    }
+
+    pixmap = icon.pixmap(32, 32); // 设置图标大小，例如 32x32
+
+    if (pixmap.isNull()) {
+        return iconData;
+    }
+
+    QBuffer buffer(&iconData);
+    buffer.open(QIODevice::WriteOnly);
+    pixmap.save(&buffer, "PNG"); // 可以根据需要选择格式，如 "PNG" 或 "BMP"
+
+    return iconData;
+}
 #endif

@@ -19,6 +19,8 @@ class InstalledSoftware : public QObject {
 
 public:
     explicit InstalledSoftware(QObject *parent = nullptr);
+    // 新增：获取图标二进制数据
+    QByteArray getIconBinaryData(const QString &exePath) const;
     QVariantList softwareList() const;
 
 signals:

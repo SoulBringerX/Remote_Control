@@ -46,6 +46,7 @@ qt_add_qml_module(appremote
     SOURCES Code/RDP/remotecontrol.h Code/RDP/remotecontrol.cpp
     SOURCES Code/AppData/installedSoftware.cpp
     SOURCES Code/AppData/installedSoftware.h
+    SOURCES Code/AppData/tcpconnection.h Code/AppData/tcpconnection.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
