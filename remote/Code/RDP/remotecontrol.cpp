@@ -15,47 +15,30 @@ RemoteControl::~RemoteControl() {
 }
 
 bool RemoteControl::initialize() {
-    qDebug() << "[RemoteControl] INFO: Initializing FreeRDP instance...";
+    qDebug() << "[RemoteControl] Initializing FreeRDP...";
 
-    // 创建FreeRDP实例
-    freerdp* instance = freerdp_new();
-    if (!instance) {
-        qDebug() << "[RemoteControl] ERROR: freerdp_new() failed";
+    _instance = freerdp_new();
+    qDebug() << "[RemoteControl] Initializing FreeRDP_freerdp_new";
+    qDebug() << "[RemoteControl] Initializing FreeRDP "<<_instance;
+    if (!_instance) {
+        qDebug() << "Failed to create FreeRDP instance";
+        return false;
+    }
+    // 注册连接回调
+    _instance->PostConnect = [](freerdp* instance) {
+        qDebug() << "Connected!";
+        return TRUE;
+    };
+
+    // 创建上下文
+    if (!freerdp_context_new(_instance)) {
+        qDebug() << "Failed to create context";
+        freerdp_free(_instance);
+        _instance = nullptr;
         return false;
     }
 
-    // 设置客户端模式（必须在context_new之前）
-    instance->settings->ServerMode = FALSE;
-
-    // 初始化上下文（注意返回的是BOOL）
-    if (!freerdp_context_new(instance)) {
-        qDebug() << "[RemoteControl] ERROR: freerdp_context_new() failed";
-        freerdp_free(instance);
-        return false;
-    }
-
-    _instance = instance;  // 保存实例指针
-    qDebug() << "[RemoteControl] INFO: FreeRDP context created successfully.";
-
-    // 获取上下文指针
-    _context = instance->context;
-    if (!_context) {
-        qDebug() << "[RemoteControl] ERROR: Context is null";
-        freerdp_context_free(instance);
-        freerdp_free(instance);
-        return false;
-    }
-
-    // 获取设置参数
-    _settings = _context->settings;
-    if (!_settings) {
-        qDebug() << "[RemoteControl] ERROR: Failed to get settings";
-        freerdp_context_free(instance);
-        freerdp_free(instance);
-        return false;
-    }
-
-    qDebug() << "[RemoteControl] INFO: FreeRDP initialized successfully";
+    qDebug() << "FreeRDP initialized successfully";
     return true;
 }
 
