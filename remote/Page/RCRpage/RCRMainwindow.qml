@@ -279,10 +279,9 @@ Window {
             closeDialog.anchors.centerIn = parent
         }
 
-        contentItem: Column {
-            spacing: 15
-            anchors.fill: parent
-            anchors.margins: 20
+        Rectangle{
+
+            anchors.fill:parent
 
             Text {
                 id: closeDialogText
@@ -292,7 +291,7 @@ Window {
                 color: "#333333"
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: parent.height * 0.2
+                anchors.topMargin: parent.height * 0.1
             }
 
             Row {
@@ -343,19 +342,29 @@ Window {
             }
         }
     }
+
     Dialog {
         id: confirmLogoutDialog
         title: qsTr("确认登出")
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
 
-        contentItem: Column {
-            spacing: 10
+        // contentItem: Column {
+        //     spacing: 10
+        //     Text {
+        //         text: "您确定要登出吗？"
+        //         wrapMode: Text.WordWrap
+        //     }
+        // }
+        Rectangle{
+            anchors.fill: parent
             Text {
+                anchors.centerIn: parent
                 text: "您确定要登出吗？"
                 wrapMode: Text.WordWrap
             }
         }
+
         // 将对话框居中显示
         Component.onCompleted: {
             confirmLogoutDialog.anchors.centerIn = parent
@@ -363,6 +372,7 @@ Window {
         onAccepted: {
             console.log("用户确认登出")
             // 在这里实现登出的逻辑
+
             loader.sourceComponent = loginPage
         }
 
