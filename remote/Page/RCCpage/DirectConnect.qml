@@ -2,12 +2,15 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import "../Dialog/"
 
 Rectangle {
     id: directConnect
     width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
     height: Screen.desktopAvailableHeight * 0.675
     color: "transparent"
+
+    property string errorMessage:''
 
     ColumnLayout {
         anchors.fill: parent
@@ -151,8 +154,13 @@ Rectangle {
                     if (client.initialize())
                     {
                         if (client.connect("192.168.31.8", "kirito", "20030801")) {
-                            client.runEventLoop();
+                            // client.runEventLoop();
                         }
+                    }
+                    else
+                    {
+                        errorMessage = "RDP初始化失败"
+                        errorDialog.show()
                     }
                 }
             }
@@ -165,5 +173,12 @@ Rectangle {
             font.pixelSize: 14
             color: "#28a745"
         }
+    }
+    SuecessDialog{
+        id:registerDialog
+    }
+    SystemErrorDialog{
+        id:errorDialog
+        message: directConnect.errorMessage
     }
 }

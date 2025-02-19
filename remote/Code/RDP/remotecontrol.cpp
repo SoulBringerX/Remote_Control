@@ -1,7 +1,11 @@
-#ifdef LINUX
 #include "remotecontrol.h"
 #include <QDebug>
+#include <cstring>
+
+#ifdef LINUX
+
 #define TAG "RemoteControl"
+
 RemoteControl::RemoteControl(QObject *parent)
     : QObject(parent), _instance(nullptr), _context(nullptr), _settings(nullptr) {
 }
@@ -11,69 +15,91 @@ RemoteControl::~RemoteControl() {
 }
 
 bool RemoteControl::initialize() {
-    // 创建 FreeRDP 实例
-    _instance = freerdp_new();
-    if (!_instance) {
-        WLog_ERR(TAG, "Failed to create FreeRDP instance");
+    qDebug() << "[RemoteControl] INFO: Initializing FreeRDP instance...";
+
+    // 创建FreeRDP实例
+    freerdp* instance = freerdp_new();
+    if (!instance) {
+        qDebug() << "[RemoteControl] ERROR: freerdp_new() failed";
         return false;
     }
 
-    // 获取上下文和设置
-    _context = _instance->context;
+    // 设置客户端模式（必须在context_new之前）
+    instance->settings->ServerMode = FALSE;
+
+    // 初始化上下文（注意返回的是BOOL）
+    if (!freerdp_context_new(instance)) {
+        qDebug() << "[RemoteControl] ERROR: freerdp_context_new() failed";
+        freerdp_free(instance);
+        return false;
+    }
+
+    _instance = instance;  // 保存实例指针
+    qDebug() << "[RemoteControl] INFO: FreeRDP context created successfully.";
+
+    // 获取上下文指针
+    _context = instance->context;
+    if (!_context) {
+        qDebug() << "[RemoteControl] ERROR: Context is null";
+        freerdp_context_free(instance);
+        freerdp_free(instance);
+        return false;
+    }
+
+    // 获取设置参数
     _settings = _context->settings;
-
-    // 加载通道插件
-    if (!freerdp_channels_load_plugin(_context->channels, _settings, "cliprdr", nullptr)) {
-        WLog_ERR(TAG, "Failed to load cliprdr channel plugin");
+    if (!_settings) {
+        qDebug() << "[RemoteControl] ERROR: Failed to get settings";
+        freerdp_context_free(instance);
+        freerdp_free(instance);
         return false;
     }
 
-    if (!freerdp_channels_load_plugin(_context->channels, _settings, "rdpsnd", nullptr)) {
-        WLog_ERR(TAG, "Failed to load rdpsnd channel plugin");
-        return false;
-    }
-
-    WLog_INFO(TAG, "FreeRDP instance initialized successfully");
+    qDebug() << "[RemoteControl] INFO: FreeRDP initialized successfully";
     return true;
 }
 
 bool RemoteControl::connect(const QString& hostname, const QString& username, const QString& password) {
     if (!_instance) {
-        WLog_ERR(TAG, "FreeRDP instance is not initialized");
+        qDebug() << "[RemoteControl] ERROR: FreeRDP instance is not initialized";
         return false;
     }
 
     // 设置连接参数
-    _settings->ServerHostname = hostname.toUtf8().constData();
-    _settings->Username = username.toUtf8().constData();
-    _settings->Password = password.toUtf8().constData();
+    _settings->ServerHostname = strdup(hostname.toUtf8().constData());
+    _settings->Username = strdup(username.toUtf8().constData());
+    _settings->Password = strdup(password.toUtf8().constData());
     _settings->ServerPort = 3389;                     // RDP 默认端口
     _settings->IgnoreCertificate = TRUE;        // 忽略证书错误（仅用于测试）
     _settings->AuthenticationOnly = FALSE;      // 完整连接模式
 
     // 连接到远程桌面
     if (freerdp_connect(_instance) != 0) {
-        WLog_ERR(TAG, "Failed to connect to RDP server");
+        qDebug() << "[RemoteControl] ERROR: Failed to connect to RDP server";
         return false;
     }
 
-    WLog_INFO(TAG, "Connected to RDP server: %s", hostname.toUtf8().constData());
+    qDebug() << "[RemoteControl] INFO: Connected to RDP server: " << hostname.toUtf8().constData();
     return true;
 }
 
 void RemoteControl::disconnect() {
-    if (_instance) {
-        freerdp_disconnect(_instance);
-        freerdp_free(_instance);
-        _instance = nullptr;
-        _context = nullptr;
-        _settings = nullptr;
+    if (!_instance) {
+        qDebug() << "[RemoteControl] INFO: Nothing to disconnect";
+        return;
     }
+
+    qDebug() << "Disconnecting from RDP server";
+    freerdp_disconnect(_instance);
+    freerdp_free(_instance);
+    _instance = nullptr;
+    _context = nullptr;
+    _settings = nullptr;
 }
 
 void RemoteControl::runEventLoop() {
     if (!_instance) {
-        WLog_ERR(TAG, "FreeRDP instance is not initialized");
+        qDebug() << "[RemoteControl] ERROR: FreeRDP instance is not initialized";
         return;
     }
 
@@ -81,13 +107,14 @@ void RemoteControl::runEventLoop() {
     while (true) {
         int ret = freerdp_check_event_handles(_context);
         if (ret < 0) {
-            WLog_ERR(TAG, "Failed to check event handles");
+            qDebug() << "[RemoteControl] ERROR: Failed to check event handles";
             break;
         }
         if (freerdp_shall_disconnect(_instance)) {
-            WLog_INFO(TAG, "Disconnecting from RDP server");
+            qDebug() << "[RemoteControl] INFO: Disconnecting from RDP server";
             break;
         }
     }
 }
+
 #endif

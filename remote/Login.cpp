@@ -65,22 +65,24 @@ int main(int argc, char *argv[])
     const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
     Account user_account;
 
-#ifdef WIN32
-    InstalledSoftware softwareManager;
-#endif
 
 #ifdef LINUX
-    RemoteControl client;
+
 #endif
 
     engine.load(url);
 
+#ifdef WIN32
+    InstalledSoftware softwareManager;
     engine.rootContext()->setContextProperty("softwareManager", &softwareManager);
+#endif
+
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
     engine.rootContext()->setContextProperty("account", &user_account);
 
 #ifdef LINUX
-    engine.rootContext()->setContextProperty("heliux_rdp", &client);
+    RemoteControl client;
+    engine.rootContext()->setContextProperty("client", &client);
 #endif
 
     QObject *rootObject = engine.rootObjects().first();

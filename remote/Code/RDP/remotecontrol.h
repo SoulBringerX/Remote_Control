@@ -28,28 +28,27 @@
 
 class RemoteControl : public QObject
 {
-public:
-    Q_OBJECT
+        Q_OBJECT
+    public:
+        explicit RemoteControl(QObject *parent = nullptr);
+        ~RemoteControl();
 
-    explicit RemoteControl(QObject *parent = nullptr);
-    ~RemoteControl();
+        // 初始化 FreeRDP 实例
+        Q_INVOKABLE bool initialize();
 
-    // 初始化 FreeRDP 实例
-    Q_INVOKABLE bool initialize();
+        // 连接到远程桌面
+        Q_INVOKABLE bool connect(const QString& hostname, const QString& username, const QString& password);
 
-    // 连接到远程桌面
-    Q_INVOKABLE bool connect(const QString& hostname, const QString& username, const QString& password);
+        // 断开连接
+        Q_INVOKABLE void disconnect();
 
-    // 断开连接
-    Q_INVOKABLE void disconnect();
+        // 处理事件循环
+        Q_INVOKABLE void runEventLoop();
 
-    // 处理事件循环
-    Q_INVOKABLE void runEventLoop();
-
-private:
-    freerdp* _instance;       // FreeRDP 实例
-    rdpContext* _context;     // FreeRDP 上下文
-    rdpSettings* _settings;   // FreeRDP 设置
+    private:
+        freerdp* _instance;       // FreeRDP 实例
+        rdpContext* _context;     // FreeRDP 上下文
+        rdpSettings* _settings;   // FreeRDP 设置
 };
 #endif
 #endif // REMOTECONTROL_H
