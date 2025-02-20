@@ -37,25 +37,50 @@ bool RemoteControl::initialize() {
         _instance = nullptr;
         return false;
     }
+    // 初始化设置
+   _settings = _instance->settings;
+   if (!_settings) {
+       qDebug() << "[RemoteControl] ERROR: Failed to initialize FreeRDP settings";
+       freerdp_free(_instance);
+       _context = nullptr;
+       _instance = nullptr;
+       return false;
+   }
 
     qDebug() << "FreeRDP initialized successfully";
     return true;
 }
 
 bool RemoteControl::connect(const QString& hostname, const QString& username, const QString& password) {
+    qDebug() << "[RemoteControl] DEBUG: FreeRDP start link";
     if (!_instance) {
         qDebug() << "[RemoteControl] ERROR: FreeRDP instance is not initialized";
         return false;
     }
 
+    qDebug() << "[RemoteControl] DEBUG: FreeRDP start link_setting";
     // 设置连接参数
-    _settings->ServerHostname = strdup(hostname.toUtf8().constData());
-    _settings->Username = strdup(username.toUtf8().constData());
-    _settings->Password = strdup(password.toUtf8().constData());
-    _settings->ServerPort = 3389;                     // RDP 默认端口
-    _settings->IgnoreCertificate = TRUE;        // 忽略证书错误（仅用于测试）
-    _settings->AuthenticationOnly = FALSE;      // 完整连接模式
-
+    if(_settings)
+    {
+        _settings->ServerHostname = strdup(hostname.toUtf8().constData());
+        _settings->Username = strdup(username.toUtf8().constData());
+        _settings->Password = strdup(password.toUtf8().constData());
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_user finished";
+        _settings->ServerPort = 3389;                     // RDP 默认端口
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_port finished";
+        _settings->IgnoreCertificate = TRUE;        // 忽略证书错误（仅用于测试）
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_ig finished";
+        _settings->TlsSecurity = TRUE;       // 启用 TLS
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_tls finished";
+        _settings->NlaSecurity = TRUE;       // 启用 NLA
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_nla finished";
+        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting finished";
+    }
+    else
+    {
+        qDebug() << "[RemoteControl] ERROR: FreeRDP setting is not initialized";
+        return false;
+    }
     // 连接到远程桌面
     if (freerdp_connect(_instance) != 0) {
         qDebug() << "[RemoteControl] ERROR: Failed to connect to RDP server";

@@ -155,7 +155,7 @@ Rectangle {
                         console.log(ipAddress.text)
                         if (client.initialize())
                         {
-                            if (client.connect("192.168.31.8", "kirito", "20030801")) {
+                            if (client.connect(ipAddress.text, username.text,  password.text)) {
                                 client.runEventLoop();
                             }
                         }
