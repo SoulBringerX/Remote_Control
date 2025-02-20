@@ -1,10 +1,19 @@
 #include "remotecontrol.h"
 #include <QDebug>
 #include <cstring>
+#include <freerdp/log.h>  // 确保包含这个头文件
 
 #ifdef LINUX
 
 #define TAG "RemoteControl"
+
+// 自定义日志回调函数声明
+void my_log_callback(wLog* log, int level, const char* msg) {
+    // 根据级别输出日志
+    if (level >= WLOG_TRACE) {  // 控制输出级别
+        qDebug() << msg;
+    }
+}
 
 RemoteControl::RemoteControl(QObject *parent)
     : QObject(parent), _instance(nullptr), _context(nullptr), _settings(nullptr) {
@@ -24,6 +33,7 @@ bool RemoteControl::initialize() {
         qDebug() << "Failed to create FreeRDP instance";
         return false;
     }
+
     // 注册连接回调
     _instance->PostConnect = [](freerdp* instance) {
         qDebug() << "Connected!";
@@ -37,15 +47,20 @@ bool RemoteControl::initialize() {
         _instance = nullptr;
         return false;
     }
+
     // 初始化设置
-   _settings = _instance->settings;
-   if (!_settings) {
-       qDebug() << "[RemoteControl] ERROR: Failed to initialize FreeRDP settings";
-       freerdp_free(_instance);
-       _context = nullptr;
-       _instance = nullptr;
-       return false;
-   }
+    _settings = _instance->settings;
+    if (!_settings) {
+        qDebug() << "[RemoteControl] ERROR: Failed to initialize FreeRDP settings";
+        freerdp_free(_instance);
+        _context = nullptr;
+        _instance = nullptr;
+        return false;
+    }
+
+    // 获取根日志实例并设置回调
+    wLog* log = WLog_GetRoot();
+    WLog_SetLogLevel(log, WLOG_TRACE);          // 设置日志级别为 TRACE
 
     qDebug() << "FreeRDP initialized successfully";
     return true;
@@ -60,30 +75,61 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
 
     qDebug() << "[RemoteControl] DEBUG: FreeRDP start link_setting";
     // 设置连接参数
-    if(_settings)
-    {
+    if(_settings) {
         _settings->ServerHostname = strdup(hostname.toUtf8().constData());
         _settings->Username = strdup(username.toUtf8().constData());
         _settings->Password = strdup(password.toUtf8().constData());
         qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_user finished";
-        _settings->ServerPort = 3389;                     // RDP 默认端口
+        _settings->ServerPort = 3389; // RDP 默认端口
         qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_port finished";
-        _settings->IgnoreCertificate = TRUE;        // 忽略证书错误（仅用于测试）
+        _settings->IgnoreCertificate = TRUE;
         qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_ig finished";
-        _settings->TlsSecurity = TRUE;       // 启用 TLS
-        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_tls finished";
-        _settings->NlaSecurity = TRUE;       // 启用 NLA
-        qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting_nla finished";
+        _settings->RdpSecurity = TRUE;  // 启用 RDP 加密
+        _settings->TlsSecurity = FALSE; // 禁用 TLS 加密
+        _settings->NlaSecurity = FALSE; // 禁用 NLA 加密
         qDebug() << "[RemoteControl] DEBUG: FreeRDP link_setting finished";
     }
-    else
-    {
+    else {
         qDebug() << "[RemoteControl] ERROR: FreeRDP setting is not initialized";
         return false;
     }
+
+    // 打印连接信息
+    if (_settings) {
+        qDebug() << "[RemoteControl] ServerHostname: " << _settings->ServerHostname;
+        qDebug() << "[RemoteControl] Username: " << _settings->Username;
+        qDebug() << "[RemoteControl] ServerPort: " << _settings->ServerPort;
+        qDebug() << "[RemoteControl] IgnoreCertificate: " << (_settings->IgnoreCertificate ? "TRUE" : "FALSE");
+        qDebug() << "[RemoteControl] TlsSecurity: " << (_settings->TlsSecurity ? "TRUE" : "FALSE");
+        qDebug() << "[RemoteControl] NlaSecurity: " << (_settings->NlaSecurity ? "TRUE" : "FALSE");
+    }
+
+    // 获取根日志实例并设置回调
+    wLog* log = WLog_GetRoot();
+    WLog_SetLogLevel(log, WLOG_TRACE);          // 设置日志级别为 TRACE
+
     // 连接到远程桌面
-    if (freerdp_connect(_instance) != 0) {
-        qDebug() << "[RemoteControl] ERROR: Failed to connect to RDP server";
+    if(_instance) {
+        if (freerdp_connect(_instance) != 0) {
+            qDebug() << "[RemoteControl] ERROR: Failed to connect to RDP server";
+            if (_instance->context) {
+                qDebug() << "[RemoteControl] Connection context error: " << _instance->context->argc;
+            }
+            return false;
+        }
+        else {
+            qDebug() << "[RemoteControl] INFO: Successfully connected to RDP server";
+        }
+    }
+    else {
+        qDebug() << "Failed to create FreeRDP instance";
+        return false;
+    }
+
+    // 初始化通道
+    if (freerdp_channels_attach(_instance) != 0) {
+        qDebug() << "[RemoteControl] ERROR: Failed to attach channels";
+        freerdp_disconnect(_instance);
         return false;
     }
 

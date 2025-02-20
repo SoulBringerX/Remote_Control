@@ -153,21 +153,22 @@ Rectangle {
                 onClicked:{
                     if(tcp.connect(ipAddress.text)){
                         console.log(ipAddress.text)
-                        if (client.initialize())
-                        {
-                            if (client.connect(ipAddress.text, username.text,  password.text)) {
-                                client.runEventLoop();
-                            }
-                        }
-                        else
-                        {
-                            errorMessage = "RDP初始化失败"
-                            errorDialog.show()
-                        }
+                        // 启动连接
+                        remoteControlThread.startConnection(ipAddress.text, username.text, password.text)
                     }
                     else {
                         errorMessage = "TCP连接失败"
                         errorDialog.show()
+                    }
+                }
+                Connections {
+                    target: remoteControlThread
+                    function onConnectionFinished() {
+                        console.log("Connection finished")
+                    }
+
+                    function onErrorOccurred(message) {
+                        console.log("Error: " + message)
                     }
                 }
             }

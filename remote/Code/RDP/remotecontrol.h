@@ -32,7 +32,6 @@ class RemoteControl : public QObject
     public:
         explicit RemoteControl(QObject *parent = nullptr);
         ~RemoteControl();
-
         // 初始化 FreeRDP 实例
         Q_INVOKABLE bool initialize();
 

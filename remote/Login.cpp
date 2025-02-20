@@ -18,6 +18,7 @@
 #endif
 #ifdef LINUX
 #include "./Code/RDP/remotecontrol.h"
+#include "./Code/RDP/remotecontrolthread.h"
 #endif
 
 // 用于跟踪窗口是否隐藏的全局变量
@@ -66,11 +67,6 @@ int main(int argc, char *argv[])
     const QUrl url(QStringLiteral("qrc:/remote/Page/Main.qml"));
     Account user_account;
 
-
-#ifdef LINUX
-
-#endif
-
     engine.load(url);
 
 #ifdef WIN32
@@ -84,7 +80,9 @@ int main(int argc, char *argv[])
 
 #ifdef LINUX
     RemoteControl client;
+    RemoteControlThread *thread = new RemoteControlThread(nullptr, &client);
     engine.rootContext()->setContextProperty("client", &client);
+    engine.rootContext()->setContextProperty("remoteControlThread", thread);
 #endif
 
     QObject *rootObject = engine.rootObjects().first();
