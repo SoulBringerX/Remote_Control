@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <netdb.h>
-
+QString tcpConnection::TCP_IP = "127.0.0.1"; // 默认值
 tcpConnection::tcpConnection() : sockfd_(-1) {
 #ifdef _WIN32
     WSADATA wsaData;
@@ -19,36 +19,22 @@ tcpConnection::~tcpConnection() {
 #endif
 }
 
-bool tcpConnection::connect(const std::string& host, const std::string& port) {
-    sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
+bool tcpConnection::connect(const QString host) {
+    // 此处使用CZMQ进行TCP连接简化
+
+    // 创建请求套接字
+    zsock_t *requester = zsock_new(ZMQ_REQ);
+    assert(requester);
+    tcpConnection::TCP_IP = host;
+    QString ip_port = "";
+    ip_port = QString("tcp://") + QString(TCP_IP) + QString(":5555");
+    // 连接到服务端
+    sockfd_ = zsock_connect(requester, ip_port.toUtf8());
     if (sockfd_ == -1) {
-        std::cerr << "Failed to create socket" << std::endl;
+        qDebug()<<TCP_IP<<"连接失败";
         return false;
     }
-
-    addrinfo hints{};
-    addrinfo *res;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int result = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
-    if (result != 0) {
-        std::cerr << "getaddrinfo failed: " << result << std::endl;
-        close();
-        freeaddrinfo(res);
-        return false;
-    }
-
-    // 使用 ::connect 并将参数类型转换为 sockaddr*
-    if (::connect(sockfd_, reinterpret_cast<sockaddr*>(res->ai_addr), res->ai_addrlen) == -1) {
-        std::cerr << "Connection failed" << std::endl;
-        close();
-        freeaddrinfo(res);
-        return false;
-    }
-
-    freeaddrinfo(res);
+    qDebug()<<TCP_IP<<"连接成功";
     return true;
 }
 

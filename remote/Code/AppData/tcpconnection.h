@@ -15,10 +15,13 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <czmq.h>
+#ifdef LINUX
 #include <netdb.h> // 添加 netdb.h
 #endif
+#endif
 
-#define SERVER_PORT 12345
+#define SERVER_PORT 5555
 #pragma pack(push, 1)
 struct RD_Packet {
     char RD_IP[16];
@@ -44,13 +47,15 @@ public:
     tcpConnection();
     ~tcpConnection();
 
-    bool connect(const std::string& host, const std::string& port);
+    Q_INVOKABLE bool connect(const QString host);
 
-    bool sendPacket(const RD_Packet& packet); // 修改方法名
+    Q_INVOKABLE bool sendPacket(const RD_Packet& packet); // 修改方法名
 
-    bool receive(RD_Packet& packet);
+    Q_INVOKABLE bool receive(RD_Packet& packet);
 
     void close();
+
+    static QString TCP_IP;
 };
 
 class TcpServer : public QObject

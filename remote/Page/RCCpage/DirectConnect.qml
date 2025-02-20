@@ -151,15 +151,22 @@ Rectangle {
                     }
                 }
                 onClicked:{
-                    if (client.initialize())
-                    {
-                        if (client.connect("192.168.31.8", "kirito", "20030801")) {
-                            client.runEventLoop();
+                    if(tcp.connect(ipAddress.text)){
+                        console.log(ipAddress.text)
+                        if (client.initialize())
+                        {
+                            if (client.connect("192.168.31.8", "kirito", "20030801")) {
+                                client.runEventLoop();
+                            }
+                        }
+                        else
+                        {
+                            errorMessage = "RDP初始化失败"
+                            errorDialog.show()
                         }
                     }
-                    else
-                    {
-                        errorMessage = "RDP初始化失败"
+                    else {
+                        errorMessage = "TCP连接失败"
                         errorDialog.show()
                     }
                 }

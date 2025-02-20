@@ -70,13 +70,22 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     pkg_check_modules(FREERDP REQUIRED freerdp2)
     pkg_check_modules(WINPR REQUIRED winpr2)
 
+    find_library(CZMQ_LIB NAMES czmq PATHS /usr/lib/x86_64-linux-gnu)
+    if(NOT CZMQ_LIB)
+        message(FATAL_ERROR "CZMQ library not found!")
+    endif()
+
     # 包含头文件路径
     include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
 
+    # Link libraries
+    target_link_libraries(appremote PRIVATE ${CZMQ_LIB})
     # 链接库
     target_link_libraries(appremote PRIVATE
         ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
     )
+    # Link Qt and CZMQ libraries
+    target_link_libraries(appremote PRIVATE czmq)
 
     # 添加 Linux 特定的编译定义
     add_definitions(-DLINUX)
