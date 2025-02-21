@@ -82,13 +82,14 @@ TcpServer::TcpServer(QObject *parent)
 void TcpServer::startListening()
 {
     tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen(QHostAddress::Any, 12345)) {
+    // 监听所有的IP地址且端口为5555
+    if (!tcpServer->listen(QHostAddress::Any, 5555)) {
         qDebug() << "Failed to start server:" << tcpServer->errorString();
         return;
     }
 
     connect(tcpServer, &QTcpServer::newConnection, this, &TcpServer::incomingConnection);
-    qDebug() << "Server started on port 12345";
+    qDebug() << "Server started on port 5555";
 }
 
 void TcpServer::incomingConnection()

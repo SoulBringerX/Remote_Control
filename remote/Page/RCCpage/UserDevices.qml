@@ -213,22 +213,24 @@ Rectangle{
                 MouseArea {
                     id: deviceInformatioArea
                     anchors.fill: parent
-                    z: 5 // 确保 MouseArea 位于其他控件之上
-                    propagateComposedEvents: true // 允许事件传递
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton // 同时接受左键和右键点击事件
+                    z: 5
+                    propagateComposedEvents: true
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                     onPressed: function(event) {
                         console.log("Mouse button pressed:", event.button);
                         if (event.button === Qt.RightButton) {
                             showContextMenu(event.x, event.y);
-                            mouse.accepted = false; // 允许事件传递到下层控件
+                            event.accepted = true; // 阻止事件传递到父级MouseArea
+                        } else {
+                            event.accepted = false; // 允许左键事件传递
                         }
                     }
 
                     function showContextMenu(x, y) {
-                        contextMenu.x = x
-                        contextMenu.y = y
-                        contextMenu.popup()
+                        contextMenu.x = x;
+                        contextMenu.y = y;
+                        contextMenu.popup();
                     }
                 }
 
@@ -282,26 +284,29 @@ Rectangle{
             duration: 250
         }
     }
-        MouseArea{
+        MouseArea {
             id: userDeviceArea
             z: 3
             anchors.fill: parent
-
-            propagateComposedEvents: true // 允许事件传递
-            acceptedButtons: Qt.LeftButton | Qt.RightButton // 同时接受左键和右键点击事件
+            propagateComposedEvents: true
+            acceptedButtons: Qt.RightButton
 
             onPressed: function(event) {
-                console.log("Mouse button pressed:", event.button);
                 if (event.button === Qt.RightButton) {
-                    showContextMenu(event.x, event.y);
-                    mouse.accepted = false; // 允许事件传递到下层控件
+                    var item = userDeviceList.itemAt(event.x, event.y);
+                    if (!item) { // 点击在空白区域
+                        showContextMenu(event.x, event.y);
+                        event.accepted = true;
+                    } else {
+                        event.accepted = false; // 由列表项处理
+                    }
                 }
             }
 
             function showContextMenu(x, y) {
-                userDeviceMenu.x = x
-                userDeviceMenu.y = y
-                userDeviceMenu.popup()
+                userDeviceMenu.x = x;
+                userDeviceMenu.y = y;
+                userDeviceMenu.popup();
             }
         }
         // 定义上下文菜单
