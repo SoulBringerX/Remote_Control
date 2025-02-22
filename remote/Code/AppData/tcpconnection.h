@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include "./devicedate.h"
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
@@ -24,21 +25,6 @@
 #endif
 
 #define SERVER_PORT 5555
-#pragma pack(push, 1)
-struct RD_Packet {
-    char RD_IP[16];
-    char RD_Username[33];
-    char RD_Password[33];
-    unsigned char RD_Type;
-    char RD_ImageBit[1024];
-    char RD_APP_Name[33];
-    char RD_Command_Name[65];
-
-    RD_Packet() {
-        memset(this, 0, sizeof(RD_Packet));
-    }
-};
-#pragma pack(pop)
 
 class tcpConnection : public QObject {
     Q_OBJECT

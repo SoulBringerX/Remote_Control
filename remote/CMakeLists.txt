@@ -50,6 +50,7 @@ qt_add_qml_module(appremote
     SOURCES Code/AppData/tcpconnection.h Code/AppData/tcpconnection.cpp
     SOURCES Code/RDP/remotecontrolthread.h Code/RDP/remotecontrolthread.cpp
     SOURCES Code/AppData/devicedata.cpp
+    SOURCES Code/TCP/tcpservertest.h Code/TCP/tcpservertest.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
