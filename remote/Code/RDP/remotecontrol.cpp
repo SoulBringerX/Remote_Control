@@ -1,10 +1,9 @@
 #include "remotecontrol.h"
 #include <QDebug>
 #include <cstring>
-#include <freerdp/log.h>  // 确保包含这个头文件
 
 #ifdef LINUX
-
+#include <freerdp/log.h>  // 确保包含这个头文件
 #define TAG "RemoteControl"
 
 // 自定义日志回调函数声明

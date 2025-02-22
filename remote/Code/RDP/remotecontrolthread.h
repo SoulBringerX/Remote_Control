@@ -1,6 +1,7 @@
 #ifndef REMOTECONTROLTHREAD_H
 #define REMOTECONTROLTHREAD_H
 
+#ifdef LINUX
 #include <QThread>
 #include "remotecontrol.h" // 确保包含 RemoteControl 的头文件
 
@@ -27,3 +28,4 @@ private:
 };
 
 #endif // REMOTECONTROLTHREAD_H
+#endif

@@ -1,3 +1,4 @@
+#ifdef LINUX
 #include "remotecontrolthread.h"
 
 RemoteControlThread::RemoteControlThread(QObject *parent, RemoteControl *remoteControl)
@@ -43,3 +44,4 @@ void RemoteControlThread::run()
     m_remoteControl->disconnect();
     emit connectionFinished();
 }
+#endif

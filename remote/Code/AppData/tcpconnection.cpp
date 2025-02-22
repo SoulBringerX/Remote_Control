@@ -1,7 +1,9 @@
 #include "tcpconnection.h"
 #include <iostream>
 #include <stdexcept>
+#ifdef LINUX
 #include <netdb.h>
+#endif
 QString tcpConnection::TCP_IP = "127.0.0.1"; // 默认值
 tcpConnection::tcpConnection() : sockfd_(-1) {
 #ifdef _WIN32

@@ -8,6 +8,8 @@
 #include <QVariantMap>
 #include <QSettings>
 #include <QDir>
+#include <QIcon>
+#include <QBuffer>
 #include <QStandardPaths>
 #include <shlwapi.h>
 #include <windows.h>

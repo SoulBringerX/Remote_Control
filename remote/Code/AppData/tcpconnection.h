@@ -9,7 +9,9 @@
 #include <QTcpSocket>
 #ifdef _WIN32
 #include <winsock2.h>
+#include <windows.h>
 #include <ws2tcpip.h>
+#include <czmq.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <sys/socket.h>

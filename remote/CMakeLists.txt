@@ -7,6 +7,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11) # 指定 C++ 标准版本
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(QT_NO_SHOW_OLD_POLICY_WARNINGS ON)
+set(CMAKE_TOOLCHAIN_FILE "C:/Users/86184/Desktop/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 find_package(Qt6 COMPONENTS Sql REQUIRED)
 find_package(Qt6 COMPONENTS Quick REQUIRED)
@@ -80,29 +81,41 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # 包含头文件路径
     include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
 
-    # Link libraries
-    target_link_libraries(appremote PRIVATE ${CZMQ_LIB})
+    # 查找 ZeroMQ 和 czmq
+    find_package(ZMQ CONFIG REQUIRED)
+    find_package(czmq CONFIG REQUIRED)
     # 链接库
     target_link_libraries(appremote PRIVATE
-        ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
+        ZeroMQ::libzmq
+        czmq::czmq
     )
-    # Link Qt and CZMQ libraries
-    target_link_libraries(appremote PRIVATE czmq)
+
+    # 调试信息
+    get_target_property(_ZMQ_LIB ZeroMQ::libzmq LOCATION_RELEASE)
+    message(STATUS "ZeroMQ library path: ${_ZMQ_LIB}")
+    get_target_property(_CZMQ_LIB czmq::czmq LOCATION_RELEASE)
+    message(STATUS "czmq library path: ${_CZMQ_LIB}")
 
     # 添加 Linux 特定的编译定义
     add_definitions(-DLINUX)
 endif()
 
+# 如果是 Windows 系统
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "Compiling for Windows")
-    find_library(SHLWAPI_LIBRARY shlwapi)
 
+    # 查找系统库 shlwapi
+    find_library(SHLWAPI_LIBRARY shlwapi)
     if(SHLWAPI_LIBRARY)
         message(STATUS "Found shlwapi.lib: ${SHLWAPI_LIBRARY}")
-        target_link_libraries(apprremote PRIVATE ${SHLWAPI_LIBRARY})
+        target_link_libraries(appremote PRIVATE ${SHLWAPI_LIBRARY})
     else()
-        message(WARNING "shlwapi.lib not found. Ensure it is installed and in the system library path.")
+        message(WARNING "shlwapi.lib not found.")
     endif()
+    find_package(ZeroMQ CONFIG REQUIRED)
+    target_link_libraries(appremote PRIVATE libzmq libzmq-static)
+    find_package(czmq CONFIG REQUIRED)
+    target_link_libraries(appremote PRIVATE czmq czmq-static)
 endif()
 
 target_link_libraries(appremote
