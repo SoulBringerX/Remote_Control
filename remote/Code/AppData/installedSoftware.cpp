@@ -4,112 +4,218 @@
 #include <QVariantList>
 #include <QDebug>
 #include <QSettings>
+#include <QStandardPaths>
 #include <shlwapi.h>
+#include <QDesktopServices>
+#include <QUrl>
+
 
 InstalledSoftware::InstalledSoftware(QObject *parent)
-    : QObject(parent) {
-    refreshSoftwareList();
+    : QObject(parent)
+{
+    qRegisterMetaType<SoftwareInfo>("SoftwareInfo");
 }
 
 QVariantList InstalledSoftware::softwareList() const {
-    return softwareList_;
+    return m_softwareList;
+}
+
+QStringList InstalledSoftware::getLocalIPs() const {
+    return getAllLocalIPs();
 }
 
 void InstalledSoftware::refreshSoftwareList() {
-    softwareList_.clear();
+    m_softwareList.clear();
 
-    // 桌面路径（暂时未使用）
-    QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    // 获取本机IP地址（提前获取避免循环内重复调用）
+    const QStringList localIPs = getAllLocalIPs();
 
-    // 检查并遍历注册表中的卸载信息路径
-    QStringList regPaths = {
-        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",
-        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\"
+    // 获取桌面路径
+    const QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+
+    // 获取注册表路径
+    const QStringList regPaths = {
+        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
     };
 
+    // 获取桌面快捷方式
+    QStringList desktopShortcuts;
+    if (QDir(desktopPath).exists()) {
+        const QStringList shortcutFiles = QDir(desktopPath).entryList(QStringList() << "*.lnk", QDir::Files);
+        for (const QString& shortcutFile : shortcutFiles) {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(desktopPath + "/" + shortcutFile));
+            QFileInfo fileInfo(shortcutFile);
+            if (fileInfo.exists() && fileInfo.isFile()) {
+                desktopShortcuts.append(fileInfo.absoluteFilePath());
+            }
+        }
+    }
+
+    // 遍历注册表路径
     for (const QString& regPath : regPaths) {
         QSettings settings(regPath, QSettings::NativeFormat);
 
-        // 遍历各个子项
-        for (const QString& regItem : settings.childGroups()) {
-            settings.beginGroup(regItem);
+        for (const QString& subKey : settings.childGroups()) {
+            settings.beginGroup(subKey);
 
-            // 获取软件信息
-            QString displayName = settings.value("DisplayName").toString();
-            QString displayVersion = settings.value("DisplayVersion").toString();
-            QString installLocation = settings.value("InstallLocation").toString();
-            QString publisher = settings.value("Publisher").toString();
-            QString uninstallString = settings.value("UninstallString").toString();
-            QString installDate = settings.value("InstallDate").toString();
+            SoftwareInfo info;
+            info.name = settings.value("DisplayName").toString();
+            info.version = settings.value("DisplayVersion").toString();
+            info.installLocation = settings.value("InstallLocation").toString();
+            info.publisher = settings.value("Publisher").toString();
+            info.uninstallExePath = settings.value("UninstallString").toString();
+            info.installDate = settings.value("InstallDate").toString();
+            info.localIPs = localIPs; // 绑定IP信息
 
-            // 检查是否同时具有卸载程序和具体执行程序
-            bool hasUninstallProgram = !uninstallString.isEmpty();
-            bool hasExecutable = false;
+            // 查找主程序路径
+            info.mainExePath = findMainExecutable(info.installLocation);
 
-            // 检查安装路径是否有效，并搜索可执行文件 (*.exe)
-            if (!installLocation.isEmpty()) {
-                QDir dir(installLocation);
-                if (dir.exists()) {
-                    QStringList exeFiles = dir.entryList(QStringList() << "*.exe", QDir::Files);
-                    if (!exeFiles.isEmpty()) {
-                        hasExecutable = true;
-                    }
-                }
-            }
+            // 过滤有效条目
+            if (!info.name.isEmpty() &&
+                !info.uninstallExePath.isEmpty() &&
+                !info.mainExePath.isEmpty())
+            {
+                QVariantMap entry;
+                entry["name"] = info.name;
+                entry["version"] = info.version;
+                entry["installLocation"] = info.installLocation;
+                entry["mainExe"] = info.mainExePath;
+                entry["uninstallExe"] = info.uninstallExePath;
+                entry["publisher"] = info.publisher;
+                entry["installDate"] = info.installDate;
+                entry["localIPs"] = info.localIPs;
 
-            // 同时满足条件的软件才会被添加到列表中
-            if (!displayName.isEmpty() && hasUninstallProgram && hasExecutable) {
-                QVariantMap softwareInfo;
-                softwareInfo.insert("name", displayName);
-                softwareInfo.insert("version", displayVersion);
-                softwareInfo.insert("installLocation", installLocation);
-                softwareInfo.insert("publisher", publisher);
-                softwareInfo.insert("uninstallPath", uninstallString);
-                softwareInfo.insert("installDate", installDate);
-
-                softwareList_.append(softwareInfo);
+                m_softwareList.append(entry);
             }
 
             settings.endGroup();
         }
     }
 
-    // 打印日志，验证数据是否正确填充
-    qDebug() << "Software List:";
-    for (const auto& item : softwareList_) {
-        qDebug() << "Name:" << item.toMap()["name"].toString();
-        qDebug() << "Version:" << item.toMap()["version"].toString();
-        qDebug() << "Install Date:" << item.toMap()["installDate"].toString();
-        qDebug() << "Uninstall Path:" << item.toMap()["uninstallPath"].toString();
-        qDebug() << "Install Location:" << item.toMap()["installLocation"].toString();
-        qDebug() << "Publisher:" << item.toMap()["publisher"].toString();
-        qDebug() << "----------------------------------------";
+    // 遍历桌面快捷方式
+    for (const QString& shortcut : desktopShortcuts) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(shortcut));
+        QFileInfo fileInfo(shortcut);
+        if (fileInfo.exists() && fileInfo.isFile()) {
+            // 解析快捷方式目标
+            QString targetPath = parseShortcutTarget(shortcut);
+            if (!targetPath.isEmpty()) {
+                SoftwareInfo info;
+                info.name = fileInfo.baseName();
+                info.mainExePath = targetPath;
+                info.uninstallExePath = findUninstaller(targetPath);
+                info.localIPs = localIPs; // 绑定IP信息
+
+                // 过滤有效条目
+                if (!info.name.isEmpty() &&
+                    !info.uninstallExePath.isEmpty() &&
+                    !info.mainExePath.isEmpty())
+                {
+                    QVariantMap entry;
+                    entry["name"] = info.name;
+                    entry["mainExe"] = info.mainExePath;
+                    entry["uninstallExe"] = info.uninstallExePath;
+                    entry["localIPs"] = info.localIPs;
+
+                    m_softwareList.append(entry);
+                }
+            }
+        }
     }
 
-    // 发出信号，通知 QML 数据已更新
     emit softwareListChanged();
 }
-QByteArray InstalledSoftware::getIconBinaryData(const QString &exePath) const
-{
-    QByteArray iconData;
 
-    // 使用 QPixmap 从 exe 文件中提取图标
-    QPixmap pixmap;
-    QIcon icon(exePath);
-    if (icon.isNull()) {
-        return iconData;
+// 解析快捷方式目标
+QString InstalledSoftware::parseShortcutTarget(const QString& shortcutPath) const {
+    QSettings shortcut(shortcutPath, QSettings::IniFormat);
+    QString target = shortcut.value("Shell\\Open\\Command").toString();
+    if (target.startsWith("\"")) {
+        target = target.mid(1, target.indexOf("\"", 1) - 1);
+    }
+    return target;
+}
+
+// 查找卸载程序路径
+QString InstalledSoftware::findUninstaller(const QString& exePath) const {
+    QString uninstallPath;
+    QFileInfo fileInfo(exePath);
+    QString dirPath = fileInfo.absolutePath();
+
+    // 检查卸载程序
+    QStringList uninstallExes = {"uninstall.exe", "uninstaller.exe", "uninstall.bat", "uninstaller.bat"};
+    for (const QString& uninstallExe : uninstallExes) {
+        QString path = QDir(dirPath).filePath(uninstallExe);
+        if (QFile::exists(path)) {
+            uninstallPath = path;
+            break;
+        }
     }
 
-    pixmap = icon.pixmap(32, 32); // 设置图标大小，例如 32x32
-
-    if (pixmap.isNull()) {
-        return iconData;
+    // 如果未找到，检查上级目录
+    if (uninstallPath.isEmpty()) {
+        QString parentDir = QFileInfo(dirPath).absolutePath(); // 获取上级目录
+        for (const QString& uninstallExe : uninstallExes) {
+            QString path = QDir(parentDir).filePath(uninstallExe);
+            if (QFile::exists(path)) {
+                uninstallPath = path;
+                break;
+            }
+        }
     }
 
-    QBuffer buffer(&iconData);
-    buffer.open(QIODevice::WriteOnly);
-    pixmap.save(&buffer, "PNG"); // 可以根据需要选择格式，如 "PNG" 或 "BMP"
+    return uninstallPath;
+}
 
-    return iconData;
+QString InstalledSoftware::findMainExecutable(const QString& installPath) const {
+    if (installPath.isEmpty()) return "";
+
+    QDir dir(installPath);
+    if (!dir.exists()) return "";
+
+    // 优先查找与目录同名的exe
+    QString dirName = dir.dirName();
+    QString possibleMainExe = dir.filePath(dirName + ".exe");
+    if (QFile::exists(possibleMainExe)) {
+        return possibleMainExe;
+    }
+
+    // 查找其他exe文件
+    QStringList exeFiles = dir.entryList(QStringList() << "*.exe", QDir::Files);
+    if (!exeFiles.isEmpty()) {
+        return dir.filePath(exeFiles.first());
+    }
+
+    return "";
+}
+
+QStringList InstalledSoftware::getAllLocalIPs() const {
+    QStringList ips;
+    const QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+
+    for (const QNetworkInterface& qinterface : interfaces) {
+        // Skip loopback interfaces (e.g., 127.0.0.1)
+        if (qinterface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
+            continue;
+        }
+
+        // Skip interfaces that are not active
+        if (!qinterface.flags().testFlag(QNetworkInterface::IsUp)) {
+            continue;
+        }
+
+        // Iterate through the address entries of the interface
+        for (const QNetworkAddressEntry& entry : qinterface.addressEntries()) {
+            const QHostAddress& ip = entry.ip();
+
+            // Check if the address is an IPv4 address
+            if (ip.protocol() == QAbstractSocket::IPv4Protocol) {
+                ips.append(ip.toString());
+            }
+        }
+    }
+
+    return ips;
 }
 #endif

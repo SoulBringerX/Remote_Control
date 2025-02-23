@@ -21,27 +21,11 @@ Rectangle {
             color: index % 2 === 0 ? "#f0f0f0" : "white"
 
             Column {
-                anchors.fill: parent
-                anchors.margins: 10
-                spacing: 5
-
-                Text {
-                    text: "名称：" + (modelData.name || "未知")
-                    font.bold: true
-                    font.pixelSize: 16
-                }
-
-                Text {
-                    text: "版本：" + (modelData.version || "未记录")
-                    font.pixelSize: 14
-                    color: "#666"
-                }
-
-                Text {
-                    text: "安装日期：" + (modelData.installDate || "未知")
-                    font.pixelSize: 12
-                    color: "#999"
-                }
+                Text { text: "名称：" + modelData.name }
+                Text { text: "版本：" + modelData.version }
+                Text { text: "主程序：" + modelData.mainExe }
+                Text { text: "卸载程序：" + modelData.uninstallExe }
+                Text { text: "本机IP：" + modelData.localIPs.join(", ") }
             }
 
             // 分割线

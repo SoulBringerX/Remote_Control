@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 
 #ifdef WIN32
     InstalledSoftware softwareManager;
+    softwareManager.refreshSoftwareList();
     engine.rootContext()->setContextProperty("softwareManager", &softwareManager);
 #endif
     tcpConnection tcpcn;
