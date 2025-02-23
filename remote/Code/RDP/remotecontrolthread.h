@@ -3,6 +3,7 @@
 
 #ifdef LINUX
 #include <QThread>
+#include <QDebug>
 #include "remotecontrol.h" // 确保包含 RemoteControl 的头文件
 
 class RemoteControlThread : public QThread

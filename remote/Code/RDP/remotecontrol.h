@@ -25,29 +25,40 @@
 #include <winpr/crypto.h>             // 加密工具
 #include <QString>
 #include <QObject>
+#include <QImage>
 
-class RemoteControl : public QObject
-{
-        Q_OBJECT
-    public:
-        explicit RemoteControl(QObject *parent = nullptr);
-        ~RemoteControl();
-        // 初始化 FreeRDP 实例
-        Q_INVOKABLE bool initialize();
+// 前向声明 RemoteControl 类
+class RemoteControl;
 
-        // 连接到远程桌面
-        Q_INVOKABLE bool connect(const QString& hostname, const QString& username, const QString& password);
-
-        // 断开连接
-        Q_INVOKABLE void disconnect();
-
-        // 处理事件循环
-        Q_INVOKABLE void runEventLoop();
-
-    private:
-        freerdp* _instance;       // FreeRDP 实例
-        rdpContext* _context;     // FreeRDP 上下文
-        rdpSettings* _settings;   // FreeRDP 设置
+// 定义自定义上下文结构体
+struct RemoteControlContext {
+    rdpContext context;         // 必须放在第一个位置，以继承 rdpContext
+    RemoteControl* remoteControl; // 指向 RemoteControl 对象的指针
 };
+
+class RemoteControl : public QObject {
+    Q_OBJECT
+public:
+    explicit RemoteControl(QObject* parent = nullptr);
+    ~RemoteControl();
+
+    Q_INVOKABLE bool initialize();
+    Q_INVOKABLE bool connect(const QString& hostname, const QString& username, const QString& password);
+    Q_INVOKABLE void disconnect();
+    Q_INVOKABLE void runEventLoop();
+    Q_INVOKABLE QImage currentImage() const;
+
+signals:
+    void imageUpdated(const QImage& image);
+
+private:
+    freerdp* _instance;
+    RemoteControlContext* _context;
+    rdpSettings* _settings;
+    QImage _remoteImage;
+
+    void requestRedraw();
+};
+
 #endif
 #endif // REMOTECONTROL_H

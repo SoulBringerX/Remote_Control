@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import "../Dialog/"
-
+import "./"
 Rectangle {
     id: directConnect
     width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
@@ -153,8 +153,9 @@ Rectangle {
                 onClicked:{
                     if(tcp.connect(ipAddress.text)){
                         console.log(ipAddress.text)
-                        // 启动连接
                         remoteControlThread.startConnection(ipAddress.text, username.text, password.text)
+                        // 启动连接
+                        remoteView.show()
                     }
                     else {
                         errorMessage = "TCP连接失败"
@@ -188,5 +189,8 @@ Rectangle {
     SystemErrorDialog{
         id:errorDialog
         message: directConnect.errorMessage
+    }
+    RemoteDraw{
+        id:remoteView
     }
 }

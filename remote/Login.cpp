@@ -19,6 +19,7 @@
 #ifdef LINUX
 #include "./Code/RDP/remotecontrol.h"
 #include "./Code/RDP/remotecontrolthread.h"
+#include "./Code/RDP/remoteimageprovider.h"
 #endif
 
 // 用于跟踪窗口是否隐藏的全局变量
@@ -81,6 +82,8 @@ int main(int argc, char *argv[])
 
 #ifdef LINUX
     RemoteControl client;
+    RemoteImageProvider* imageProvider = new RemoteImageProvider(&client);
+    engine.addImageProvider("remote", imageProvider);
     RemoteControlThread *thread = new RemoteControlThread(nullptr, &client);
     engine.rootContext()->setContextProperty("client", &client);
     engine.rootContext()->setContextProperty("remoteControlThread", thread);

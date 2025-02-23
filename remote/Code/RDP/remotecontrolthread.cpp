@@ -12,6 +12,7 @@ void RemoteControlThread::startConnection(const QString &hostname, const QString
     this->m_hostname = hostname;
     this->m_username = username;
     this->m_password = password;
+    qDebug()<<m_hostname<<" "<<m_username<<" "<<m_password;
     m_running = true;
     m_stopped = false;
     this->start(); // 启动线程
@@ -31,9 +32,9 @@ void RemoteControlThread::run()
         emit errorOccurred("Failed to initialize FreeRDP");
         return;
     }
-
     if (!m_remoteControl->connect(m_hostname, m_username, m_password)) {
         emit errorOccurred("Failed to connect to RDP server");
+        stopConnection();
         return;
     }
 

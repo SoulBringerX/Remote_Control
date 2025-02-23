@@ -38,6 +38,7 @@ qt_add_qml_module(appremote
     QML_FILES Page/RCCpage/RemoteSetting.qml
     QML_FILES Page/RCCpage/DirectConnect.qml
     QML_FILES Page/RCRpage/RCRMainwindow.qml
+    QML_FILES Page/RCCpage/RemoteDraw.qml
     RESOURCES resource.qrc
     QML_FILES Page/RCRpage/PersonalSetting.qml
     QML_FILES Page/RCRpage/WinApplicationPreview.qml
@@ -51,6 +52,7 @@ qt_add_qml_module(appremote
     SOURCES Code/RDP/remotecontrolthread.h Code/RDP/remotecontrolthread.cpp
     SOURCES Code/AppData/devicedata.cpp
     SOURCES Code/TCP/tcpservertest.h Code/TCP/tcpservertest.cpp
+    SOURCES Code/RDP/remoteimageprovider.h Code/RDP/remoteimageprovider.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行
@@ -82,20 +84,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # 包含头文件路径
     include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
 
-    # 查找 ZeroMQ 和 czmq
-    find_package(ZMQ CONFIG REQUIRED)
-    find_package(czmq CONFIG REQUIRED)
+    # Link libraries
+    target_link_libraries(appremote PRIVATE ${CZMQ_LIB})
     # 链接库
     target_link_libraries(appremote PRIVATE
-        ZeroMQ::libzmq
-        czmq::czmq
+        ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
     )
-
-    # 调试信息
-    get_target_property(_ZMQ_LIB ZeroMQ::libzmq LOCATION_RELEASE)
-    message(STATUS "ZeroMQ library path: ${_ZMQ_LIB}")
-    get_target_property(_CZMQ_LIB czmq::czmq LOCATION_RELEASE)
-    message(STATUS "czmq library path: ${_CZMQ_LIB}")
+    # Link Qt and CZMQ libraries
+    target_link_libraries(appremote PRIVATE czmq)
 
     # 添加 Linux 特定的编译定义
     add_definitions(-DLINUX)
