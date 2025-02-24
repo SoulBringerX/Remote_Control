@@ -47,7 +47,7 @@ public:
     Q_INVOKABLE void disconnect();
     Q_INVOKABLE void runEventLoop();
     Q_INVOKABLE QImage currentImage() const;
-
+    Q_INVOKABLE void requestRedraw();
 signals:
     void imageUpdated(const QImage& image);
 
@@ -56,8 +56,6 @@ private:
     RemoteControlContext* _context;
     rdpSettings* _settings;
     QImage _remoteImage;
-
-    void requestRedraw();
 };
 
 #endif

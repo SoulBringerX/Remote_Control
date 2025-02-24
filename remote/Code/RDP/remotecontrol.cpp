@@ -61,7 +61,7 @@ bool RemoteControl::initialize()
     _settings->DesktopWidth = 1280;
     _settings->DesktopHeight = 720;
     _settings->SurfaceCommandsEnabled = TRUE;
-    _settings->ColorDepth = 32;
+    _settings->ColorDepth = 8;
     if (!gdi_init(_instance, PIXEL_FORMAT_XRGB32)) {
         qDebug() << "[ERROR] GDI 初始化失败";
         return false;
