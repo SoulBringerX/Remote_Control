@@ -124,6 +124,7 @@ Rectangle{
                         anchors.fill: parent
                         z: 2
                         onClicked: {
+                            // 此处是要去获取远端电脑的基本配置信息，包含电脑的CPU、系统版本、内存大小、磁盘大小、网络状态（此处暂用本机）
                             userDeviceInformation.text = "OS:Windosw 10" + '\n'+"CPU:Intel i5-8500"
                         }
                     }
@@ -218,7 +219,6 @@ Rectangle{
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                     onPressed: function(event) {
-                        console.log("Mouse button pressed:", event.button);
                         if (event.button === Qt.RightButton) {
                             showContextMenu(event.x, event.y);
                             event.accepted = true; // 阻止事件传递到父级MouseArea
@@ -260,6 +260,7 @@ Rectangle{
                         text: "配置设备"
                         onTriggered: {
                             console.log("配置设备")
+                            inputWindow.show()
                         }
                     }
                 }
@@ -328,7 +329,7 @@ Rectangle{
         width: 300
         height: 250
         modality: Qt.ApplicationModal
-        visibility: "Windowed"
+        visible: false
         flags: Qt.Window
         color: "white"
 
