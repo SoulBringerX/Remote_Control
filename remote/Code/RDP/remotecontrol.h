@@ -48,6 +48,11 @@ public:
     Q_INVOKABLE void runEventLoop();
     Q_INVOKABLE QImage currentImage() const;
     Q_INVOKABLE void requestRedraw();
+    // 静态回调函数声明
+    Q_INVOKABLE static BOOL handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code);
+    Q_INVOKABLE static BOOL handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y);
+public slots:
+    Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
 signals:
     void imageUpdated(const QImage& image);
 

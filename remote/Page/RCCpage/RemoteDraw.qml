@@ -9,7 +9,13 @@ Window{
             id: remoteImage
             anchors.fill: parent
             source: "image://remote/1" // 固定 ID，与提供器匹配
+    }
+    MouseArea {
+        anchors.fill: parent
+        onPressed: {
+            client.sendMouseEvent(mouse.x, mouse.y, 0x0001, 0x0002);
         }
+    }
 
     Connections {
         target: client
@@ -22,6 +28,6 @@ Window{
     onClosing: {
         // 退出远程桌面且销毁远程会话线程
         console.log("结束远程会话进程---时间："+Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
-        remoteControlThread.stopConnection();
+        // client.disconnect()
     }
 }

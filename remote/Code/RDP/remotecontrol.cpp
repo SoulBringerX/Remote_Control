@@ -62,7 +62,7 @@ bool RemoteControl::initialize()
     _settings->DesktopHeight = 720;
     _settings->SurfaceCommandsEnabled = TRUE;
     _settings->ColorDepth = 8;
-    if (!gdi_init(_instance, PIXEL_FORMAT_XRGB32)) {
+    if (!gdi_init(_instance, PIXEL_FORMAT_BGRA32)) {
         qDebug() << "[ERROR] GDI 初始化失败";
         return false;
     }
@@ -82,6 +82,9 @@ bool RemoteControl::initialize()
         }
         return TRUE;
     };
+    // 注册其他必要回调（如键盘、鼠标）
+    _instance->input->KeyboardEvent = handle_keyboard_event;
+    _instance->input->MouseEvent = handle_mouse_event;
     qDebug() << "FreeRDP initialized successfully";
     return true;
 }
@@ -103,6 +106,7 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->RdpSecurity = TRUE;
         _settings->TlsSecurity = FALSE;
         _settings->NlaSecurity = FALSE;
+        // _settings->SetBoolValue(FREERDP_MOUSE_MOTION, TRUE);
     } else {
         qDebug() << "[RemoteControl] Error: FreeRDP settings not initialized";
         return false;
@@ -194,4 +198,32 @@ QImage RemoteControl::currentImage() const {
     return _remoteImage; // 返回当前存储的远程图像
 }
 
+// RemoteControl.cpp
+BOOL RemoteControl::handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code) {
+    // 处理键盘事件
+    qDebug() << "键盘事件: flags=" << flags << ", code=" << code;
+    return TRUE;
+}
+
+BOOL RemoteControl::handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y) {
+    qDebug() << "鼠标事件处理函数调用，flags=" << flags << ", x=" << x << ", y=" << y;
+    // 根据需要处理鼠标事件
+    return freerdp_input_send_mouse_event(input, flags, x, y);
+}
+void RemoteControl::sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags) {
+    if (!_instance || !_instance->input) {
+        qDebug() << "FreeRDP connection is not active";
+        return;
+    }
+    if (_instance && _instance->input) {
+        UINT16 remoteX = static_cast<UINT16>(x);
+        UINT16 remoteY = static_cast<UINT16>(y);
+
+        if (freerdp_input_send_mouse_event(_instance->input, buttonFlags, remoteX, remoteY)) {
+            if (releaseFlags != 0) {
+                freerdp_input_send_mouse_event(_instance->input, releaseFlags, remoteX, remoteY);
+            }
+        }
+    }
+}
 #endif
