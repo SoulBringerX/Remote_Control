@@ -50,6 +50,12 @@ bool Account::loginCheck(const QString &userName, const QString &passWord)
     if (userName.isEmpty() || passWord.isEmpty()) {
         return false;
     }
+    if(userName == "user"&&passWord == "123456")
+    {
+        logger.print("Accont 用户:","本地用户登录");
+        // 本地用用户登入
+        return true;
+    }
     DataBase db;
     if(db.isLogin(userName,passWord))
         return true;

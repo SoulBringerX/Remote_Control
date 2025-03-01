@@ -254,6 +254,7 @@ Rectangle{
                         text: "删除设备"
                         onTriggered: {
                             console.log("删除设备")
+                            deviceInformationModel.remove(index)
                         }
                     }
                     MenuItem {
@@ -369,7 +370,7 @@ Rectangle{
                         var password = passwordField.text;
 
                         if (ip && account && password) {
-                            deviceModel.append({ ip: ip, account: account, password: password });
+                            deviceInformationModel.append({ ip: ip, account: account, password: password });
                             console.log("新设备已添加:", ip, account, password);
                             inputWindow.close();
                         } else {

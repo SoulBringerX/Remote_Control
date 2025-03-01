@@ -21,6 +21,7 @@
 #include <czmq.h>
 #ifdef LINUX
 #include <netdb.h> // 添加 netdb.h
+#include "../LogUntils/AppLog.h"
 #endif
 #endif
 
@@ -29,7 +30,7 @@
 class tcpConnection : public QObject {
     Q_OBJECT
 private:
-    int sockfd_;
+    zsock_t * sockfd_;
 
 public:
     tcpConnection();

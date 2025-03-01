@@ -5,7 +5,7 @@
 #include <netdb.h>
 #endif
 QString tcpConnection::TCP_IP = "127.0.0.1"; // 默认值
-tcpConnection::tcpConnection() : sockfd_(-1) {
+tcpConnection::tcpConnection() : sockfd_(nullptr) {
 #ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -22,57 +22,43 @@ tcpConnection::~tcpConnection() {
 }
 
 bool tcpConnection::connect(const QString host) {
-    // 此处使用CZMQ进行TCP连接简化
-
-    // 创建请求套接字
-    zsock_t *requester = zsock_new(ZMQ_REQ);
-    assert(requester);
+    sockfd_ = zsock_new(ZMQ_REQ);
+    assert(sockfd_);
     tcpConnection::TCP_IP = host;
-    QString ip_port = "";
-    ip_port = QString("tcp://") + QString(TCP_IP) + QString(":5555");
-    // 连接到服务端
-    sockfd_ = zsock_connect(requester, ip_port.toUtf8());
-    if (sockfd_ == -1) {
-        qDebug()<<TCP_IP<<"连接失败";
+    QString ip_port = QString("tcp://") + QString(TCP_IP) + QString(":5555");
+    if (zsock_connect(sockfd_, ip_port.toUtf8()) == -1) {
+        logger.print("CZNQ_TCP", "目标IP：" + TCP_IP + " 连接失败");
         return false;
     }
-    qDebug()<<TCP_IP<<"连接成功";
+    logger.print("CZNQ_TCP", "目标IP：" + TCP_IP + " 连接成功");
     return true;
 }
 
-bool tcpConnection::sendPacket(const RD_Packet& packet) { // 修改方法名
-    const void* data = &packet;
-    size_t size = sizeof(RD_Packet);
-
-    ssize_t sent = ::send(sockfd_, static_cast<const char*>(data), size, 0); // 使用 ::send 避免冲突
-    if (sent == -1 || static_cast<size_t>(sent) != size) {
-        std::cerr << "Send failed" << std::endl;
+bool tcpConnection::sendPacket(const RD_Packet& packet) {
+    if (zsock_send(sockfd_, "i", packet.RD_Type) != 0) {
+        logger.print("CZNQ_TCP", "目标发送消息成功");
+    } else {
+        logger.print("CZNQ_TCP", "目标发送消息失败");
         return false;
     }
-
     return true;
 }
 
 bool tcpConnection::receive(RD_Packet& packet) {
     char buffer[sizeof(RD_Packet)];
-    ssize_t received = recv(sockfd_, buffer, sizeof(buffer), 0);
+    ssize_t received = zsock_recv(sockfd_, buffer);
     if (received <= 0) {
-        std::cerr << "Receive failed" << std::endl;
+        logger.print("CZNQ_TCP", "目标接收成功");
         return false;
     }
-
     memcpy(&packet, buffer, received);
     return true;
 }
 
 void tcpConnection::close() {
-    if (sockfd_ != -1) {
-#ifdef _WIN32
-        closesocket(sockfd_);
-#else
-        ::close(sockfd_);
-#endif
-        sockfd_ = -1;
+    if (sockfd_ != nullptr) {
+        zsock_destroy(&sockfd_);
+        sockfd_ = nullptr;
     }
 }
 

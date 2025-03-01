@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QDebug>
 #include "remotecontrol.h" // 确保包含 RemoteControl 的头文件
+#include "../LogUntils/AppLog.h"
 
 class RemoteControlThread : public QThread
 {

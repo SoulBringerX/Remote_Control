@@ -4,6 +4,7 @@
 #ifdef LINUX
 #include <QQuickImageProvider>
 #include "./remotecontrol.h"
+#include "../LogUntils/AppLog.h"
 
 class RemoteImageProvider : public QQuickImageProvider {
 public:

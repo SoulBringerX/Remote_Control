@@ -23,7 +23,9 @@ enum class OperationCommandType : unsigned char {
     TransmitAppAlias = 0x01,     // 传输应用别名
     TransmitAppIconData = 0x02,  // 传输应用图标数据
     TransmitAppCommand = 0x03,   // 传输应用程序名
+    TransmitConnectTest = 0x04,  // TCP传输结果测试
     TransmitEnd = 0x00           // 传输结束
+
 };
 // 设定这个数据传输包
 #pragma pack(push, 1)  // 开启1字节对齐

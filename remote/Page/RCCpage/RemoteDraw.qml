@@ -2,8 +2,6 @@ import QtQuick
 
 Window{
     id: remoteView
-    width: Screen.desktopAvailableWidth * 0.675
-    height: Screen.desktopAvailableHeight * 0.675
     // 用于接收 FreeRDP 的图形数据
     Image {
             id: remoteImage
@@ -12,16 +10,56 @@ Window{
     }
     MouseArea {
         anchors.fill: parent
-        onPressed: {
-            client.sendMouseEvent(mouse.x, mouse.y, 0x0001, 0x0002);
+        onPressed: (mouse) => {
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            if (point.x >= 0 && point.y >= 0) {
+                // 左键按下：PTR_FLAGS_DOWN(0x0001) | PTR_FLAGS_BUTTON1(0x1000)
+                client.sendMouseEvent(
+                    point.x, point.y,
+                    0x0001 | 0x1000, // 组合标志
+                    0x0000           // 不立即释放
+                )
+            }
+        }
+        onReleased: (mouse) => {
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            if (point.x >= 0 && point.y >= 0) {
+                // 左键释放：仅PTR_FLAGS_BUTTON1(0x1000)
+                client.sendMouseEvent(
+                    point.x, point.y,
+                    0x0000,         // 无按下事件
+                    0x1000           // 释放标志
+                )
+            }
+        }
+        onPositionChanged: (mouse) => {
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            if (point.x >= 0 && point.y >= 0) {
+                // 移动事件处理
+                const flags = mouse.buttons & Qt.LeftButton ?
+                    (0x0001 | 0x1000 | 0x0800) : // 拖拽时保持按下状态
+                    0x0800;                       // 纯移动
+
+                client.sendMouseEvent(
+                    point.x, point.y,
+                    flags,
+                    0x0000
+                )
+            }
         }
     }
 
     Connections {
         target: client
         onImageUpdated: {
-            remoteImage.source = "";
-            remoteImage.source = "image://remote/1?t=" + Date.now(); // 动态 URL
+            // 强制刷新图像
+            remoteImage.source = ""
+            remoteImage.source = "image://remote/providerId?" + Math.random()
+
+            // 自动缩放保持比例
+            remoteImage.sourceSize.width = remoteView.width
+            remoteImage.sourceSize.height = remoteView.height
+            remoteImage.fillMode = Image.PreserveAspectFit
         }
     }
     // 监听窗口关闭事件

@@ -26,7 +26,15 @@
 #include <QString>
 #include <QObject>
 #include <QImage>
-
+#include <QTimer>
+#include <QThread>
+#include "../LogUntils/AppLog.h"
+// 使用FreeRDP官方标志定义（来自freerdp/input.h）
+#define PTR_FLAGS_MOVE        0x0800
+#define PTR_FLAGS_DOWN        0x0001
+#define PTR_FLAGS_BUTTON1     0x1000  // 左键
+#define PTR_FLAGS_BUTTON2     0x2000  // 右键
+#define PTR_FLAGS_BUTTON3     0x4000  // 中键
 // 前向声明 RemoteControl 类
 class RemoteControl;
 
@@ -51,6 +59,7 @@ public:
     // 静态回调函数声明
     Q_INVOKABLE static BOOL handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code);
     Q_INVOKABLE static BOOL handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y);
+    Q_INVOKABLE QPointF convertToRemoteCoordinates(qreal localX, qreal localY);
 public slots:
     Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
 signals:

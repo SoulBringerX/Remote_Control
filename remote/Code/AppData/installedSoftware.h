@@ -14,6 +14,7 @@
 #include <QStandardPaths>
 #include <shlwapi.h>
 #include <windows.h>
+#include "../LogUntils/AppLog.h"
 
 
 struct SoftwareInfo {

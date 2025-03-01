@@ -351,29 +351,18 @@ Window {
                     onClicked:
                     {
                         //登录逻辑
-                        // if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
-                        // {
-                        //     if(Qt.platform.os === "windows")
-                        //         loader.sourceComponent = mainWindowPage
-                        //     else
-                        //         loader.sourceComponent = mainWindowPage
-                        // }
-                        // else
-                        // {
-                        //     systemErrorDialog.show()
-                        //     // 清空账户密码输入
-                        //     userPasswordInput.clear()
-                        // }
-                        //打桩测试
-                        if(Qt.platform.os === "linux")
+                        if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
                         {
-                            console.log('该用户使用的是Linux')
-                            loader.sourceComponent = mainWindowPage
+                            if(Qt.platform.os === "windows")
+                                loader.sourceComponent = mainWindowPage
+                            else
+                                loader.sourceComponent = mainWindowPage
                         }
                         else
                         {
-                            console.log('该用户使用的是Windows')
-                            loader.sourceComponent = rcrmanWindowPage
+                            systemErrorDialog.show()
+                            // 清空账户密码输入
+                            userPasswordInput.clear()
                         }
                     }
                     onHoveredChanged: {
@@ -438,6 +427,32 @@ Window {
                 anchors.bottomMargin: 1
                 anchors.right: parent.right
                 anchors.rightMargin: 1
+            }
+
+            Button
+            {
+                id: localLogin
+                text: qsTr("本地登录")
+                font.pixelSize: 12
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 1
+                anchors.left: parent.left
+                anchors.leftMargin: 1
+                onClicked:{
+                    //打桩测试
+                    if(Qt.platform.os === "linux")
+                    {
+                        console.log('该用户使用的是Linux')
+                        account.loginCheck("user","123456")
+                        loader.sourceComponent = mainWindowPage
+                    }
+                    else
+                    {
+                        console.log('该用户使用的是Windows')
+                        account.loginCheck("user","123456")
+                        loader.sourceComponent = rcrmanWindowPage
+                    }
+                }
             }
         }
 
