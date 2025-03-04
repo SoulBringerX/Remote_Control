@@ -8,6 +8,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "./devicedate.h"
+#include "../LogUntils/AppLog.h"
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>

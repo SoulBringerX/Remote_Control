@@ -37,5 +37,7 @@
         <file>images/funplayLOGO.svg</file>
         <file>images/ip.svg</file>
         <file>images/xb2.jpg</file>
+        <file>images/personalSetting1.svg</file>
+        <file>images/personalSetting2.svg</file>
     </qresource>
 </RCC>

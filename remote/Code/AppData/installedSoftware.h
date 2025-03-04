@@ -41,8 +41,7 @@ public:
     Q_INVOKABLE QStringList getLocalIPs() const; // 新增：获取本机IP的公开方法
     QString findUninstaller(const QString& exePath) const;
     QString parseShortcutTarget(const QString& shortcutPath) const;
-
-
+    QVariantList m_softwareList;
 public slots:
     void refreshSoftwareList();
 
@@ -50,8 +49,6 @@ signals:
     void softwareListChanged();
 
 private:
-    QVariantList m_softwareList;
-
     // 新增：获取安装目录中的主程序路径
     QString findMainExecutable(const QString& installPath) const;
 

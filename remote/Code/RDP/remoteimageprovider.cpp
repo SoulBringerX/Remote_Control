@@ -1,3 +1,4 @@
+#ifdef LINUX
 #include "remoteimageprovider.h"
 
 RemoteImageProvider::RemoteImageProvider(RemoteControl* remoteControl)
@@ -16,3 +17,4 @@ QImage RemoteImageProvider::requestImage(const QString& id, QSize* size, const Q
     }
     return QImage();
 }
+#endif

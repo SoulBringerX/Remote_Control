@@ -44,8 +44,7 @@ void InstalledSoftware::refreshSoftwareList() {
     if (QDir(desktopPath).exists()) {
         const QStringList shortcutFiles = QDir(desktopPath).entryList(QStringList() << "*.lnk", QDir::Files);
         for (const QString& shortcutFile : shortcutFiles) {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(desktopPath + "/" + shortcutFile));
-            QFileInfo fileInfo(shortcutFile);
+            QFileInfo fileInfo(desktopPath + "/" + shortcutFile); // 直接获取文件信息
             if (fileInfo.exists() && fileInfo.isFile()) {
                 desktopShortcuts.append(fileInfo.absoluteFilePath());
             }
@@ -95,7 +94,6 @@ void InstalledSoftware::refreshSoftwareList() {
 
     // 遍历桌面快捷方式
     for (const QString& shortcut : desktopShortcuts) {
-        QDesktopServices::openUrl(QUrl::fromLocalFile(shortcut));
         QFileInfo fileInfo(shortcut);
         if (fileInfo.exists() && fileInfo.isFile()) {
             // 解析快捷方式目标
