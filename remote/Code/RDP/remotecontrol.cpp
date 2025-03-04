@@ -99,9 +99,13 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->Password = strdup(password.toUtf8().constData());
         _settings->ServerPort = 3389;
         _settings->IgnoreCertificate = TRUE;
+        _settings->RemoteFxCodec = FALSE;
+        _settings->NSCodec = TRUE;
         _settings->RdpSecurity = TRUE;
         _settings->TlsSecurity = FALSE;
         _settings->NlaSecurity = FALSE;
+        _settings->SurfaceCommandsEnabled = TRUE;
+        freerdp_settings_set_bool(_settings, FreeRDP_TlsSecLevel, TRUE);
         // _settings->SetBoolValue(FREERDP_MOUSE_MOTION, TRUE);
     } else {
         logger.print("RemoteRDP","RDP的settings并未初始化并配置");
@@ -283,6 +287,8 @@ void RemoteControl::sendMouseEvent(int x, int y, int buttonFlags, int releaseFla
     if (buttonFlags != 0) {
         if (!freerdp_input_send_mouse_event(_instance->input, buttonFlags, remoteX, remoteY)) {
             qDebug() << "鼠标按下事件发送失败";
+        } else {
+            qDebug() << "鼠标按下事件发送成功，横坐标：" << remoteX << "，纵坐标：" << remoteY;
         }
     }
 
@@ -290,9 +296,10 @@ void RemoteControl::sendMouseEvent(int x, int y, int buttonFlags, int releaseFla
         QTimer::singleShot(50, [=]() {
             if (!freerdp_input_send_mouse_event(_instance->input, releaseFlags, remoteX, remoteY)) {
                 qDebug() << "鼠标释放事件发送失败";
+            } else {
+                qDebug() << "鼠标释放事件发送成功，横坐标：" << remoteX << "，纵坐标：" << remoteY;
             }
         });
     }
-    qDebug() << "鼠标事件发送成功"<<"横坐标："<<remoteX<<"，纵坐标："<<remoteY;
 }
 #endif
