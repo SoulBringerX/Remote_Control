@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Rectangle {
-    id: root
+    id: personalSetting
     width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
     height: Screen.desktopAvailableHeight * 0.675
     color: "transparent"
@@ -86,7 +86,7 @@ Rectangle {
             SettingsItem {
                 title: "重置密码"
                 icon: "🔒"
-                // onClicked: passwordDialog.open()
+                //onClicked: passwordDialog.open()
             }
 
             SettingsItem {

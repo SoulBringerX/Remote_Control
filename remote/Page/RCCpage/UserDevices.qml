@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
 import "../../Model" // 进入 Model 文件夹
+import "./"
 Rectangle{
     property int isExtendCount: 0
     color: "transparent"
@@ -242,12 +243,14 @@ Rectangle{
                         text: "获取远端应用列表"
                         onTriggered: {
                             console.log("获取远端应用列表")
+                            applistpage.show()
                         }
                     }
                     MenuItem {
                         text: "安装软件"
                         onTriggered: {
                             console.log("安装软件")
+
                         }
                     }
                     MenuItem {
@@ -393,5 +396,8 @@ Rectangle{
     // 显示输入框
     function showInputDialog() {
         inputWindow.show();
+    }
+    RemoteAppList{
+        id: applistpage
     }
 }

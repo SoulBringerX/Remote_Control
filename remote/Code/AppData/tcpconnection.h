@@ -20,6 +20,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <czmq.h>
+#include <QByteArray>
+#include <QDataStream>
+#include <QDebug>
 #ifdef LINUX
 #include <netdb.h> // 添加 netdb.h
 #include "../LogUntils/AppLog.h"
@@ -39,31 +42,23 @@ public:
 
     Q_INVOKABLE bool connect(const QString host);
 
-    Q_INVOKABLE bool sendPacket(const RD_Packet& packet); // 修改方法名
+    Q_INVOKABLE bool sendPacket(const RD_Packet& packet);
 
     Q_INVOKABLE bool receive(RD_Packet& packet);
 
     void close();
 
     static QString TCP_IP;
-};
 
-class TcpServer : public QObject
-{
-    Q_OBJECT
-public:
-    explicit TcpServer(QObject *parent = nullptr);
-    void startListening();
+    // 新增：接收远程应用列表
+    Q_INVOKABLE QVariantList receiveAppList();
 
 signals:
-    void newConnection(QTcpSocket *socket);
-
-private slots:
-    void incomingConnection(); // 修改为无参数
-    void clientDisconnected(); // 修改为无参数
+    void appListReceived(const QVariantList &appList);
 
 private:
-    QTcpServer *tcpServer;
+    // 新增：解析应用信息
+    QVariantList parseAppList();
 };
 
 #endif // TCPCONNECTION_H

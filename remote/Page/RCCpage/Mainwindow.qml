@@ -4,6 +4,7 @@ import QtQuick.Dialogs
 import QtQuick.Controls.Basic
 
 import './'
+import '../RCRpage/'
 
 Window {
     id: root
@@ -63,6 +64,7 @@ Window {
                         directConnectionTextmiss.running = true
                         rdpConnectionSettingTextmiss.running = true
                         rdpDeviceTextmiss.running = true
+                        personalSettingTextmiss.running = true
                         iconchanged = false
                     }
                     else
@@ -73,6 +75,7 @@ Window {
                         directConnectionTextsee.running = true
                         rdpConnectionSettingTextsee.running = true
                         rdpDeviceTextsee.running = true
+                        personalSettingTextsee.running = true
                         iconchanged = true
                     }
                 }
@@ -131,6 +134,24 @@ Window {
                 to: 1
                 duration: 500
             }
+            PropertyAnimation
+            {
+                id: personalSettingTextmiss
+                target: personalSettingText
+                properties: "opacity"
+                from: 1
+                to: 0
+                duration: 500
+            }
+            PropertyAnimation
+            {
+                id: personalSettingTextsee
+                target: personalSettingText
+                properties: "opacity"
+                from: 0
+                to: 1
+                duration: 500
+            }
         }
 
         Rectangle{
@@ -180,6 +201,8 @@ Window {
                     directConnectionIcon.source = "qrc:/images/remoteConnecting1.svg";
                     rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
                     rdpDeviceIcon.source = "qrc:/images/Device1.svg";
+                    personalSettingIcon.source = "qrc:/images/personalSetting1.svg";
+                    personalSettingText.color = "black";
                     rdpDeviceText.color = "black";
                     rdpConnectionSettingText.color = "black";
                     pageloader.sourceComponent = directConnectPage;
@@ -246,6 +269,8 @@ Window {
                     directConnectionText.color = "black";
                     rdpDeviceIcon.source = "qrc:/images/Device1.svg";
                     rdpDeviceText.color = "black";
+                    personalSettingIcon.source = "qrc:/images/personalSetting1.svg";
+                    personalSettingText.color = "black";
                     pageloader.sourceComponent = remoteSettingPage
                 }
                 onHoveredChanged:
@@ -310,6 +335,8 @@ Window {
                     directConnectionText.color = "black";
                     rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
                     rdpConnectionSettingText.color = "black";
+                    personalSettingIcon.source = "qrc:/images/personalSetting1.svg";
+                    personalSettingText.color = "black";
                     pageloader.sourceComponent = userDevicesPage;
                 }
                 onHoveredChanged:
@@ -321,6 +348,71 @@ Window {
                     else
                     {
                         rdpDeviceButtonRectangle.color = "transparent"
+                    }
+                }
+            }
+        }
+        Rectangle{
+            id: personalSettingButtonRectangle
+            width: parent.width*0.75
+            height: 32
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: rdpDeviceButtonRectangle.bottom
+            anchors.topMargin: parent.height * 0.075
+            color: "transparent"
+            radius: 5
+            Rectangle {
+                id: personalSettingRectangle
+                width: 32
+                height: 32
+                anchors.left: parent.left
+                anchors.top: parent.top
+                color: "transparent"
+
+                Image {
+                    width: 32
+                    height: 32
+                    id: personalSettingIcon
+                    source: "qrc:/images/personalSetting1.svg"
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+            Text
+            {
+                id: personalSettingText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: personalSettingRectangle.right
+                anchors.leftMargin: 5
+                text: qsTr("个人中心")
+                opacity: 1.0
+            }
+            MouseArea
+            {
+                id: personalSettingArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked:
+                {
+                    personalSettingButtonRectangle.color = "#26C2FA";
+                    personalSettingText.color = "#1296db";
+                    personalSettingIcon.source = "qrc:/images/personalSetting2.svg";
+                    directConnectionIcon.source = "qrc:/images/remoteConnecting2.svg";
+                    directConnectionText.color = "black";
+                    rdpConnectionSettingIcon.source = "qrc:/images/configureSetting2.svg";
+                    rdpConnectionSettingText.color = "black";
+                    rdpDeviceIcon.source = "qrc:/images/Device1.svg";
+                    rdpDeviceText.color = "black";
+                    pageloader.sourceComponent = personalSettingPage;
+                }
+                onHoveredChanged:
+                {
+                    if (personalSettingArea.containsMouse)
+                    {
+                        personalSettingButtonRectangle.color = "#9EE6FF"
+                    }
+                    else
+                    {
+                        personalSettingButtonRectangle.color = "transparent"
                     }
                 }
             }
@@ -359,6 +451,10 @@ Window {
             Component {
                 id: directConnectPage
                 DirectConnect{}
+            }
+            Component {
+                id: personalSettingPage
+                PersonalSetting{}
             }
         }
         // 用户远程设备的信息（需登录过一次设备后方可显示对面的设备信息）

@@ -1,3 +1,4 @@
+#ifdef WIN32
 #include "tcpservertest.h"
 /*服务器端测试需求如下：
  * 1、测试连网速度
@@ -30,3 +31,4 @@ void tcpservertest::appNamesend()
     pc_software->refreshSoftwareList();
     zmq_send(responder_,&pc_software->m_softwareList,sizeof(pc_software),0);
 }
+#endif

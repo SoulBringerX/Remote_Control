@@ -1,6 +1,6 @@
 #ifndef TCPSERVERTEST_H
 #define TCPSERVERTEST_H
-
+#ifdef WIN32
 #include "../AppData/tcpconnection.h"
 #include "../LogUntils/AppLog.h"
 #include "../AppData/devicedate.h"
@@ -20,3 +20,4 @@ private:
 };
 
 #endif // TCPSERVERTEST_H
+#endif

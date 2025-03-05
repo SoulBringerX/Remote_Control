@@ -42,6 +42,7 @@ qt_add_qml_module(appremote
     RESOURCES resource.qrc
     QML_FILES Page/RCRpage/PersonalSetting.qml
     QML_FILES Page/RCRpage/WinApplicationPreview.qml
+    QML_FILES Page/RCCpage/RemoteAppList.qml
     SOURCES Code/LogUntils/AppLog.cpp Code/LogUntils/AppLog.h
     SOURCES Code/PID/AdaptivePIDController.h
     SOURCES Code/PID/AdaptivePIDController.cpp
