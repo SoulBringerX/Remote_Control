@@ -1,8 +1,8 @@
 #ifndef DEVICEDATE_H
 #define DEVICEDATE_H
 
-
 #include <QString>
+
 // 此处是设备相关信息用于主页最右侧的设备信息展示
 class Devicedata
 {
@@ -25,8 +25,8 @@ enum class OperationCommandType : unsigned char {
     TransmitAppCommand = 0x03,   // 传输应用程序名
     TransmitConnectTest = 0x04,  // TCP传输结果测试
     TransmitEnd = 0x00           // 传输结束
-
 };
+
 // 设定这个数据传输包
 #pragma pack(push, 1)  // 开启1字节对齐
 struct RD_Packet {
@@ -37,6 +37,8 @@ struct RD_Packet {
     char RD_ImageBit[1024];             // 应用图标数据
     char RD_APP_Name[33];               // 应用别名
     char RD_Command_Name[65];           // 应用程序名
+    char RD_MainExePath[512];           // 主程序路径
+    char RD_UninstallExePath[512];      // 卸载程序路径
 
     RD_Packet() {
         memset(this, 0, sizeof(RD_Packet));  // 初始化时将所有字段清零

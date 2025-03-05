@@ -1,3 +1,4 @@
+// main.cpp
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -9,6 +10,7 @@
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
 #include "./Code/AppData/tcpconnection.h"
+#include "./Code/TCP/tcpserverthread.h"
 #include <QDir>
 #include <QLockFile>
 #ifdef WIN32
@@ -119,6 +121,18 @@ int main(int argc, char *argv[])
         if (reason == QSystemTrayIcon::Trigger) {
             toggleMainWindow(mainWindow);
         }
+    });
+#endif
+
+#ifdef Q_OS_WIN
+    TcpServerThread *tcpServerThread = new TcpServerThread();
+    tcpServerThread->start();
+
+    // 确保在程序退出时销毁线程
+    QObject::connect(&app, &QApplication::aboutToQuit, [=]() {
+        tcpServerThread->stop();
+        tcpServerThread->quit();
+        tcpServerThread->wait();
     });
 #endif
 

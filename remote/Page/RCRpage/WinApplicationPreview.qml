@@ -23,9 +23,21 @@ Rectangle {
             Column {
                 Text { text: "名称：" + modelData.name }
                 Text { text: "版本：" + modelData.version }
-                Text { text: "主程序：" + modelData.mainExe }
-                Text { text: "卸载程序：" + modelData.uninstallExe }
                 Text { text: "本机IP：" + modelData.localIPs.join(", ") }
+
+                // 显示图标
+                Image {
+                    id: iconImage
+                    source: modelData.iconPath
+                    width: 32
+                    height: 32
+                    // 确保图标数据正确加载
+                    Component.onCompleted: {
+                        if (source === "") {
+                            console.log("图标加载失败：" + modelData.name);
+                        }
+                    }
+                }
             }
 
             // 分割线

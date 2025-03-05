@@ -11,8 +11,10 @@ class tcpservertest: public QObject
 public:
     // 类的初始化函数用于初始化服务器的相关配置
     tcpservertest();
+    ~tcpservertest();
+    void exec();
     // 传输应用名称
-    void appNamesend();
+    void appListsend();
 private:
     RD_Packet recvPacket_;
     void* context_ = nullptr;
