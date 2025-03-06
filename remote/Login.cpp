@@ -87,6 +87,10 @@ int main(int argc, char *argv[])
     RemoteImageProvider* imageProvider = new RemoteImageProvider(&client);
     engine.addImageProvider("remote", imageProvider);
     RemoteControlThread *thread = new RemoteControlThread(nullptr, &client);
+    // 创建 tcpConnection 对象
+    tcpConnection tcpConnection;
+    // 将 tcpConnection 对象暴露给 QML
+     engine.rootContext()->setContextProperty("tcpConnection", &tcpConnection);
     engine.rootContext()->setContextProperty("client", &client);
     engine.rootContext()->setContextProperty("remoteControlThread", thread);
 #endif

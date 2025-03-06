@@ -1,3 +1,4 @@
+#ifdef WIN_32
 #include "installedsoftware.h"
 #include <QVariantList>
 #include <QDebug>
@@ -240,3 +241,4 @@ QStringList InstalledSoftware::getAllLocalIPs() const {
 
     return ips;
 }
+#endif
