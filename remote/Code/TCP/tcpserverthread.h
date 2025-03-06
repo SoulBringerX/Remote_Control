@@ -20,6 +20,7 @@ signals:
 
 private:
     bool m_running;
+    tcpservertest *m_server;
 };
 
 #endif // TCPSERVERTHREAD_H

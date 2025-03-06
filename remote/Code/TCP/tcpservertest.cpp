@@ -3,26 +3,43 @@
 #include "../AppData/installedsoftware.h"
 #include <QDebug>
 
-tcpservertest::tcpservertest() {
+// 构造函数：初始化 ZMQ 并设置运行标志
+tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running +!]
     context_ = zmq_ctx_new();
     responder_ = zmq_socket(context_, ZMQ_REP);
     int rc = zmq_bind(responder_, "tcp://*:5555");
     logger.print("RDP_Server", "StartListening >>>>>>");
-
     assert(rc == 0);
 }
 
+// 核心执行逻辑：改用非阻塞接收
 void tcpservertest::exec() {
-    while (1) {
-        zmq_recv(responder_, &recvPacket_, sizeof(recvPacket_), 0);
-        logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
+    while (m_running) {  // [!++ 使用标志控制循环 +!]
+        zmq_pollitem_t items[] = { { responder_, 0, ZMQ_POLLIN, 0 } };
+        int poll_rc = zmq_poll(items, 1, 500);  // [!++ 500ms 超时 +!]
 
-        if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
-            appListsend();
+        if (poll_rc == -1) {
+            logger.print("RDP_Server", "ZMQ poll error");
+            break;
         }
 
-        zmq_send(responder_, "World", 5, 0);
+        if (items[0].revents & ZMQ_POLLIN) {  // [!++ 有数据到达时处理 +!]
+            zmq_recv(responder_, &recvPacket_, sizeof(recvPacket_), 0);
+            logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
+
+            if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
+                appListsend();
+            }
+            zmq_send(responder_, "World", 5, 0);
+        }
+        // 无数据时继续检查 m_running
     }
+}
+
+// [!++ 新增停止方法：触发循环退出 +!]
+void tcpservertest::stop() {
+    m_running = false;
+    logger.print("RDP_Server", "Server stopping...");
 }
 
 void tcpservertest::appListsend() {

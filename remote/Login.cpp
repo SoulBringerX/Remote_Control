@@ -128,11 +128,11 @@ int main(int argc, char *argv[])
     TcpServerThread *tcpServerThread = new TcpServerThread();
     tcpServerThread->start();
 
-    // 确保在程序退出时销毁线程
     QObject::connect(&app, &QApplication::aboutToQuit, [=]() {
-        tcpServerThread->stop();
-        tcpServerThread->quit();
-        tcpServerThread->wait();
+        tcpServerThread->stop();  // 先通知停止
+        tcpServerThread->quit();  // 再退出事件循环
+        tcpServerThread->wait(2000);  // 等待2秒（超时保护）
+        delete tcpServerThread;
     });
 #endif
 
