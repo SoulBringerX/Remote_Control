@@ -1,6 +1,6 @@
 #ifndef INSTALLEDSOFTWARE_H
 #define INSTALLEDSOFTWARE_H
-#ifdef WIN_32
+
 #include <QObject>
 #include <QStringList>
 #include <QVariantList>
@@ -55,5 +55,5 @@ public slots:
 signals:
     void softwareListChanged();
 };
-#endif
+
 #endif // INSTALLEDSOFTWARE_H

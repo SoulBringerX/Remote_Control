@@ -1,4 +1,3 @@
-#ifdef WIN_32
 // tcpservertest.cpp
 #include "tcpservertest.h"
 #include "../AppData/installedsoftware.h"
@@ -83,5 +82,3 @@ tcpservertest::~tcpservertest() {
     zmq_close(responder_);
     zmq_ctx_destroy(context_);
 }
-
-#endif

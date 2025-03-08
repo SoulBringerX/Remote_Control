@@ -1,7 +1,7 @@
-#ifdef WIn_32
 #include "tcpserverthread.h"
 #include "tcpservertest.h"
 #include <QDebug>
+
 
 // tcpserverthread.cpp
 TcpServerThread::TcpServerThread(QObject *parent)
@@ -23,4 +23,3 @@ void TcpServerThread::stop() {
         m_server->stop();  // [!++ 联动停止服务器 +!]
     }
 }
-#endif

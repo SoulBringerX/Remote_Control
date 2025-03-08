@@ -1,7 +1,6 @@
 #ifndef TCPSERVERTHREAD_H
 #define TCPSERVERTHREAD_H
 
-#ifdef WIN_32
 #include <QThread>
 #include "tcpservertest.h"
 
@@ -25,4 +24,3 @@ private:
 };
 
 #endif // TCPSERVERTHREAD_H
-#endif

@@ -4,22 +4,20 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import "../Dialog/"
 import "./"
-
 Rectangle {
     id: directConnect
     width: Screen.desktopAvailableWidth * 0.625 * 0.85 * 0.625
     height: Screen.desktopAvailableHeight * 0.675
     color: "transparent"
 
-    property string errorMessage: ''
-
-    signal deviceConnected(string ip)
+    property string errorMessage:''
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
         spacing: 20
 
+        // 输入远程Windows的本地账号
         RowLayout {
             spacing: 10
             Rectangle {
@@ -52,6 +50,7 @@ Rectangle {
             }
         }
 
+        // 输入远程Windows的本地密码
         RowLayout {
             spacing: 10
             Rectangle {
@@ -85,6 +84,7 @@ Rectangle {
             }
         }
 
+        // 输入远端设备的IP地址
         RowLayout {
             spacing: 10
             Rectangle {
@@ -113,8 +113,9 @@ Rectangle {
                     height: parent.height
                     font.pixelSize: 16
                     anchors.fill: parent
+                    // 正则表达式验证
                     onTextChanged: {
-                        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+                        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
                         if (!ipPattern.test(text)) {
                             // 可以在这里添加错误提示逻辑
                         }
@@ -123,6 +124,7 @@ Rectangle {
             }
         }
 
+        // 连接按钮
         Rectangle {
             id: connectButton
             Layout.alignment: Qt.AlignHCenter
@@ -148,20 +150,32 @@ Rectangle {
                         connectButton.color = "#007BFF"
                     }
                 }
-                onClicked: {
-                    if (tcp.connect(ipAddress.text)) {
+                onClicked:{
+                    if(tcp.connect(ipAddress.text)){
                         console.log(ipAddress.text)
                         remoteControlThread.startConnection(ipAddress.text, username.text, password.text)
+                        // 启动连接
                         remoteView.show()
-                        deviceConnected(ipAddress.text)
-                    } else {
+                    }
+                    else {
                         errorMessage = "TCP连接失败"
                         errorDialog.show()
+                    }
+                }
+                Connections {
+                    target: remoteControlThread
+                    function onConnectionFinished() {
+                        console.log("Connection finished")
+                    }
+
+                    function onErrorOccurred(message) {
+                        console.log("Error: " + message)
                     }
                 }
             }
         }
 
+        // 状态提示
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "已准备好连接"
@@ -169,17 +183,14 @@ Rectangle {
             color: "#28a745"
         }
     }
-
-    SuecessDialog {
-        id: registerDialog
+    SuecessDialog{
+        id:registerDialog
     }
-
-    SystemErrorDialog {
-        id: errorDialog
+    SystemErrorDialog{
+        id:errorDialog
         message: directConnect.errorMessage
     }
-
-    RemoteDraw {
-        id: remoteView
+    RemoteDraw{
+        id:remoteView
     }
 }
