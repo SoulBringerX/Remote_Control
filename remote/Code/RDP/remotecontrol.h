@@ -29,19 +29,22 @@
 #include <QTimer>
 #include <QThread>
 #include "../LogUntils/AppLog.h"
-// 使用FreeRDP官方标志定义（来自freerdp/input.h）
+
+// 使用FreeRDP官方标志定义（来自 freerdp/input.h）
 #define PTR_FLAGS_MOVE        0x0800
 #define PTR_FLAGS_DOWN        0x0001
+#define PTR_FLAGS_UP          0x0010  // 释放
 #define PTR_FLAGS_BUTTON1     0x1000  // 左键
 #define PTR_FLAGS_BUTTON2     0x2000  // 右键
 #define PTR_FLAGS_BUTTON3     0x4000  // 中键
+
 // 前向声明 RemoteControl 类
 class RemoteControl;
 
 // 定义自定义上下文结构体
 struct RemoteControlContext {
-    rdpContext context;         // 必须放在第一个位置，以继承 rdpContext
-    RemoteControl* remoteControl; // 指向 RemoteControl 对象的指针
+    rdpContext context;            // 必须放在第一个位置，以继承 rdpContext
+    RemoteControl* remoteControl;  // 指向 RemoteControl 对象的指针
 };
 
 class RemoteControl : public QObject {
@@ -56,12 +59,16 @@ public:
     Q_INVOKABLE void runEventLoop();
     Q_INVOKABLE QImage currentImage() const;
     Q_INVOKABLE void requestRedraw();
+
     // 静态回调函数声明
     Q_INVOKABLE static BOOL handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code);
     Q_INVOKABLE static BOOL handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y);
     Q_INVOKABLE QPointF convertToRemoteCoordinates(qreal localX, qreal localY);
+
 public slots:
-    Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
+    // 修改为返回 BOOL 以与实现匹配
+    Q_INVOKABLE BOOL sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
+
 signals:
     void imageUpdated(const QImage& image);
 

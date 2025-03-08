@@ -12,7 +12,7 @@ QImage RemoteImageProvider::requestImage(const QString& id, QSize* size, const Q
     if (m_remoteControl) {
         QImage image = m_remoteControl->currentImage();
         if (size) *size = image.size();
-        qDebug() << "Providing image, size:" << image.size(); // 调试输出
+        //qDebug() << "Providing image, size:" << image.size(); // 调试输出
         return image;
     }
     return QImage();

@@ -27,6 +27,7 @@ enum class OperationCommandType : unsigned char {
     TransmitEnd = 0x00           // 传输结束
 };
 
+
 // 设定这个数据传输包
 #pragma pack(push, 1)  // 开启1字节对齐
 struct RD_Packet {
