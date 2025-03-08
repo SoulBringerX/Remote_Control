@@ -66,6 +66,6 @@ Window{
     onClosing: {
         // 退出远程桌面且销毁远程会话线程
         console.log("结束远程会话进程---时间："+Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
-        // client.disconnect()
+        client.disconnect()
     }
 }

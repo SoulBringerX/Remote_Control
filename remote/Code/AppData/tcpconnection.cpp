@@ -38,40 +38,44 @@ bool tcpConnection::connect(const QString host) {
     return true;
 }
 
-bool tcpConnection::sendPacket(const QVariantMap &packetMap) {
-    RD_Packet packet;
-    // 清零 RD_Packet 内存，避免残留数据
-    memset(&packet, 0, sizeof(RD_Packet));
-
-    // 根据 packetMap 中的键设置对应字段
-    if (packetMap.contains("RD_Type"))
-        packet.RD_Type = static_cast<OperationCommandType>(packetMap.value("RD_Type").toInt());
-    if (packetMap.contains("RD_APP_Name")) {
-        QString appName = packetMap.value("RD_APP_Name").toString();
-        strncpy(packet.RD_APP_Name, appName.toUtf8().constData(), sizeof(packet.RD_APP_Name) - 1);
-    }
-    if (packetMap.contains("RD_MainExePath")) {
-        QString mainExePath = packetMap.value("RD_MainExePath").toString();
-        strncpy(packet.RD_MainExePath, mainExePath.toUtf8().constData(), sizeof(packet.RD_MainExePath) - 1);
-    }
-    if (packetMap.contains("RD_UninstallExePath")) {
-        QString uninstallExePath = packetMap.value("RD_UninstallExePath").toString();
-        strncpy(packet.RD_UninstallExePath, uninstallExePath.toUtf8().constData(), sizeof(packet.RD_UninstallExePath) - 1);
-    }
-    if (packetMap.contains("RD_ImageBit")) {
-        QByteArray iconData = packetMap.value("RD_ImageBit").toByteArray();
-        int dataSize = qMin(iconData.size(), static_cast<int>(sizeof(packet.RD_ImageBit)));
-        memcpy(packet.RD_ImageBit, iconData.constData(), dataSize);
-    }
-
-    // 发送数据包，转换 RD_Packet 指针为 const char*
-    if (zsock_send(sockfd_, reinterpret_cast<const char*>(&packet), sizeof(packet), 0) == 0) {
-        logger.print("CZMQ_TCP", "发送请求包成功");
-        return true;
+bool tcpConnection::sendPacket(const RD_Packet& packet) {
+    // 发送数据包
+    if (zsock_send(sockfd_, "i", packet.RD_Type) != 0) {
+        logger.print("CZMQ_TCP", "目标发送消息成功");
     } else {
-        logger.print("CZMQ_TCP", "发送请求包失败");
+        logger.print("CZMQ_TCP", "目标发送消息失败");
         return false;
     }
+
+    if (zsock_send(sockfd_, "s", packet.RD_APP_Name) != 0) {
+        logger.print("CZMQ_TCP", "目标发送应用名称成功");
+    } else {
+        logger.print("CZMQ_TCP", "目标发送应用名称失败");
+        return false;
+    }
+
+    if (zsock_send(sockfd_, "s", packet.RD_MainExePath) != 0) {
+        logger.print("CZMQ_TCP", "目标发送主程序路径成功");
+    } else {
+        logger.print("CZMQ_TCP", "目标发送主程序路径失败");
+        return false;
+    }
+
+    if (zsock_send(sockfd_, "s", packet.RD_UninstallExePath) != 0) {
+        logger.print("CZMQ_TCP", "目标发送卸载程序路径成功");
+    } else {
+        logger.print("CZMQ_TCP", "目标发送卸载程序路径失败");
+        return false;
+    }
+
+    if (zsock_send(sockfd_, "b", packet.RD_ImageBit, sizeof(packet.RD_ImageBit)) != 0) {
+        logger.print("CZMQ_TCP", "目标发送图标数据成功");
+    } else {
+        logger.print("CZMQ_TCP", "目标发送图标数据失败");
+        return false;
+    }
+
+    return true;
 }
 bool tcpConnection::receive(RD_Packet& packet) {
     // 接收数据包

@@ -9,6 +9,13 @@
 #include <QTcpSocket>
 #include "./devicedate.h"
 #include "../LogUntils/AppLog.h"
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#include <czmq.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -16,9 +23,11 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QDebug>
+#ifdef LINUX
 #include <netdb.h> // 添加 netdb.h
 #include "../LogUntils/AppLog.h"
-#include "./devicedate.h"
+#endif
+#endif
 
 #define SERVER_PORT 5555
 
@@ -33,7 +42,7 @@ public:
 
     Q_INVOKABLE bool connect(const QString host);
 
-    Q_INVOKABLE bool sendPacket(const QVariantMap &packetMap);
+    Q_INVOKABLE bool sendPacket(const RD_Packet& packet);
 
     Q_INVOKABLE bool receive(RD_Packet& packet);
 

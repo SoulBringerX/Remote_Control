@@ -55,7 +55,6 @@ qt_add_qml_module(appremote
     SOURCES Code/TCP/tcpservertest.h Code/TCP/tcpservertest.cpp
     SOURCES Code/RDP/remoteimageprovider.h Code/RDP/remoteimageprovider.cpp
     SOURCES Code/TCP/tcpserverthread.h Code/TCP/tcpserverthread.cpp
-    QML_FILES Page/RCRpage/NotificationBanner.qml
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

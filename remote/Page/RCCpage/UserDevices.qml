@@ -16,7 +16,6 @@ Rectangle {
         ListElement { deviceName: "Computer 3"; deviceIP: "192.168.1.3"; account: "user3"; password: "pass3"; isConnected: false; extended: false }
     }
     property int currentIndex: 0
-    property string currentIp: ""
 
     // 计算当前展开的项数
     function calcExpandedCount() {
@@ -131,7 +130,6 @@ Rectangle {
                         onClicked: {
                             // 更新 ListModel 中该项的 extended 状态
                             var currentData = deviceInformationModel.get(index);
-                            currentIndex = index
                             deviceInformationModel.set(index, {
                                 deviceName: currentData.deviceName,
                                 deviceIP: currentData.deviceIP,
@@ -203,10 +201,7 @@ Rectangle {
                         text: "获取远端应用列表"
                         onTriggered: {
                             console.log("获取远端应用列表")
-                            currentIndex = index
-                            console.log("当前:"+currentIndex+"  "+deviceInformationModel.get(currentIndex).deviceIP)
-                            currentIp = deviceInformationModel.get(currentIndex).deviceIP
-                            applistpage.open()
+                            applistpage.show()
                         }
                     }
                     MenuItem {
@@ -456,6 +451,5 @@ Rectangle {
 
     RemoteAppList {
         id: applistpage
-        ip: currentIp
     }
 }
