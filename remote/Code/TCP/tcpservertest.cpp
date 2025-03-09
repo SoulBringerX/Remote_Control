@@ -1,6 +1,6 @@
 #ifdef WIN32
 // tcpservertest.cpp
-#include "tcpserertest.h"
+#include "tcpservertest.h"
 #include "../AppData/installedsoftware.h"
 #include <QDebug>
 #include <chrono>
