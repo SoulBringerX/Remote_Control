@@ -4,6 +4,7 @@
 #include "../AppData/installedsoftware.h"
 #include <QDebug>
 #include <chrono>
+#include <QElapsedTimer>  // Qt 提供的计时器
 
 // 构造函数：初始化 ZMQ 并设置运行标志
 tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running +!]
@@ -17,8 +18,8 @@ tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running 
 
 // 核心执行逻辑：改用非阻塞接收
 void tcpservertest::exec() {
-    // 记录等待开始时间
-    auto startTime = std::chrono::steady_clock::now();
+    QElapsedTimer timer;
+    timer.start();
     int lastStatusTime = 0;  // 记录上一次状态输出的秒数
 
     while (m_running) {
@@ -30,9 +31,8 @@ void tcpservertest::exec() {
             break;
         }
 
-        // 计算已等待的秒数
-        auto now = std::chrono::steady_clock::now();
-        int elapsedSec = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
+        // 计算已等待的秒数（QElapsedTimer 返回毫秒数）
+        int elapsedSec = timer.elapsed() / 1000;
 
         // 每隔 5 秒输出一次当前等待状态
         if (elapsedSec - lastStatusTime >= 5) {
@@ -51,7 +51,6 @@ void tcpservertest::exec() {
             zmq_recv(responder_, &recvPacket_, sizeof(recvPacket_), 0);
             logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
 
-            // 当数据包类型为 TransmitAppAlias 时调用 appListsend()
             if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
                 appListsend();
             }
