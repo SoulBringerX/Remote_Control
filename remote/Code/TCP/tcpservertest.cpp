@@ -1,11 +1,14 @@
+#ifdef WIN32
 // tcpservertest.cpp
-#include "tcpservertest.h"
+#include "tcpserertest.h"
 #include "../AppData/installedsoftware.h"
 #include <QDebug>
+#include <chrono>
 
 // 构造函数：初始化 ZMQ 并设置运行标志
 tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running +!]
-    context_ = zmq_ctx_new();
+    context_ = zsock_new(ZMQ_REQ);
+    assert(context_);
     responder_ = zmq_socket(context_, ZMQ_REP);
     int rc = zmq_bind(responder_, "tcp://*:5555");
     logger.print("RDP_Server", "StartListening >>>>>>");
@@ -14,27 +17,49 @@ tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running 
 
 // 核心执行逻辑：改用非阻塞接收
 void tcpservertest::exec() {
-    while (m_running) {  // [!++ 使用标志控制循环 +!]
+    // 记录等待开始时间
+    auto startTime = std::chrono::steady_clock::now();
+    int lastStatusTime = 0;  // 记录上一次状态输出的秒数
+
+    while (m_running) {
         zmq_pollitem_t items[] = { { responder_, 0, ZMQ_POLLIN, 0 } };
-        int poll_rc = zmq_poll(items, 1, 500);  // [!++ 500ms 超时 +!]
+        int poll_rc = zmq_poll(items, 1, 500);  // 500ms 超时
 
         if (poll_rc == -1) {
             logger.print("RDP_Server", "ZMQ poll error");
             break;
         }
 
-        if (items[0].revents & ZMQ_POLLIN) {  // [!++ 有数据到达时处理 +!]
+        // 计算已等待的秒数
+        auto now = std::chrono::steady_clock::now();
+        int elapsedSec = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
+
+        // 每隔 5 秒输出一次当前等待状态
+        if (elapsedSec - lastStatusTime >= 5) {
+            logger.print("RDP_Server", QString("当前等待客户端连接，已等待 %1 秒").arg(elapsedSec));
+            lastStatusTime = elapsedSec;
+        }
+
+        // 超过 30 秒则退出循环并提示用户
+        if (elapsedSec >= 30) {
+            logger.print("RDP_Server", "等待客户端连接超时30秒，自动关闭线程");
+            break;
+        }
+
+        // 如果有数据到达则处理
+        if (items[0].revents & ZMQ_POLLIN) {
             zmq_recv(responder_, &recvPacket_, sizeof(recvPacket_), 0);
             logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
 
+            // 当数据包类型为 TransmitAppAlias 时调用 appListsend()
             if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
                 appListsend();
             }
-            zmq_send(responder_, "World", 5, 0);
+            zmq_send(responder_, "WAIT", 4, 0);
         }
-        // 无数据时继续检查 m_running
     }
 }
+
 
 // [!++ 新增停止方法：触发循环退出 +!]
 void tcpservertest::stop() {
@@ -82,3 +107,4 @@ tcpservertest::~tcpservertest() {
     zmq_close(responder_);
     zmq_ctx_destroy(context_);
 }
+#endif

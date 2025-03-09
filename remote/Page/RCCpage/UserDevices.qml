@@ -1,403 +1,275 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import "../../Model" // 进入 Model 文件夹
-import "./"
-Rectangle{
-    property int isExtendCount: 0
-    color: "transparent"
+import QtQuick.Layouts
+
+Rectangle {
+    id: container
+    width: 800
+    height: 600
+    color: "#f0f0f0"
+
+    // 设备数据模型
     ListModel {
         id: deviceInformationModel
-        ListElement { deviceName: "Computer 1"; isConnected: true }
-        ListElement { deviceName: "Computer 2"; isConnected: false }
-        ListElement { deviceName: "Computer 3"; isConnected: false }
+        ListElement {
+            deviceName: "Computer 1";
+            deviceIP: "192.168.1.1";
+            account: "user1";
+            password: "pass1";
+            isConnected: true;
+            isExpanded: false
+        }
+        ListElement {
+            deviceName: "Computer 2";
+            deviceIP: "192.168.1.2";
+            account: "user2";
+            password: "pass2";
+            isConnected: false;
+            isExpanded: false
+        }
     }
-    ListView{
-        id: userDeviceList
-        width: parent.width
-        height: parent.height
+
+    // 主列表视图
+    ListView {
+        id: deviceListView
+        anchors.fill: parent
+        spacing: 2
         model: deviceInformationModel
 
-        //数据格式
-        delegate: Item {
-            id: deviceListItem
-            width: parent.width
-            height: 40
-            Rectangle {
-                id: deviceInformationRectangle
-                anchors.fill: parent
-                border.color: "black"
-                border.width: 0.5
-                color: "transparent"
-                Image {
-                    id: deviceIconImage
-                    width: 16
-                    height: 16
-                    source: "qrc:/images/Computer.svg"
-                    anchors.top: parent.top
-                    anchors.topMargin: 10
-                    anchors.left: parent.left
-                    anchors.leftMargin: 20
-                }
-                Text {
-                    id: deviceNameText
-                    anchors.left: deviceIconImage.right
-                    anchors.leftMargin: 10
-                    text: qsTr(deviceName)
-                     anchors.top: parent.top
-                     anchors.topMargin: 10
-                }
-                Rectangle
-                {
-                    id: deviceExtendStatusRectangle
-                    width: 16
-                    height: 16
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.topMargin: 10
-                    anchors.rightMargin: 20
-                    color:"transparent"
-                    z:3
-                    Image {
-                        id: deviceExtendStatusImage
-                        width: 16
-                        height: 16
-                        anchors.top: parent.top
-                        source: "qrc:/images/extend.svg"
-                        rotation: 90
-                    }
-                    MouseArea
-                    {
-                        id: userDeviceInformationExtendMouseArea
-                        property bool iconchanged: false;
-                        anchors.fill: parent
-                        onClicked: {
-                            if(!iconchanged){
-                                isExtendCount++
-                                userDeviceInformationExtend.running = true
-                                directionIconchanged1.running = true
-                                iconchanged = true
-                            }
-                            else
-                            {
-                                isExtendCount--
-                                userDeviceInformationShrink.running = true
-                                directionIconchanged2.running = true
-                                iconchanged = false
-                            }
-                        }
-                    }
-                    PropertyAnimation {
-                        id: directionIconchanged1
-                        properties: "rotation"
-                        target: deviceExtendStatusImage
-                        from: 90
-                        to: 0
-                        duration: 250 // 动画持续时间，以毫秒为单位
-                    }
-                    PropertyAnimation {
-                        id:  directionIconchanged2
-                        properties: "rotation"
-                        target: deviceExtendStatusImage
-                        from: 0
-                        to: 90
-                        duration: 250 // 动画持续时间，以毫秒为单位
-                    }
-                }
-                Rectangle {
-                    id: userDeviceInformationIcon
-                    width: 16
-                    height: 16
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.right: deviceExtendStatusRectangle.right
-                    anchors.rightMargin: parent.width * 0.05
-                    anchors.top: parent.top
-                    anchors.topMargin: 10
-                    color: "transparent"
-                    Image{
-                        width: 16
-                        height: 16
-                        anchors.top: parent.top
-                        source: "qrc:/images/info.svg"
-                    }
-                    MouseArea{
-                        id: userDeviceItemInformation
-                        anchors.fill: parent
-                        z: 2
-                        onClicked: {
-                            // 此处是要去获取远端电脑的基本配置信息，包含电脑的CPU、系统版本、内存大小、磁盘大小、网络状态（此处暂用本机）
-                            userDeviceInformation.text = "OS:Windosw 10" + '\n'+"CPU:Intel i5-8500"
-                        }
-                    }
-                }
-                Rectangle {
-                    id: userDeviceDetailsInformationRectangle
-                    width: parent.width - 2
-                    height: parent.height
-                    anchors.top: deviceExtendStatusRectangle.bottom
-                    anchors.topMargin: 5
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: userDeviceInformationExtendMouseArea.iconchanged
+        // 动态计算内容高度（禁用内置布局）
+        interactive: false
 
-                    Flickable {
-                        id: flickable
-                        width: parent.width
-                        height: parent.height - 40
-                        contentWidth: parent.width
-                        contentHeight: parent.height - 40
-                        clip: false
-
-                        Rectangle {
-                            id: userDeviceAppListRectangle
-                            width: flickable.width
-                            height: 160
-
-                            //测试专用
-                            ListModel {
-                                id: deviceAppListModel
-                                ListElement {
-                                    deviceIP: "192.168.1.1"
-                                    deviceName: "Computer 1"
-                                    AppName: "App 1"
-                                    RdpAppName: "App 1"
-                                    AppIconPath: "qrc:/images/wx.svg"
-                                    isConnected: true
-                                }
-                                ListElement {
-                                    deviceIP: "192.168.1.1"
-                                    deviceName: "Computer 1"
-                                    AppName: "App 2"
-                                    RdpAppName: "App 2"
-                                    AppIconPath: "qrc:/images/QQ.svg"
-                                    isConnected: true
-                                }
-                            }
-
-                            ListView {
-                                id: deviceAppListView
-                                anchors.fill: parent
-                                model: deviceAppListModel
-
-                                delegate: Item {
-                                    id: appItem
-                                    width: parent.width
-                                    height: 32
-                                    Rectangle {
-                                        id: appItemRectangle
-                                        anchors.fill: parent
-
-                                        Image{
-                                            id: appIcon
-                                            width: 24
-                                            height: 24
-                                            source: model.AppIconPath
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: 20
-                                        }
-
-                                        Text{
-                                            id: appName
-                                            text: model.AppName
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.left: appIcon.right
-                                            anchors.rightMargin: 10
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // 启用滚动条
-                        flickableDirection: Flickable.VerticalFlick // 垂直滚动
-                    }
-                }
-
-                MouseArea {
-                    id: deviceInformatioArea
-                    anchors.fill: parent
-                    z: 5
-                    propagateComposedEvents: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-                    onPressed: function(event) {
-                        if (event.button === Qt.RightButton) {
-                            showContextMenu(event.x, event.y);
-                            event.accepted = true; // 阻止事件传递到父级MouseArea
-                        } else {
-                            event.accepted = false; // 允许左键事件传递
-                        }
-                    }
-
-                    function showContextMenu(x, y) {
-                        contextMenu.x = x;
-                        contextMenu.y = y;
-                        contextMenu.popup();
-                    }
-                }
-
-                // 定义上下文菜单
-                Menu {
-                    id: contextMenu
-
-                    MenuItem {
-                        text: "获取远端应用列表"
-                        onTriggered: {
-                            console.log("获取远端应用列表")
-                            applistpage.show()
-                        }
-                    }
-                    MenuItem {
-                        text: "安装软件"
-                        onTriggered: {
-                            console.log("安装软件")
-
-                        }
-                    }
-                    MenuItem {
-                        text: "删除设备"
-                        onTriggered: {
-                            console.log("删除设备")
-                            deviceInformationModel.remove(index)
-                        }
-                    }
-                    MenuItem {
-                        text: "配置设备"
-                        onTriggered: {
-                            console.log("配置设备")
-                            inputWindow.show()
-                        }
-                    }
-                }
-
-            }
-        PropertyAnimation
-        {
-            id: userDeviceInformationExtend
-            target: deviceListItem
-            properties: "height"
-            from: 40
-            to: userDeviceList.height / isExtendCount - (40 * (userDeviceList.count - isExtendCount))
-            duration: 250
-        }
-        PropertyAnimation
-        {
-            id: userDeviceInformationShrink
-            target: deviceListItem
-            properties: "height"
-            from: userDeviceList.height /  isExtendCount - (40 * (userDeviceList.count - isExtendCount))
-            to: 40
-            duration: 250
+        delegate: deviceListItem {
+            width: deviceListView.width
+            baseHeight: 40
+            expandedHeight: calculateExpandedHeight()
+            onExpandToggle: updateExpandedCount()
         }
     }
-        MouseArea {
-            id: userDeviceArea
-            z: 3
-            anchors.fill: parent
-            propagateComposedEvents: true
-            acceptedButtons: Qt.RightButton
 
-            onPressed: function(event) {
-                if (event.button === Qt.RightButton) {
-                    var item = userDeviceList.itemAt(event.x, event.y);
-                    if (!item) { // 点击在空白区域
-                        showContextMenu(event.x, event.y);
-                        event.accepted = true;
-                    } else {
-                        event.accepted = false; // 由列表项处理
-                    }
-                }
-            }
+    // 右键菜单
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onClicked: contextMenu.popup()
 
-            function showContextMenu(x, y) {
-                userDeviceMenu.x = x;
-                userDeviceMenu.y = y;
-                userDeviceMenu.popup();
-            }
-        }
-        // 定义上下文菜单
         Menu {
-            id: userDeviceMenu
-
+            id: contextMenu
             MenuItem {
-                text: "添加新的远程设备"
-                onTriggered: {
-                    console.log("添加新的远程设备")
-                    showInputDialog()
-                }
+                text: "添加设备"
+                onTriggered: deviceConfigWindow.show()
             }
         }
     }
+
+    // 设备配置窗口
     Window {
-        id: inputWindow
-        title: "添加新设备"
+        id: deviceConfigWindow
+        title: "设备配置"
         width: 300
         height: 250
-        modality: Qt.ApplicationModal
-        visible: false
-        flags: Qt.Window
-        color: "white"
+        modality: Qt.WindowModal
 
-        Column {
-            anchors.centerIn: parent
-            anchors.topMargin: 20
-            spacing: 10
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 10
+            spacing: 8
 
-            TextField {
-                id: ipField
-                placeholderText: "请输入IP地址"
-                width: parent.width
-            }
+            TextField { id: nameField; placeholderText: "设备名称" }
+            TextField { id: ipField; placeholderText: "IP地址" }
+            TextField { id: userField; placeholderText: "用户名" }
+            TextField { id: passField; placeholderText: "密码"; echoMode: TextInput.Password }
 
-            TextField {
-                id: accountField
-                placeholderText: "请输入账户"
-                width: parent.width
-            }
-
-            TextField {
-                id: passwordField
-                placeholderText: "请输入密码"
-                echoMode: TextInput.Password
-                width: parent.width
-            }
-
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10
-
+            RowLayout {
                 Button {
-                    text: "确定"
+                    text: "保存"
                     onClicked: {
-                        var ip = ipField.text;
-                        var account = accountField.text;
-                        var password = passwordField.text;
-
-                        if (ip && account && password) {
-                            deviceInformationModel.append({ ip: ip, account: account, password: password });
-                            console.log("新设备已添加:", ip, account, password);
-                            inputWindow.close();
-                        } else {
-                            console.log("输入不完整，无法添加设备");
-                        }
+                        deviceInformationModel.append({
+                            deviceName: nameField.text,
+                            deviceIP: ipField.text,
+                            account: userField.text,
+                            password: passField.text,
+                            isConnected: false,
+                            isExpanded: false
+                        })
+                        deviceConfigWindow.close()
                     }
                 }
-
                 Button {
                     text: "取消"
-                    onClicked: {
-                        console.log("添加设备操作已取消");
-                        inputWindow.close();
-                    }
+                    onClicked: deviceConfigWindow.close()
                 }
             }
         }
     }
 
-    // 显示输入框
-    function showInputDialog() {
-        inputWindow.show();
+    // 计算展开项的高度
+    function calculateExpandedHeight() {
+        const totalHeight = deviceListView.height
+        const expandedCount = deviceInformationModel.count - collapsedCount()
+        if(expandedCount === 0) return 0
+        return (totalHeight - (collapsedCount() * 40)) / expandedCount
     }
-    RemoteAppList{
-        id: applistpage
+
+    // 计算折叠项数量
+    function collapsedCount() {
+        let count = 0
+        for(let i = 0; i < deviceInformationModel.count; i++){
+            if(!deviceInformationModel.get(i).isExpanded) count++
+        }
+        return count
     }
+
+    // 更新展开计数
+    function updateExpandedCount() {
+        deviceListView.forceLayout() // 强制刷新布局
+    }
+}
+
+// 设备列表项组件
+Component {
+    id: deviceListItemComponent
+
+    Rectangle {
+        id: listItem
+        property real baseHeight: 40
+        property real expandedHeight: 0
+        property bool isExpanded: false
+
+        width: parent.width
+        height: isExpanded ? expandedHeight : baseHeight
+        color: isExpanded ? "#e3f2fd" : "white"
+        border.color: "#b0bec5"
+
+        Behavior on height { NumberAnimation { duration: 200 } }
+        Behavior on color { ColorAnimation { duration: 200 } }
+
+        // 头部区域
+        RowLayout {
+            width: parent.width - 20
+            height: 40
+            anchors.centerIn: parent
+            spacing: 15
+
+            Image {
+                source: "qrc:/icons/computer.svg"
+                Layout.preferredWidth: 24
+                Layout.preferredHeight: 24
+            }
+
+            Text {
+                text: deviceName
+                font.pixelSize: 14
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: expandButton
+                icon.source: "qrc:/icons/expand.svg"
+                icon.width: 16
+                icon.height: 16
+                rotation: isExpanded ? 180 : 0
+                flat: true
+                onClicked: {
+                    isExpanded = !isExpanded
+                    deviceInformationModel.setProperty(index, "isExpanded", isExpanded)
+                }
+
+                Behavior on rotation { NumberAnimation { duration: 200 } }
+            }
+        }
+
+        // 展开内容区域
+        Column {
+            visible: isExpanded
+            width: parent.width - 40
+            anchors.top: parent.top
+            anchors.topMargin: 50
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
+
+            // 连接状态指示器
+            Row {
+                spacing: 10
+                Rectangle {
+                    width: 12
+                    height: 12
+                    radius: 6
+                    color: isConnected ? "#4caf50" : "#f44336"
+                }
+                Text {
+                    text: isConnected ? "已连接" : "未连接"
+                    color: "#607d8b"
+                }
+            }
+
+            // 详细信息表格
+            GridLayout {
+                columns: 2
+                columnSpacing: 20
+                rowSpacing: 8
+
+                Text { text: "IP地址:"; color: "#78909c" }
+                Text { text: deviceIP }
+                Text { text: "账户:"; color: "#78909c" }
+                Text { text: account }
+                Text { text: "密码:"; color: "#78909c" }
+                Text { text: "•".repeat(password.length) }
+            }
+
+            // 操作按钮组
+            Row {
+                spacing: 15
+                Button {
+                    text: "连接设备"
+                    onClicked: connectDevice(index)
+                }
+                Button {
+                    text: "删除设备"
+                    onClicked: deviceInformationModel.remove(index)
+                }
+            }
+        }
+
+        // 右键菜单
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            onClicked: itemMenu.popup()
+
+            Menu {
+                id: itemMenu
+                MenuItem {
+                    text: "编辑配置"
+                    onTriggered: showEditor(index)
+                }
+                MenuItem {
+                    text: "克隆设备"
+                    onTriggered: cloneDevice(index)
+                }
+            }
+        }
+    }
+}
+
+// 设备连接逻辑（示例）
+function connectDevice(index) {
+    const device = deviceInformationModel.get(index)
+    console.log("正在连接:", device.deviceIP)
+    // 这里添加实际连接逻辑
+    deviceInformationModel.setProperty(index, "isConnected", true)
+}
+
+// 设备克隆功能
+function cloneDevice(index) {
+    const original = deviceInformationModel.get(index)
+    deviceInformationModel.append({
+        deviceName: original.deviceName + " - 副本",
+        deviceIP: original.deviceIP,
+        account: original.account,
+        password: original.password,
+        isConnected: false,
+        isExpanded: false
+    })
 }

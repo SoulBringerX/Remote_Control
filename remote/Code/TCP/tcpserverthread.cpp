@@ -2,7 +2,7 @@
 #include "tcpservertest.h"
 #include <QDebug>
 
-
+#ifdef WIN32
 // tcpserverthread.cpp
 TcpServerThread::TcpServerThread(QObject *parent)
     : QThread(parent), m_running(false), m_server(nullptr) {}
@@ -23,3 +23,4 @@ void TcpServerThread::stop() {
         m_server->stop();  // [!++ 联动停止服务器 +!]
     }
 }
+#endif
