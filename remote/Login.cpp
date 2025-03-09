@@ -1,4 +1,3 @@
-// main.cpp
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -9,7 +8,7 @@
 #include <QObject>
 #include "globalproperties.h"
 #include "./Code/Users/account.h"
-#include "./Code/AppData/tcpconnection.h"
+#include "./Code/TCP/tcpconnection.h"
 #include "./Code/TCP/tcpserverthread.h"
 #include <QDir>
 #include <QLockFile>
@@ -24,7 +23,6 @@
 #include "./Code/RDP/remoteimageprovider.h"
 #endif
 
-// 用于跟踪窗口是否隐藏的全局变量
 bool isWindowHidden = false;
 
 #ifdef WIN32
@@ -32,7 +30,7 @@ void requestAdminPrivileges() {
     char szPath[MAX_PATH];
     GetModuleFileNameA(NULL, szPath, MAX_PATH);
     if ((UINT_PTR)ShellExecuteA(NULL, "runas", szPath, NULL, NULL, SW_SHOW) > 32) {
-        QCoreApplication::exit(0); // 提升成功后退出当前进程
+        QCoreApplication::exit(0);
     } else {
         qDebug() << "无法提升管理员权限";
     }
@@ -55,7 +53,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    // 单实例检查
+    // 防止程序多次运行
     QLockFile lockFile(QDir::temp().absoluteFilePath("remote_control.lock"));
     if (!lockFile.tryLock(100)) {
         qDebug() << "程序已在运行";
@@ -63,6 +61,7 @@ int main(int argc, char *argv[])
     }
 
 #ifdef WIN32
+    // 请求管理员权限
     requestAdminPrivileges();
 #endif
 
@@ -73,33 +72,45 @@ int main(int argc, char *argv[])
     engine.load(url);
 
 #ifdef WIN32
+    // Windows平台的软件管理器
     InstalledSoftware softwareManager;
     softwareManager.refreshSoftwareList();
     engine.rootContext()->setContextProperty("softwareManager", &softwareManager);
 #endif
-    tcpConnection tcpcn;
+
+    // 创建 TCP 线程
+    TcpThread *tcpThread = new TcpThread();
+    QObject::connect(tcpThread, &TcpThread::tcpReady, tcpThread, [&engine](tcpConnection* tcp) {
+        engine.rootContext()->setContextProperty("tcp", tcp);  // 绑定 tcp 到 QML
+    });
+    tcpThread->start();  // 启动 TCP 线程
+
+    // 绑定其他必要的上下文属性
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
     engine.rootContext()->setContextProperty("account", &user_account);
-    engine.rootContext()->setContextProperty("tcp", &tcpcn);
 
 #ifdef LINUX
+    // Linux 平台的远程控制功能
     RemoteControl client;
     RemoteImageProvider* imageProvider = new RemoteImageProvider(&client);
     engine.addImageProvider("remote", imageProvider);
+
     RemoteControlThread *thread = new RemoteControlThread(nullptr, &client);
     engine.rootContext()->setContextProperty("client", &client);
     engine.rootContext()->setContextProperty("remoteControlThread", thread);
 #endif
 
+    // 获取 QML 中的主窗口
     QObject *rootObject = engine.rootObjects().first();
     QQuickWindow *mainWindow = rootObject ? rootObject->findChild<QQuickWindow *>() : nullptr;
     if (!mainWindow) {
-        return -1; // 处理错误：找不到窗口对象
+        return -1;
     }
 
     mainWindow->setIcon(QIcon(":/images/funplayLOGO.svg"));
 
 #ifdef Q_OS_WIN
+    // Windows 系统托盘图标
     QSystemTrayIcon trayIcon;
     QMenu menu;
     QAction quitAction("退出", &menu);
@@ -125,14 +136,20 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef Q_OS_WIN
+    // TCP 服务线程
     TcpServerThread *tcpServerThread = new TcpServerThread();
     tcpServerThread->start();
 
     QObject::connect(&app, &QApplication::aboutToQuit, [=]() {
-        tcpServerThread->stop();  // 先通知停止
-        tcpServerThread->quit();  // 再退出事件循环
-        tcpServerThread->wait(2000);  // 等待2秒（超时保护）
+        tcpServerThread->stop();
+        tcpServerThread->quit();
+        tcpServerThread->wait(2000);
         delete tcpServerThread;
+
+        // 关闭 TCP 线程
+        tcpThread->quit();
+        tcpThread->wait(2000);
+        delete tcpThread;
     });
 #endif
 

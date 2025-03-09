@@ -8,6 +8,7 @@ Window {
     visible: false
     title: "远程应用列表"
 
+    property string ip:""
     // 应用信息模型
     ListModel {
         id: appListModel
@@ -93,20 +94,22 @@ Window {
     }
 
     // 在窗口打开时发送消息并接收应用列表
-    Component.onCompleted: {
-        tcpConnection.sendPacket(requestPacket)
-        var appList = tcpConnection.receiveAppList()
-        for (var i = 0; i < appList.length; i++) {
-            appListModel.append({
-                AppName: appList[i].name,
-                AppIconPath: "data:image/png;base64," + appList[i].iconData,
-                isSelected: false
-            })
+    onVisibleChanged: {
+        if (visible) {
+            console.log("当前设备的IP：" + ip);
+            if (tcp !== null) {
+                tcp.connectToServer(ip);  // 确保 tcp 连接是有效的
+                var appList = tcp.receiveAppList();
+                for (var i = 0; i < appList.length; i++) {
+                    appListModel.append({
+                        AppName: appList[i].name,
+                        AppIconPath: "data:image/png;base64," + appList[i].iconData,
+                        isSelected: false
+                    });
+                }
+            } else {
+                console.error("tcp对象未初始化！");
+            }
         }
-    }
-
-    // 定义一个 RD_Packet 对象用于发送请求
-    property var requestPacket: {
-        RD_Type: OperationCommandType.TransmitAppAlias
     }
 }

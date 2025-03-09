@@ -49,7 +49,7 @@ qt_add_qml_module(appremote
     SOURCES Code/RDP/remotecontrol.h Code/RDP/remotecontrol.cpp
     SOURCES Code/AppData/installedSoftware.cpp
     SOURCES Code/AppData/installedSoftware.h
-    SOURCES Code/AppData/tcpconnection.h Code/AppData/tcpconnection.cpp
+    SOURCES Code/TCP/tcpconnection.h Code/TCP/tcpconnection.cpp
     SOURCES Code/RDP/remotecontrolthread.h Code/RDP/remotecontrolthread.cpp
     SOURCES Code/AppData/devicedata.cpp
     SOURCES Code/TCP/tcpservertest.h Code/TCP/tcpservertest.cpp

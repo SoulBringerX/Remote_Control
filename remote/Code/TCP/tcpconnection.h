@@ -1,32 +1,22 @@
 #ifndef TCPCONNECTION_H
 #define TCPCONNECTION_H
 
-#include <string>
-#include <cstring>
-#include <vector>
 #include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include "./devicedate.h"
+#include <QThread>
+#include <QVariantList>
+#include <czmq.h>
+#include "../AppData/devicedate.h"
 #include "../LogUntils/AppLog.h"
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
-#include <czmq.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <czmq.h>
-#include <QByteArray>
-#include <QDataStream>
-#include <QDebug>
-#ifdef LINUX
-#include <netdb.h> // 添加 netdb.h
-#include "../LogUntils/AppLog.h"
-#endif
 #endif
 
 #define SERVER_PORT 5555
@@ -34,28 +24,40 @@
 class tcpConnection : public QObject {
     Q_OBJECT
 public:
-    tcpConnection();
+    explicit tcpConnection(QObject *parent = nullptr);
     ~tcpConnection();
 
     Q_INVOKABLE bool connectToServer(const QString &host);
-
     Q_INVOKABLE bool sendPacket(const RD_Packet& packet);
-
     Q_INVOKABLE bool receive(RD_Packet &packet);
-
     void close();
 
-    // 新增：接收远程应用列表
     Q_INVOKABLE QVariantList receiveAppList();
-    // 新增：解析应用信息
     QVariantList parseAppList();
 
 signals:
     void appListReceived(const QVariantList &appList);
+    void connectionError(QString error); // 连接错误信号
 
 private:
     zsock_t *sockfd_ = nullptr;
     static QString TCP_IP;
+};
+
+class TcpThread : public QThread {
+    Q_OBJECT
+public:
+    explicit TcpThread(QObject *parent = nullptr);
+    ~TcpThread();
+
+    tcpConnection *getTcpConnection();
+
+protected:
+    void run() override; // 线程入口
+signals:
+    void tcpReady(tcpConnection* tcpConn);
+private:
+    tcpConnection *tcpConn;
 };
 
 #endif // TCPCONNECTION_H

@@ -2,6 +2,7 @@ import QtQuick
 
 Window{
     id: remoteView
+    visible: false
     // 用于接收 FreeRDP 的图形数据
     Image {
             id: remoteImage
@@ -52,14 +53,17 @@ Window{
     Connections {
         target: client
         onImageUpdated: {
-            // 强制刷新图像
-            remoteImage.source = ""
-            remoteImage.source = "image://remote/providerId?" + Math.random()
+            if(visible)
+            {
+                // 强制刷新图像
+                remoteImage.source = ""
+                remoteImage.source = "image://remote/providerId?" + Math.random()
 
-            // 自动缩放保持比例
-            remoteImage.sourceSize.width = remoteView.width
-            remoteImage.sourceSize.height = remoteView.height
-            remoteImage.fillMode = Image.PreserveAspectFit
+                // 自动缩放保持比例
+                remoteImage.sourceSize.width = remoteView.width
+                remoteImage.sourceSize.height = remoteView.height
+                remoteImage.fillMode = Image.PreserveAspectFit
+            }
         }
     }
     // 监听窗口关闭事件

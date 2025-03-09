@@ -7,111 +7,70 @@
 
 QString tcpConnection::TCP_IP = "192.168.31.8"; // 默认值
 
-tcpConnection::tcpConnection() : sockfd_(nullptr) {
-#ifdef _WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        throw std::runtime_error("WSAStartup failed");
-    }
-#endif
-}
+tcpConnection::tcpConnection() : sockfd_(nullptr) {}
 
 tcpConnection::~tcpConnection() {
     close();
-#ifdef _WIN32
-    WSACleanup();
-#endif
 }
 
-bool tcpConnection::connect(const QString host) {
-    // 创建一个 REQ 类型的 socket
-    sockfd_ = zsock_new(ZMQ_REQ);
-    assert(sockfd_);
-    tcpConnection::TCP_IP = host;
-    QString ip_port = QString("tcp://") + host + QString(":5555");
-    // 连接到服务器
-    if (zsock_connect(sockfd_, ip_port.toUtf8().constData()) == -1) {
-        logger.print("CZMQ_TCP", "目标IP：" + TCP_IP + " 连接失败");
+bool tcpConnection::connectToServer(const QString &host) {
+    if (sockfd_) {
+        logger.print("CZMQ_TCP", "已有连接，先关闭");
+        close();
+    }
+
+    sockfd_ = zsock_new_req(NULL);
+    if (!sockfd_) {
+        logger.print("CZMQ_TCP", "创建 CZMQ REQ socket 失败");
         return false;
     }
+
+    tcpConnection::TCP_IP = host;
+    QString ip_port = QString("tcp://") + host + QString(":5555");
+
+    if (zsock_connect(sockfd_, ip_port.toUtf8().constData()) == -1) {
+        logger.print("CZMQ_TCP", "目标IP：" + TCP_IP + " 连接失败");
+        close();
+        return false;
+    }
+
     logger.print("CZMQ_TCP", "目标IP：" + TCP_IP + " 连接成功");
     return true;
 }
 
-bool tcpConnection::sendPacket(const RD_Packet& packet) {
-    // 发送数据包
-    if (zsock_send(sockfd_, "i", packet.RD_Type) != 0) {
-        logger.print("CZMQ_TCP", "目标发送消息成功");
-    } else {
-        logger.print("CZMQ_TCP", "目标发送消息失败");
+bool tcpConnection::sendPacket(const RD_Packet &packet) {
+    if (!sockfd_) {
+        logger.print("CZMQ_TCP", "无效的 socket，发送失败");
         return false;
     }
 
-    if (zsock_send(sockfd_, "s", packet.RD_APP_Name) != 0) {
-        logger.print("CZMQ_TCP", "目标发送应用名称成功");
-    } else {
-        logger.print("CZMQ_TCP", "目标发送应用名称失败");
+    if (zsock_send(sockfd_, "b", &packet, sizeof(packet)) != 0) {
+        logger.print("CZMQ_TCP", "目标发送数据包失败");
         return false;
     }
 
-    if (zsock_send(sockfd_, "s", packet.RD_MainExePath) != 0) {
-        logger.print("CZMQ_TCP", "目标发送主程序路径成功");
-    } else {
-        logger.print("CZMQ_TCP", "目标发送主程序路径失败");
-        return false;
-    }
-
-    if (zsock_send(sockfd_, "s", packet.RD_UninstallExePath) != 0) {
-        logger.print("CZMQ_TCP", "目标发送卸载程序路径成功");
-    } else {
-        logger.print("CZMQ_TCP", "目标发送卸载程序路径失败");
-        return false;
-    }
-
-    if (zsock_send(sockfd_, "b", packet.RD_ImageBit, sizeof(packet.RD_ImageBit)) != 0) {
-        logger.print("CZMQ_TCP", "目标发送图标数据成功");
-    } else {
-        logger.print("CZMQ_TCP", "目标发送图标数据失败");
-        return false;
-    }
-
+    logger.print("CZMQ_TCP", "目标发送数据包成功");
     return true;
 }
-bool tcpConnection::receive(RD_Packet& packet) {
-    // 接收数据包
-    char buffer[sizeof(RD_Packet)];
-    ssize_t received = zsock_recv(sockfd_, buffer);
-    if (received <= 0) {
-        logger.print("CZMQ_TCP", "目标接收成功");
-        return false;
-    }
-    memcpy(&packet, buffer, received);
 
-    // 接收主程序路径和卸载路径
-    char mainExePath[512];
-    char uninstallExePath[512];
-    if (zsock_recv(sockfd_, "s", mainExePath) <= 0 ||
-        zsock_recv(sockfd_, "s", uninstallExePath) <= 0) {
-        logger.print("CZMQ_TCP", "接收主程序路径或卸载路径失败");
+bool tcpConnection::receive(RD_Packet &packet) {
+    if (!sockfd_) {
+        logger.print("CZMQ_TCP", "无效的 socket，接收失败");
         return false;
     }
 
-    // 接收图标数据
-    if (zsock_recv(sockfd_, "b", packet.RD_ImageBit, sizeof(packet.RD_ImageBit)) <= 0) {
-        logger.print("CZMQ_TCP", "接收图标数据失败");
+    int rc = zsock_recv(sockfd_, "b", &packet, sizeof(packet));
+    if (rc <= 0) {
+        logger.print("CZMQ_TCP", "目标接收数据失败");
         return false;
     }
 
-    // 填充主程序路径和卸载路径
-    strncpy(packet.RD_MainExePath, mainExePath, sizeof(packet.RD_MainExePath));
-    strncpy(packet.RD_UninstallExePath, uninstallExePath, sizeof(packet.RD_UninstallExePath));
-
+    logger.print("CZMQ_TCP", "成功接收数据包，大小：" + QString::number(sizeof(packet)));
     return true;
 }
 
 void tcpConnection::close() {
-    // 关闭 socket
-    if (sockfd_ != nullptr) {
+    if (sockfd_) {
         zsock_destroy(&sockfd_);
         sockfd_ = nullptr;
     }
@@ -120,6 +79,22 @@ void tcpConnection::close() {
 QVariantList tcpConnection::receiveAppList() {
     QVariantList appList;
 
+    if (!sockfd_) {
+        logger.print("CZMQ_TCP", "无效的 socket，无法请求应用列表");
+        return appList;
+    }
+
+    // 发送请求：请求服务器返回应用列表
+    RD_Packet requestPacket;
+    requestPacket.RD_Type = OperationCommandType::TransmitAppAlias;
+    memset(requestPacket.RD_APP_Name, 0, sizeof(requestPacket.RD_APP_Name));  // 确保没有额外字符
+    if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
+        logger.print("CZMQ_TCP", "请求应用列表失败");
+        return appList;
+    }
+    logger.print("CZMQ_TCP", "已发送应用列表请求");
+
+    // 进入接收循环
     while (true) {
         RD_Packet packet;
         if (!receive(packet)) {
@@ -133,29 +108,18 @@ QVariantList tcpConnection::receiveAppList() {
         }
 
         if (packet.RD_Type == OperationCommandType::TransmitAppAlias) {
-            // 接收应用名称
             QString appName(packet.RD_APP_Name);
-            logger.print("CZMQ_TCP", "接收应用名称: " + appName);
-
-            // 接收主程序路径
             QString mainExePath(packet.RD_MainExePath);
-            logger.print("CZMQ_TCP", "接收主程序路径: " + mainExePath);
-
-            // 接收卸载路径
             QString uninstallExePath(packet.RD_UninstallExePath);
-            logger.print("CZMQ_TCP", "接收卸载路径: " + uninstallExePath);
-
-            // 接收应用图标数据
             QByteArray iconData(packet.RD_ImageBit, sizeof(packet.RD_ImageBit));
-            logger.print("CZMQ_TCP", "接收应用图标数据大小: " + QString::number(iconData.size()));
 
-            // 创建应用信息
+            logger.print("CZMQ_TCP", "接收应用: " + appName);
+
             QVariantMap appInfo;
             appInfo["name"] = appName;
             appInfo["mainExe"] = mainExePath;
             appInfo["uninstallExe"] = uninstallExePath;
             appInfo["iconData"] = iconData;
-
             appList.append(appInfo);
         }
     }
@@ -163,7 +127,6 @@ QVariantList tcpConnection::receiveAppList() {
     emit appListReceived(appList);
     return appList;
 }
-
 QVariantList tcpConnection::parseAppList() {
     return receiveAppList();
 }
