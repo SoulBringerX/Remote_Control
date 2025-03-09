@@ -3,69 +3,66 @@
 #include "tcpservertest.h"
 #include "../AppData/installedsoftware.h"
 #include <QDebug>
-#include <chrono>
-#include <QElapsedTimer>  // Qt 提供的计时器
+#include <QElapsedTimer>
+#include <czmq.h>  // 使用 CZMQ
 
-// 构造函数：初始化 ZMQ 并设置运行标志
-tcpservertest::tcpservertest() : m_running(true) {  // [!++ 初始化 m_running +!]
-    context_ = zsock_new(ZMQ_REQ);
-    assert(context_);
-    responder_ = zmq_socket(context_, ZMQ_REP);
-    int rc = zmq_bind(responder_, "tcp://*:5555");
-    logger.print("RDP_Server", "StartListening >>>>>>");
-    assert(rc == 0);
+// 构造函数：使用 CZMQ 创建 REP 套接字并绑定到 tcp://*:5555
+tcpservertest::tcpservertest() : m_running(true) {
+    // 一次性创建 REP 套接字并绑定到指定地址
+    responder_ = zsock_new_rep("tcp://*:5555");
+    if (!responder_) {
+        logger.print("RDP_Server", "Error: Failed to create or bind REP socket (CZMQ)");
+        m_running = false;
+        return;
+    }
+    logger.print("RDP_Server", "StartListening >>>>>>>>");
 }
 
-// 核心执行逻辑：改用非阻塞接收
+// 核心执行逻辑：基于 CZMQ 的非阻塞接收
 void tcpservertest::exec() {
     QElapsedTimer timer;
     timer.start();
     int lastStatusTime = 0;  // 记录上一次状态输出的秒数
 
     while (m_running) {
-        zmq_pollitem_t items[] = { { responder_, 0, ZMQ_POLLIN, 0 } };
-        int poll_rc = zmq_poll(items, 1, 500);  // 500ms 超时
+        // 使用 CZMQ 的 zsock_wait() 进行轮询，超时 500 毫秒
+        if (zsock_wait(responder_, 500)) {
+            // 收到数据时，采用 "b" 格式接收二进制数据到 recvPacket_
+            int rc = zsock_recv(responder_, "b", &recvPacket_, sizeof(recvPacket_));
+            if (rc < 0) {
+                logger.print("RDP_Server", "Error receiving message");
+                continue;
+            }
+            logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
 
-        if (poll_rc == -1) {
-            logger.print("RDP_Server", "ZMQ poll error");
-            break;
+            // 根据数据包类型判断是否调用 appListsend()
+            if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
+                appListsend();
+            }
+            // 发送应答（此处使用 "s" 格式发送字符串）
+            zsock_send(responder_, "s", "WAIT");
         }
 
-        // 计算已等待的秒数（QElapsedTimer 返回毫秒数）
+        // 计时逻辑：每隔 5 秒输出一次状态，超过 30 秒则退出循环
         int elapsedSec = timer.elapsed() / 1000;
-
-        // 每隔 5 秒输出一次当前等待状态
         if (elapsedSec - lastStatusTime >= 5) {
             logger.print("RDP_Server", QString("当前等待客户端连接，已等待 %1 秒").arg(elapsedSec));
             lastStatusTime = elapsedSec;
         }
-
-        // 超过 30 秒则退出循环并提示用户
         if (elapsedSec >= 30) {
             logger.print("RDP_Server", "等待客户端连接超时30秒，自动关闭线程");
             break;
         }
-
-        // 如果有数据到达则处理
-        if (items[0].revents & ZMQ_POLLIN) {
-            zmq_recv(responder_, &recvPacket_, sizeof(recvPacket_), 0);
-            logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
-
-            if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
-                appListsend();
-            }
-            zmq_send(responder_, "WAIT", 4, 0);
-        }
     }
 }
 
-
-// [!++ 新增停止方法：触发循环退出 +!]
+// 新增停止方法：触发循环退出
 void tcpservertest::stop() {
     m_running = false;
     logger.print("RDP_Server", "Server stopping...");
 }
 
+// 传输应用别名和图标数据
 void tcpservertest::appListsend() {
     logger.print("RDP_Server", "传输应用别名");
     InstalledSoftware *pc_software = new InstalledSoftware();
@@ -80,30 +77,30 @@ void tcpservertest::appListsend() {
         RD_Packet namePacket;
         namePacket.RD_Type = OperationCommandType::TransmitAppAlias;
         strncpy(namePacket.RD_APP_Name, appName.toStdString().c_str(), sizeof(namePacket.RD_APP_Name) - 1);
-        zmq_send(responder_, &namePacket, sizeof(namePacket), 0);
+        zsock_send(responder_, "b", &namePacket, sizeof(namePacket));
 
-        // 发送应用图标数据
+        // 发送应用图标数据（从文件中读取图标数据）
         RD_Packet iconPacket;
         iconPacket.RD_Type = OperationCommandType::TransmitAppIconData;
-        // 这里假设图标数据是字节数组，需要从文件中读取
         QFile iconFile(appIconPath);
         if (iconFile.open(QIODevice::ReadOnly)) {
             QByteArray iconData = iconFile.readAll();
             int dataSize = qMin(iconData.size(), static_cast<int>(sizeof(iconPacket.RD_ImageBit)));
             memcpy(iconPacket.RD_ImageBit, iconData.constData(), dataSize);
-            zmq_send(responder_, &iconPacket, sizeof(iconPacket), 0);
+            zsock_send(responder_, "b", &iconPacket, sizeof(iconPacket));
         }
 
         // 发送结束标志
         RD_Packet endPacket;
         endPacket.RD_Type = OperationCommandType::TransmitEnd;
-        zmq_send(responder_, &endPacket, sizeof(endPacket), 0);
+        zsock_send(responder_, "b", &endPacket, sizeof(endPacket));
     }
 }
 
-// tcpservertest.cpp
+// 析构函数：销毁 CZMQ 套接字
 tcpservertest::~tcpservertest() {
-    zmq_close(responder_);
-    zmq_ctx_destroy(context_);
+    if (responder_) {
+        zsock_destroy(&responder_);
+    }
 }
 #endif
