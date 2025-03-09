@@ -62,8 +62,8 @@ void tcpservertest::exec() {
             logger.print("RDP_Server", QString("当前等待客户端连接，已等待 %1 秒").arg(elapsedSec));
             lastStatusTime = elapsedSec;
         }
-        if (elapsedSec >= 30) {
-            logger.print("RDP_Server", "等待客户端连接超时30秒，自动关闭线程");
+        if (elapsedSec >= 300) {
+            logger.print("RDP_Server", "等待客户端连接超时300秒，自动关闭线程");
             break;
         }
     }
