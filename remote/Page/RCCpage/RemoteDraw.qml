@@ -12,35 +12,34 @@ Window{
     MouseArea {
         anchors.fill: parent
         onPressed: (mouse) => {
-            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
-                // 左键按下：PTR_FLAGS_DOWN(0x0001) | PTR_FLAGS_BUTTON1(0x1000)
+                // 左键按下：PTR_FLAGS_DOWN(0x8000) | PTR_FLAGS_BUTTON1(0x1000)
                 client.sendMouseEvent(
                     point.x, point.y,
-                    0x0001 | 0x1000, // 组合标志
+                    0x8000 | 0x1000, // 按下事件
                     0x0000           // 不立即释放
                 )
             }
         }
         onReleased: (mouse) => {
-            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
                 // 左键释放：仅PTR_FLAGS_BUTTON1(0x1000)
                 client.sendMouseEvent(
                     point.x, point.y,
                     0x0000,         // 无按下事件
-                    0x1000           // 释放标志
+                    0x1000          // 释放标志
                 )
             }
         }
         onPositionChanged: (mouse) => {
-            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y)
+            const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
-                // 移动事件处理
-                const flags = mouse.buttons & Qt.LeftButton ?
-                    (0x0001 | 0x1000 | 0x0800) : // 拖拽时保持按下状态
-                    0x0800;                       // 纯移动
-
+                let flags = 0x0800; // PTR_FLAGS_MOVE，仅移动
+                if (mouse.buttons & Qt.LeftButton) {
+                    flags |= 0x8000 | 0x1000; // PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON1，拖拽时保持按下状态
+                }
                 client.sendMouseEvent(
                     point.x, point.y,
                     flags,

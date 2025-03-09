@@ -151,16 +151,9 @@ Rectangle {
                     }
                 }
                 onClicked:{
-                    if(tcp.connect(ipAddress.text)){
-                        console.log(ipAddress.text)
-                        remoteControlThread.startConnection(ipAddress.text, username.text, password.text)
-                        // 启动连接
-                        remoteView.show()
-                    }
-                    else {
-                        errorMessage = "TCP连接失败"
-                        errorDialog.show()
-                    }
+                    remoteControlThread.startConnection(ipAddress.text, username.text, password.text)
+                    // 启动连接
+                    remoteView.show()
                 }
                 Connections {
                     target: remoteControlThread

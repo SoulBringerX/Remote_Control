@@ -54,10 +54,10 @@ bool RemoteControl::initialize()
     // Configure settings
     _settings->RemoteFxCodec = FALSE;
     _settings->NSCodec = TRUE;
-    _settings->DesktopWidth = 1280;
-    _settings->DesktopHeight = 720;
+    _settings->DesktopWidth = 1920;
+    _settings->DesktopHeight = 1080;
     _settings->SurfaceCommandsEnabled = TRUE;
-    _settings->ColorDepth = 8;
+    _settings->ColorDepth = 32;
     if (!gdi_init(_instance, PIXEL_FORMAT_BGRA32)) {
         logger.print("RemoteRDP","GDI配置无法初始化");
         return false;
@@ -105,6 +105,9 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->TlsSecurity = FALSE;
         _settings->NlaSecurity = FALSE;
         _settings->SurfaceCommandsEnabled = TRUE;
+        _settings->AudioPlayback = TRUE;   // 启用音频播放
+        _settings->AudioCapture = TRUE;    // 启用音频捕获
+        _settings->RemoteConsoleAudio = TRUE;
         freerdp_settings_set_bool(_settings, FreeRDP_TlsSecLevel, TRUE);
         // _settings->SetBoolValue(FREERDP_MOUSE_MOTION, TRUE);
     } else {
@@ -225,20 +228,24 @@ BOOL RemoteControl::handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 
     qDebug() << "键盘事件: flags=" << flags << ", code=" << code;
     return TRUE;
 }
-QPointF RemoteControl::convertToRemoteCoordinates(qreal localX, qreal localY) {
-    if (!_remoteImage.isNull() &&
-        _remoteImage.width() > 0 &&
-        _remoteImage.height() > 0)
-    {
-        // 使用浮点计算保证精度
-        qreal scaleX = static_cast<qreal>(_settings->DesktopWidth) / _remoteImage.width();
-        qreal scaleY = static_cast<qreal>(_settings->DesktopHeight) / _remoteImage.height();
-        return QPointF(
-            qBound(0.0, localX * scaleX, _settings->DesktopWidth - 1.0),
-            qBound(0.0, localY * scaleY, _settings->DesktopHeight - 1.0)
-        );
+QPointF RemoteControl::convertToRemoteCoordinates(qreal localX, qreal localY, const QSize& widgetSize) {
+    if (widgetSize.isValid() && _settings &&
+        widgetSize.width() > 0 && widgetSize.height() > 0) {
+        // 计算缩放比例
+        qreal scaleX = static_cast<qreal>(_settings->DesktopWidth) / widgetSize.width();
+        qreal scaleY = static_cast<qreal>(_settings->DesktopHeight) / widgetSize.height();
+
+        // 转换坐标
+        qreal remoteX = localX * scaleX;
+        qreal remoteY = localY * scaleY;
+
+        // 边界检查
+        remoteX = qBound(0.0, remoteX, static_cast<qreal>(_settings->DesktopWidth - 1));
+        remoteY = qBound(0.0, remoteY, static_cast<qreal>(_settings->DesktopHeight - 1));
+
+        return QPointF(remoteX, remoteY);
     }
-    return QPointF(-1, -1);
+    return QPointF(-1, -1); // 无效情况返回 (-1, -1)
 }
 
 BOOL RemoteControl::handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y) {
