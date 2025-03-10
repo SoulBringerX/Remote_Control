@@ -60,7 +60,7 @@ public slots:
     Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
 signals:
     void imageUpdated(const QImage& image);
-
+    void disconnected();
 private:
     freerdp* _instance;
     RemoteControlContext* _context;

@@ -22,9 +22,11 @@ void RemoteControlThread::stopConnection()
 {
     m_stopped = true;
     if (this->isRunning()) {
-        this->wait(); // 等待线程结束
+        this->quit();  // 让线程自己退出，而不是在运行时强制 disconnect()
+        this->wait();  // 等待线程完全退出
     }
 }
+
 
 void RemoteControlThread::run()
 {

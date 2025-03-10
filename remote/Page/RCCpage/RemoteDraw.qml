@@ -11,34 +11,62 @@ Window{
     }
     MouseArea {
         anchors.fill: parent
+        // 允许同时监听左键和右键
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
         onPressed: (mouse) => {
             const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
-                // 左键按下：PTR_FLAGS_DOWN(0x8000) | PTR_FLAGS_BUTTON1(0x1000)
-                client.sendMouseEvent(
-                    point.x, point.y,
-                    0x8000 | 0x1000, // 按下事件
-                    0x0000           // 不立即释放
-                )
+                if (mouse.button === Qt.LeftButton) {
+                    // 左键按下：PTR_FLAGS_DOWN(0x8000) | PTR_FLAGS_BUTTON1(0x1000)
+                    client.sendMouseEvent(
+                        point.x, point.y,
+                        0x8000 | 0x1000,
+                        0x0000
+                    )
+                } else if (mouse.button === Qt.RightButton) {
+                    // 右键按下：PTR_FLAGS_DOWN(0x8000) | PTR_FLAGS_BUTTON2(0x2000)
+                    client.sendMouseEvent(
+                        point.x, point.y,
+                        0x8000 | 0x2000,
+                        0x0000
+                    )
+                }
             }
         }
+
         onReleased: (mouse) => {
             const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
-                // 左键释放：仅PTR_FLAGS_BUTTON1(0x1000)
-                client.sendMouseEvent(
-                    point.x, point.y,
-                    0x0000,         // 无按下事件
-                    0x1000          // 释放标志
-                )
+                if (mouse.button === Qt.LeftButton) {
+                    // 左键释放：仅PTR_FLAGS_BUTTON1(0x1000)
+                    client.sendMouseEvent(
+                        point.x, point.y,
+                        0x0000,
+                        0x1000
+                    )
+                } else if (mouse.button === Qt.RightButton) {
+                    // 右键释放：仅PTR_FLAGS_BUTTON2(0x2000)
+                    client.sendMouseEvent(
+                        point.x, point.y,
+                        0x0000,
+                        0x2000
+                    )
+                }
             }
         }
+
         onPositionChanged: (mouse) => {
             const point = client.convertToRemoteCoordinates(mouse.x, mouse.y, Qt.size(width, height))
             if (point.x >= 0 && point.y >= 0) {
                 let flags = 0x0800; // PTR_FLAGS_MOVE，仅移动
+                // 如果左键处于按下状态
                 if (mouse.buttons & Qt.LeftButton) {
-                    flags |= 0x8000 | 0x1000; // PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON1，拖拽时保持按下状态
+                    flags |= 0x8000 | 0x1000; // PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON1
+                }
+                // 如果右键处于按下状态
+                if (mouse.buttons & Qt.RightButton) {
+                    flags |= 0x8000 | 0x2000; // PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON2
                 }
                 client.sendMouseEvent(
                     point.x, point.y,
@@ -65,10 +93,22 @@ Window{
             }
         }
     }
-    // 监听窗口关闭事件
+    // 监听 client 的断开完成信号
+    Connections {
+        target: client
+        onDisconnected: {
+            console.log("远程连接已断开，开始停止远程线程")
+            remoteControlThread.stopConnection()
+            // 延迟销毁线程，确保线程退出后再销毁对象
+            Qt.callLater(function() {
+                remoteControlThread.destroy()
+                remoteView.close()  // 关闭当前窗口
+            })
+        }
+    }
+
+    // 监听窗口关闭事件，先断开远程连接
     onClosing: {
-        // 退出远程桌面且销毁远程会话线程
-        console.log("结束远程会话进程---时间："+Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
-        // client.disconnect()
+        console.log("结束远程会话进程---时间：" + Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
     }
 }

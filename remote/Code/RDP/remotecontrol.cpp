@@ -135,26 +135,40 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
 void RemoteControl::disconnect()
 {
     if (!_instance) {
-        qDebug() << "[RemoteControl] Info: No connection to disconnect";
+        qDebug() << "[RemoteControl] Info: No active connection to disconnect";
+        emit disconnected();
         return;
     }
 
     qDebug() << "Disconnecting from RDP server";
+
+    // 注意确保在主线程中执行
     freerdp_disconnect(_instance);
     freerdp_context_free(_instance);
     freerdp_free(_instance);
-
-    // Free allocated memory
-    if (_settings) {
-        free(_settings->ServerHostname);
-        free(_settings->Username);
-        free(_settings->Password);
-    }
-
     _instance = nullptr;
     _context = nullptr;
-    _settings = nullptr;
+
+    if (_settings) {
+        if (_settings->ServerHostname) {
+            free(_settings->ServerHostname);
+            _settings->ServerHostname = nullptr;
+        }
+        if (_settings->Username) {
+            free(_settings->Username);
+            _settings->Username = nullptr;
+        }
+        if (_settings->Password) {
+            free(_settings->Password);
+            _settings->Password = nullptr;
+        }
+        _settings = nullptr;
+    }
+
+    // 发射断开完成信号
+    emit disconnected();
 }
+
 
 void RemoteControl::runEventLoop()
 {
