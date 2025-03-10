@@ -17,4 +17,5 @@ QImage RemoteImageProvider::requestImage(const QString& id, QSize* size, const Q
     }
     return QImage();
 }
+
 #endif

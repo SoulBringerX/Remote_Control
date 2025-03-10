@@ -2,42 +2,42 @@
 #define REMOTECONTROL_H
 
 #ifdef LINUX
-// FreeRDP 核心头文件
-#include <freerdp/freerdp.h>          // FreeRDP 核心功能
-#include <freerdp/api.h>              // FreeRDP API 定义
-#include <freerdp/settings.h>         // FreeRDP 设置
-#include <freerdp/peer.h>             // FreeRDP 对等连接
-#include <freerdp/client/channels.h>  // FreeRDP 通道支持
-#include <freerdp/gdi/gdi.h>          // GDI 图形渲染
-#include <freerdp/gdi/gfx.h>          // GFX 图形渲染
-#include <freerdp/codec/color.h>      // 颜色编码
-#include <freerdp/codec/rfx.h>        // RemoteFX 编码
-#include <freerdp/codec/nsc.h>        // NSCodec 编码
-#include <freerdp/crypto/crypto.h>    // 加密支持
-#include <freerdp/log.h>              // 日志工具
+#include <freerdp/freerdp.h>
+#include <freerdp/api.h>
+#include <freerdp/settings.h>
+#include <freerdp/peer.h>
+#include <freerdp/client/channels.h>
+#include <freerdp/gdi/gdi.h>
+#include <freerdp/gdi/gfx.h>
+#include <freerdp/codec/color.h>
+#include <freerdp/codec/rfx.h>
+#include <freerdp/codec/nsc.h>
+#include <freerdp/crypto/crypto.h>
+#include <freerdp/log.h>
 #include <freerdp/input.h>
 
-// WinPR 头文件（FreeRDP 的依赖库）
-#include <winpr/wtypes.h>             // WinPR 类型定义
-#include <winpr/synch.h>              // 同步工具
-#include <winpr/thread.h>             // 线程支持
-#include <winpr/collections.h>        // 集合工具
-#include <winpr/stream.h>             // 流处理
-#include <winpr/crypto.h>             // 加密工具
+#include <winpr/wtypes.h>
+#include <winpr/synch.h>
+#include <winpr/thread.h>
+#include <winpr/collections.h>
+#include <winpr/stream.h>
+#include <winpr/crypto.h>
+
 #include <QString>
 #include <QObject>
 #include <QImage>
 #include <QTimer>
 #include <QThread>
+#include <QKeyEvent>
+#include <QDebug>
+
 #include "../LogUntils/AppLog.h"
 
-// 前向声明 RemoteControl 类
 class RemoteControl;
 
-// 定义自定义上下文结构体
 struct RemoteControlContext {
-    rdpContext context;         // 必须放在第一个位置，以继承 rdpContext
-    RemoteControl* remoteControl; // 指向 RemoteControl 对象的指针
+    rdpContext context;
+    RemoteControl* remoteControl;
 };
 
 class RemoteControl : public QObject {
@@ -52,12 +52,21 @@ public:
     Q_INVOKABLE void runEventLoop();
     Q_INVOKABLE QImage currentImage() const;
     Q_INVOKABLE void requestRedraw();
-    // 静态回调函数声明
+
+    // 静态回调函数
     Q_INVOKABLE static BOOL handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code);
     Q_INVOKABLE static BOOL handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y);
+
     Q_INVOKABLE QPointF convertToRemoteCoordinates(qreal localX, qreal localY, const QSize& widgetSize);
+
+    // **重载 Qt 按键转换函数，适用于 QML**
+    Q_INVOKABLE UINT16 convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode);
+    UINT16 convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode, bool* extended);
+
 public slots:
     Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
+    Q_INVOKABLE BOOL sendKeyboardEvent(bool down, UINT16 keycode, bool extended);
+    Q_INVOKABLE BOOL sendUnicodeKeyboardEvent(bool down, UINT16 code, bool extended);
 signals:
     void imageUpdated(const QImage& image);
     void disconnected();
@@ -68,5 +77,5 @@ private:
     QImage _remoteImage;
 };
 
-#endif
+#endif // LINUX
 #endif // REMOTECONTROL_H

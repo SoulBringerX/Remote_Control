@@ -74,7 +74,6 @@ bool Account::registerCheck(const QString &userName, const QString &passWord)
     return true;
 }
 
-
 //用户检查
 bool Account::userRegister(const QString &userName, const QString &passWord) {
     return DataBase::getInstance()->userRegister(userName, passWord);
@@ -104,7 +103,6 @@ void Account::openFileManager()
         }
     }
 }
-
 
 // signals
 void userNameChanged()

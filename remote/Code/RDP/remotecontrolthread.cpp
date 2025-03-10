@@ -47,4 +47,5 @@ void RemoteControlThread::run()
     m_remoteControl->disconnect();
     emit connectionFinished();
 }
+
 #endif
