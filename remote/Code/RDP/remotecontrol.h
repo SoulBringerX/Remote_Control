@@ -30,6 +30,7 @@
 #include <QThread>
 #include <QKeyEvent>
 #include <QDebug>
+#include <QSettings>
 
 #include "../LogUntils/AppLog.h"
 
@@ -63,6 +64,20 @@ public:
     Q_INVOKABLE UINT16 convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode);
     UINT16 convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode, bool* extended);
 
+    // freerdp设置相关函数
+    Q_INVOKABLE void setBpp(int index);
+    Q_INVOKABLE void setAudioEnabled(bool enabled);
+    Q_INVOKABLE void setMicrophoneEnabled(bool enabled);
+    Q_INVOKABLE void setRemoteFxEnabled(bool enabled);
+    Q_INVOKABLE void setNSCodecEnabled(bool enabled);
+    Q_INVOKABLE void setSurfaceCommandsEnabled(bool enabled);
+    Q_INVOKABLE void setRemoteConsoleAudioEnabled(bool enabled);
+    Q_INVOKABLE void setDriveMappingEnabled(bool enabled);
+    Q_INVOKABLE void setUsbRedirectionEnabled(bool enabled);
+
+    Q_INVOKABLE void loadSettings();  // 加载保存的配置
+    Q_INVOKABLE void saveSettings();  // 保存当前配置
+
 public slots:
     Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
     Q_INVOKABLE BOOL sendKeyboardEvent(bool down, UINT16 keycode, bool extended);
@@ -75,6 +90,16 @@ private:
     RemoteControlContext* _context;
     rdpSettings* _settings;
     QImage _remoteImage;
+    // 这里存储 QML 选项
+    int _bppIndex = 0;               // 默认 8 bpp
+    bool _audioEnabled = true;
+    bool _micEnabled = false;
+    bool _remoteFxEnabled = false;
+    int _gdiMode = 0;                // 0: 硬件模式
+    bool _driveMappingEnabled = false;
+    bool _videoEnhancementEnabled = false;
+    bool _usbRedirectionEnabled = false;
+    bool _h264EncodingEnabled = false;
 };
 
 #endif // LINUX

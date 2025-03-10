@@ -103,16 +103,17 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->Password = strdup(password.toUtf8().constData());
         _settings->ServerPort = 3389;
         _settings->IgnoreCertificate = TRUE;
-        _settings->RemoteFxCodec = FALSE;
-        _settings->NSCodec = TRUE;
-        _settings->RdpSecurity = TRUE;
-        _settings->TlsSecurity = FALSE;
-        _settings->NlaSecurity = FALSE;
-        _settings->SurfaceCommandsEnabled = TRUE;
-        _settings->AudioPlayback = TRUE;   // 启用音频播放
-        _settings->AudioCapture = TRUE;    // 启用音频捕获
-        _settings->RemoteConsoleAudio = TRUE;
-        freerdp_settings_set_bool(_settings, FreeRDP_TlsSecLevel, TRUE);
+        // **加载用户上次保存的配置**
+        loadSettings();
+        // _settings->RemoteFxCodec = FALSE;
+        // _settings->NSCodec = TRUE;
+        // _settings->RdpSecurity = TRUE;
+        // _settings->TlsSecurity = FALSE;
+        // _settings->NlaSecurity = FALSE;
+        // _settings->SurfaceCommandsEnabled = TRUE;
+        // _settings->AudioPlayback = TRUE;   // 启用音频播放
+        // _settings->AudioCapture = TRUE;    // 启用音频捕获
+        // _settings->RemoteConsoleAudio = TRUE;
     } else {
         logger.print("RemoteRDP", "RDP的settings并未初始化并配置");
         return false;
@@ -172,6 +173,48 @@ void RemoteControl::disconnect()
     emit disconnected();
 }
 
+// 远程控制相关设置函数
+void RemoteControl::setBpp(int index) {
+    static const int bppValues[] = {8, 16, 24, 32};
+    if (index >= 0 && index < 4) {
+        _settings->ColorDepth = bppValues[index];
+    }
+}
+
+void RemoteControl::setAudioEnabled(bool enabled) {
+    _settings->AudioPlayback = enabled;
+}
+
+void RemoteControl::setMicrophoneEnabled(bool enabled) {
+    _settings->AudioCapture = enabled;
+}
+
+void RemoteControl::setRemoteFxEnabled(bool enabled) {
+    _settings->RemoteFxCodec = enabled;
+}
+
+void RemoteControl::setNSCodecEnabled(bool enabled) {
+    _settings->NSCodec = enabled;
+}
+
+void RemoteControl::setSurfaceCommandsEnabled(bool enabled) {
+    _settings->SurfaceCommandsEnabled = enabled;
+}
+
+void RemoteControl::setRemoteConsoleAudioEnabled(bool enabled) {
+    _settings->RemoteConsoleAudio = enabled;
+}
+
+void RemoteControl::setDriveMappingEnabled(bool enabled) {
+    _settings->DeviceRedirection = enabled;
+}
+
+void RemoteControl::setUsbRedirectionEnabled(bool enabled) {
+    _settings->DeviceRedirection = enabled;
+}
+
+
+// 主事件循环
 void RemoteControl::runEventLoop()
 {
     int retryCount = 0;
@@ -210,6 +253,39 @@ void RemoteControl::runEventLoop()
     }
 }
 
+void RemoteControl::saveSettings() {
+    QSettings settings("RDP", "RemoteControlApp"); // 指定存储路径
+
+    settings.setValue("Bpp", _settings->ColorDepth);
+    settings.setValue("AudioPlayback", _settings->AudioPlayback);
+    settings.setValue("AudioCapture", _settings->AudioCapture);
+    settings.setValue("RemoteFxCodec", _settings->RemoteFxCodec);
+    settings.setValue("NSCodec", _settings->NSCodec);
+    settings.setValue("SurfaceCommandsEnabled", _settings->SurfaceCommandsEnabled);
+    settings.setValue("RemoteConsoleAudio", _settings->RemoteConsoleAudio);
+    settings.setValue("DriveMappingEnabled", _settings->DeviceRedirection);
+    settings.setValue("UsbRedirectionEnabled", _settings->DeviceRedirection);
+
+    qDebug() << "用户配置已保存！";
+}
+
+void RemoteControl::loadSettings() {
+    QSettings settings("RDP", "RemoteControlApp");
+
+    _settings->ColorDepth = settings.value("Bpp", 24).toInt();  // 默认 24bpp
+    _settings->AudioPlayback = settings.value("AudioPlayback", true).toBool();
+    _settings->AudioCapture = settings.value("AudioCapture", false).toBool();
+    _settings->RemoteFxCodec = settings.value("RemoteFxCodec", false).toBool();
+    _settings->NSCodec = settings.value("NSCodec", true).toBool();
+    _settings->SurfaceCommandsEnabled = settings.value("SurfaceCommandsEnabled", true).toBool();
+    _settings->RemoteConsoleAudio = settings.value("RemoteConsoleAudio", true).toBool();
+    _settings->DeviceRedirection = settings.value("DriveMappingEnabled", false).toBool();
+    _settings->DeviceRedirection = settings.value("UsbRedirectionEnabled", false).toBool();
+
+    qDebug() << "用户配置已加载！";
+}
+
+
 void RemoteControl::requestRedraw() {
     QMetaObject::invokeMethod(this, [this]() {
         if (!_settings || !_context || !_context->context.gdi) {
@@ -233,6 +309,8 @@ void RemoteControl::requestRedraw() {
         emit imageUpdated(_remoteImage);
     });
 }
+
+// 远程控制中的键盘、鼠标事件
 
 QImage RemoteControl::currentImage() const {
     return _remoteImage; // 返回当前存储的远程图像
@@ -501,4 +579,5 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
             return 0;
     }
 }
+
 #endif
