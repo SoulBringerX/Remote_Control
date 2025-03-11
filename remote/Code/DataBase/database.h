@@ -5,9 +5,12 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDateTime>
+#include <QVariantList>
+#include <QVariantMap>
 #include <QMutex>
 #include "../LogUntils/AppLog.h"
-
+#include "../Users/account.h"
+#include "../AppData/devicedate.h"
 class DataBase : public QObject
 {
     Q_OBJECT
@@ -22,11 +25,9 @@ public:
     bool isRegister(const QString &userName, const QString &passWord);
     bool userRegister(const QString &userName, const QString &passWord);
 
-    // 远端、本地App数据
-    bool pushApplicationData();
-
-    bool fetchApplicationData();
-
+    // 用户远端设备数据
+    bool pushDeviceData(const QString& hostname, const QString& username, const QString& password);
+    QVariantList pullDeviceData(const QString& username);
 private:
     QSqlDatabase db;
     static DataBase* instance;

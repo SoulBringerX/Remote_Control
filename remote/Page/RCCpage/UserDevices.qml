@@ -11,9 +11,6 @@ Rectangle {
     // 设备数据模型，增加了 extended 字段用于记录是否展开
     ListModel {
         id: deviceInformationModel
-        ListElement { deviceName: "Computer 1"; deviceIP: "192.168.1.1"; account: "user1"; password: "pass1"; isConnected: true; extended: false }
-        ListElement { deviceName: "Computer 2"; deviceIP: "192.168.1.2"; account: "user2"; password: "pass2"; isConnected: false; extended: false }
-        ListElement { deviceName: "Computer 3"; deviceIP: "192.168.1.3"; account: "user3"; password: "pass3"; isConnected: false; extended: false }
     }
     property int currentIndex: -1
     property string currentIp: ""
@@ -452,6 +449,14 @@ Rectangle {
 
     function showInputDialog() {
         inputWindow.show()
+    }
+
+    Component.onCompleted: {
+        var devices = user_device.getUserDevices();  // 通过 UserDevice 获取设备列表
+        deviceInformationModel.clear();
+        for (var i = 0; i < devices.length; i++) {
+            deviceInformationModel.append(devices[i]);
+        }
     }
 
     RemoteAppList {

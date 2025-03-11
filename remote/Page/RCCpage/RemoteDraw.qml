@@ -120,7 +120,6 @@ Window {
 
     onClosing: {
         console.log("Ending remote session --- Time: " + Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
-        // Ensure cleanup, e.g., remoteControlThread.stopConnection() if not already done
     }
 
     Component.onCompleted: {

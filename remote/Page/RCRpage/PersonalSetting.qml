@@ -86,7 +86,6 @@ Rectangle {
             SettingsItem {
                 title: "重置密码"
                 icon: "🔒"
-                //onClicked: passwordDialog.open()
             }
 
             SettingsItem {

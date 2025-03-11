@@ -159,6 +159,7 @@ Rectangle {
                     target: remoteControlThread
                     function onConnectionFinished() {
                         console.log("Connection finished")
+                        user_device.sendUserDevice(ipAddress.text, username.text, password.text)
                     }
 
                     function onErrorOccurred(message) {

@@ -58,7 +58,10 @@ bool Account::loginCheck(const QString &userName, const QString &passWord)
     }
     DataBase db;
     if(db.isLogin(userName,passWord))
+    {
+        Account::isOnline = true;
         return true;
+    }
     else
         return false;
     return true;

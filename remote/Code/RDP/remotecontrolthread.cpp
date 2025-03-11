@@ -7,45 +7,46 @@ RemoteControlThread::RemoteControlThread(QObject *parent, RemoteControl *remoteC
     // 构造函数初始化
 }
 
+RemoteControlThread::~RemoteControlThread()
+{
+    stopConnection();  // 确保线程停止并清理资源
+}
+
 void RemoteControlThread::startConnection(const QString &hostname, const QString &username, const QString &password)
 {
     this->m_hostname = hostname;
     this->m_username = username;
     this->m_password = password;
-    qDebug()<<m_hostname<<" "<<m_username<<" "<<m_password;
+    qDebug() << m_hostname << " " << m_username << " " << m_password;
     m_running = true;
-    m_stopped = false;
-    this->start(); // 启动线程
+    std::atomic<int> m_stopped{0};  // Include <atomic>  // 重置为 0，表示未停止
+    this->start();       // 启动线程
 }
 
 void RemoteControlThread::stopConnection()
 {
-    m_stopped = true;
+    std::atomic<int> m_stopped{0};  // Include <atomic> // 设置停止标志
     if (this->isRunning()) {
-        this->quit();  // 让线程自己退出，而不是在运行时强制 disconnect()
-        this->wait();  // 等待线程完全退出
+        this->wait();    // 等待线程完全退出
+        m_remoteControl->disconnect();  // 断开连接
     }
 }
-
 
 void RemoteControlThread::run()
 {
     if (!m_remoteControl->initialize()) {
         emit errorOccurred("Failed to initialize FreeRDP");
-        return;
+        return;  // 直接返回，不调用 stopConnection()
     }
     if (!m_remoteControl->connect(m_hostname, m_username, m_password)) {
         emit errorOccurred("Failed to connect to RDP server");
-        stopConnection();
-        return;
+        return;  // 直接返回，不调用 stopConnection()
     }
 
     if (m_running) {
-        m_remoteControl->runEventLoop();
+        emit connectionFinished();      // 发出完成信号
+        m_remoteControl->runEventLoop();  // 运行事件循环，需确保其内部检查 m_stopped
     }
-
-    m_remoteControl->disconnect();
-    emit connectionFinished();
 }
 
 #endif

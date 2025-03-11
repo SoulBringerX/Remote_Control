@@ -3,19 +3,22 @@
 #include <cstring>
 
 #ifdef LINUX
-#include <freerdp/log.h>
+
 #define TAG "RemoteControl"
 
+// 构造函数
 RemoteControl::RemoteControl(QObject *parent)
     : QObject(parent), _instance(nullptr), _context(nullptr), _settings(nullptr)
 {
 }
 
+// 析构函数
 RemoteControl::~RemoteControl()
 {
     disconnect();
 }
 
+// 初始化RDP连接
 bool RemoteControl::initialize()
 {
     logger.print("RemoteRDP", "RDP连接初始化中》》》》》");
@@ -43,9 +46,7 @@ bool RemoteControl::initialize()
     if (!_settings) {
         logger.print("RemoteRDP", "无法初始化RDP的setting配置，setting配置不存在");
         freerdp_context_free(_instance);
-        logger.print("RemoteRDP", "释放RDP实例context");
         freerdp_free(_instance);
-        logger.print("RemoteRDP", "释放RDP实例");
         _context = nullptr;
         _instance = nullptr;
         return false;
@@ -65,12 +66,10 @@ bool RemoteControl::initialize()
 
     // 注册图形回调
     _instance->update->BeginPaint = [](rdpContext* context) -> BOOL {
-        logger.print("RemoteRDP", "BeginPaint: 准备接收图形更新");
         return TRUE;
     };
 
     _instance->update->EndPaint = [](rdpContext* context) -> BOOL {
-        logger.print("RemoteRDP", "EndPaint: 图形更新已接收");
         RemoteControlContext* myContext = reinterpret_cast<RemoteControlContext*>(context);
         RemoteControl* control = myContext->remoteControl;
         if (control) {
@@ -85,10 +84,12 @@ bool RemoteControl::initialize()
                  << "code=0x" << Qt::hex << code;
         return TRUE;
     };
+
     logger.print("RemoteRDP", "RDP初始化成功");
     return true;
 }
 
+// 发起RDP连接
 bool RemoteControl::connect(const QString& hostname, const QString& username, const QString& password)
 {
     logger.print("RemoteRDP", "RDP连接开始》》》》》》》");
@@ -103,21 +104,16 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->Password = strdup(password.toUtf8().constData());
         _settings->ServerPort = 3389;
         _settings->IgnoreCertificate = TRUE;
-        // **加载用户上次保存的配置**
+        _settings->RdpSecurity = TRUE;
+        _settings->TlsSecurity = FALSE;
+        _settings->NlaSecurity = FALSE;
+        // 加载用户上次保存的配置
         loadSettings();
-        // _settings->RemoteFxCodec = FALSE;
-        // _settings->NSCodec = TRUE;
-        // _settings->RdpSecurity = TRUE;
-        // _settings->TlsSecurity = FALSE;
-        // _settings->NlaSecurity = FALSE;
-        // _settings->SurfaceCommandsEnabled = TRUE;
-        // _settings->AudioPlayback = TRUE;   // 启用音频播放
-        // _settings->AudioCapture = TRUE;    // 启用音频捕获
-        // _settings->RemoteConsoleAudio = TRUE;
     } else {
         logger.print("RemoteRDP", "RDP的settings并未初始化并配置");
         return false;
     }
+
     if (!freerdp_connect(_instance)) {
         logger.print("RemoteRDP", "RDP连接失败");
         free(_settings->ServerHostname);
@@ -126,7 +122,8 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         return false;
     }
     if (freerdp_channels_attach(_instance) != 0) {
-        logger.print("RemoteRDP", "通道附加失败，错误代码: " + QString::number(freerdp_get_last_error(_instance->context)));
+        logger.print("RemoteRDP", "通道附加失败，错误代码: " +
+                     QString::number(freerdp_get_last_error(_instance->context)));
         free(_settings->ServerHostname);
         free(_settings->Username);
         free(_settings->Password);
@@ -136,6 +133,7 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
     return true;
 }
 
+// 断开RDP连接，释放资源
 void RemoteControl::disconnect()
 {
     if (!_instance) {
@@ -146,7 +144,6 @@ void RemoteControl::disconnect()
 
     qDebug() << "Disconnecting from RDP server";
 
-    // 注意确保在主线程中执行
     freerdp_disconnect(_instance);
     freerdp_context_free(_instance);
     freerdp_free(_instance);
@@ -169,11 +166,10 @@ void RemoteControl::disconnect()
         _settings = nullptr;
     }
 
-    // 发射断开完成信号
     emit disconnected();
 }
 
-// 远程控制相关设置函数
+// 设置颜色深度（Bpp）
 void RemoteControl::setBpp(int index) {
     static const int bppValues[] = {8, 16, 24, 32};
     if (index >= 0 && index < 4) {
@@ -181,40 +177,51 @@ void RemoteControl::setBpp(int index) {
     }
 }
 
+// 设置音频播放
 void RemoteControl::setAudioEnabled(bool enabled) {
     _settings->AudioPlayback = enabled;
 }
 
+// 设置音频捕获
 void RemoteControl::setMicrophoneEnabled(bool enabled) {
     _settings->AudioCapture = enabled;
 }
 
+// 设置 RemoteFx 编解码器
 void RemoteControl::setRemoteFxEnabled(bool enabled) {
     _settings->RemoteFxCodec = enabled;
 }
 
+// 设置 NSCodec 编解码器
 void RemoteControl::setNSCodecEnabled(bool enabled) {
     _settings->NSCodec = enabled;
 }
 
+// 设置图形命令更新
 void RemoteControl::setSurfaceCommandsEnabled(bool enabled) {
     _settings->SurfaceCommandsEnabled = enabled;
 }
 
+// 设置远程控制台音频
 void RemoteControl::setRemoteConsoleAudioEnabled(bool enabled) {
     _settings->RemoteConsoleAudio = enabled;
 }
 
-void RemoteControl::setDriveMappingEnabled(bool enabled) {
-    _settings->DeviceRedirection = enabled;
-}
-
+// 设置 USB 重定向（或设备重定向）
 void RemoteControl::setUsbRedirectionEnabled(bool enabled) {
-    _settings->DeviceRedirection = enabled;
+    _settings->RedirectDrives = enabled;
+}
+void RemoteControl::setDriveMappingEnabled(bool enabled){
+    _settings->RedirectHomeDrive = enabled;
+}
+// 设置剪贴板重定向
+void RemoteControl::setClipboardRedirectionEnabled(bool enabled) {
+    if (_settings) {
+        _settings->RedirectClipboard = enabled;
+    }
 }
 
-
-// 主事件循环
+// 事件循环，处理 RDP 消息与重连逻辑
 void RemoteControl::runEventLoop()
 {
     int retryCount = 0;
@@ -228,17 +235,13 @@ void RemoteControl::runEventLoop()
             continue;
         }
 
-        // 错误处理
         if (ret < 0) {
             qDebug() << "事件循环错误，尝试重连 (" << ++retryCount << "/" << MAX_RETRY << ")";
 
-            // 清理残留连接
             this->disconnect();
 
-            // 延迟重连
             QThread::sleep(2);
 
-            // 重新初始化连接
             if (!initialize() || !connect(_settings->ServerHostname,
                                           _settings->Username,
                                           _settings->Password)) {
@@ -253,8 +256,10 @@ void RemoteControl::runEventLoop()
     }
 }
 
-void RemoteControl::saveSettings() {
-    QSettings settings("RDP", "RemoteControlApp"); // 指定存储路径
+// 保存用户配置
+void RemoteControl::saveSettings()
+{
+    QSettings settings("./rdp_config.ini", QSettings::IniFormat);
 
     settings.setValue("Bpp", _settings->ColorDepth);
     settings.setValue("AudioPlayback", _settings->AudioPlayback);
@@ -263,29 +268,90 @@ void RemoteControl::saveSettings() {
     settings.setValue("NSCodec", _settings->NSCodec);
     settings.setValue("SurfaceCommandsEnabled", _settings->SurfaceCommandsEnabled);
     settings.setValue("RemoteConsoleAudio", _settings->RemoteConsoleAudio);
-    settings.setValue("DriveMappingEnabled", _settings->DeviceRedirection);
-    settings.setValue("UsbRedirectionEnabled", _settings->DeviceRedirection);
+    settings.setValue("DriveMappingEnabled", _settings->RedirectHomeDrive);  // 保存磁盘映射
+    settings.setValue("UsbRedirectionEnabled", _settings->DeviceRedirection);  // 保存 USB 重定向
+    settings.setValue("ClipboardRedirectionEnabled", _settings->RedirectClipboard);  // 保存剪贴板重定向
 
-    qDebug() << "用户配置已保存！";
+    qDebug() << "用户配置已保存到 rdp_config.ini！";
 }
 
-void RemoteControl::loadSettings() {
-    QSettings settings("RDP", "RemoteControlApp");
 
-    _settings->ColorDepth = settings.value("Bpp", 24).toInt();  // 默认 24bpp
+// 加载用户配置
+void RemoteControl::loadSettings()
+{
+    QSettings settings("./rdp_config.ini", QSettings::IniFormat);
+
+    _settings->ColorDepth = settings.value("Bpp", 32).toInt();
     _settings->AudioPlayback = settings.value("AudioPlayback", true).toBool();
-    _settings->AudioCapture = settings.value("AudioCapture", false).toBool();
-    _settings->RemoteFxCodec = settings.value("RemoteFxCodec", false).toBool();
-    _settings->NSCodec = settings.value("NSCodec", true).toBool();
+    _settings->AudioCapture = settings.value("AudioCapture", true).toBool();
+    _settings->RemoteFxCodec = settings.value("RemoteFxCodec", true).toBool();
+    _settings->NSCodec = settings.value("NSCodec", false).toBool();
     _settings->SurfaceCommandsEnabled = settings.value("SurfaceCommandsEnabled", true).toBool();
     _settings->RemoteConsoleAudio = settings.value("RemoteConsoleAudio", true).toBool();
-    _settings->DeviceRedirection = settings.value("DriveMappingEnabled", false).toBool();
+    _settings->RedirectHomeDrive = settings.value("DriveMappingEnabled", false).toBool();
     _settings->DeviceRedirection = settings.value("UsbRedirectionEnabled", false).toBool();
+    _settings->RedirectClipboard = settings.value("ClipboardRedirectionEnabled", false).toBool();
 
-    qDebug() << "用户配置已加载！";
+    qDebug() << "用户配置已从 rdp_config.ini 加载！";
 }
 
 
+// 获取颜色深度索引
+int RemoteControl::getBppIndex() const {
+    if (!_settings) return 3; // 默认 32 bpp
+    int bpp = _settings->ColorDepth;
+    if (bpp == 8) return 0;
+    if (bpp == 16) return 1;
+    if (bpp == 24) return 2;
+    return 3;
+}
+
+// 获取是否启用音频
+bool RemoteControl::getAudioEnabled() const {
+    return _settings ? _settings->AudioPlayback : false;
+}
+
+// 获取是否启用麦克风
+bool RemoteControl::getMicrophoneEnabled() const {
+    return _settings ? _settings->AudioCapture : false;
+}
+
+// 获取是否启用 RemoteFx
+bool RemoteControl::getRemoteFxEnabled() const {
+    return _settings ? _settings->RemoteFxCodec : false;
+}
+
+// 获取是否启用 NSCodec
+bool RemoteControl::getNSCodecEnabled() const {
+    return _settings ? _settings->NSCodec : false;
+}
+
+// 获取是否启用 Surface Commands
+bool RemoteControl::getSurfaceCommandsEnabled() const {
+    return _settings ? _settings->SurfaceCommandsEnabled : false;
+}
+
+// 获取是否启用远程控制台音频
+bool RemoteControl::getRemoteConsoleAudioEnabled() const {
+    return _settings ? _settings->RemoteConsoleAudio : false;
+}
+
+// 获取是否启用磁盘映射
+bool RemoteControl::getDriveMappingEnabled() const {
+    return _settings ? _settings->RedirectHomeDrive : false;
+}
+
+// 获取是否启用 USB 重定向
+bool RemoteControl::getUsbRedirectionEnabled() const {
+    return _settings ? _settings->DeviceRedirection : false;
+}
+// 获取剪贴板重定向状态
+bool RemoteControl::getClipboardRedirectionEnabled() const {
+    return _settings ? _settings->RedirectClipboard : false;
+}
+
+
+// 根据 GDI 缓冲区生成 QImage 并发射更新信号
 void RemoteControl::requestRedraw() {
     QMetaObject::invokeMethod(this, [this]() {
         if (!_settings || !_context || !_context->context.gdi) {
@@ -297,26 +363,23 @@ void RemoteControl::requestRedraw() {
         int width = _settings->DesktopWidth;
         int height = _settings->DesktopHeight;
 
-        // 检查缓冲区有效性
         if (!buffer || width <= 0 || height <= 0) {
             qDebug() << "[ERROR] Invalid buffer or dimensions";
             return;
         }
 
-        // 创建 QImage 并发射信号
         _remoteImage = QImage(buffer, width, height, QImage::Format_RGB32);
         qDebug() << "Emitting imageUpdated, size:" << _remoteImage.size();
         emit imageUpdated(_remoteImage);
     });
 }
 
-// 远程控制中的键盘、鼠标事件
-
+// 返回当前图像
 QImage RemoteControl::currentImage() const {
-    return _remoteImage; // 返回当前存储的远程图像
+    return _remoteImage;
 }
 
-// 静态键盘事件处理回调
+// 静态键盘事件回调函数
 BOOL RemoteControl::handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code) {
     qDebug() << "键盘事件: flags=" << flags << ", code=" << code;
     return TRUE;
@@ -340,14 +403,14 @@ QPointF RemoteControl::convertToRemoteCoordinates(qreal localX, qreal localY, co
     return QPointF(-1, -1);
 }
 
-// 静态鼠标事件处理回调
+// 静态鼠标事件回调函数
 BOOL RemoteControl::handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y) {
     qDebug() << "鼠标事件处理函数调用，flags=" << flags << ", x=" << x << ", y=" << y;
     return freerdp_input_send_mouse_event(input, flags, x, y);
 }
 
+// 发送鼠标事件（按下与释放）
 void RemoteControl::sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags) {
-    // 允许的合法标志组合
     constexpr int validButtonFlags =
         PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON1 |
         PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON2 |
@@ -359,50 +422,43 @@ void RemoteControl::sendMouseEvent(int x, int y, int buttonFlags, int releaseFla
         PTR_FLAGS_BUTTON2 |
         PTR_FLAGS_BUTTON3;
 
-    // 按下事件校验
-    if (buttonFlags != 0 &&
-       !(buttonFlags & validButtonFlags)) {
+    if (buttonFlags != 0 && !(buttonFlags & validButtonFlags)) {
         qDebug() << "非法按下标志: 0x" << Qt::hex << buttonFlags;
         return;
     }
 
-    // 释放事件校验
-    if (releaseFlags != 0 &&
-       !(releaseFlags & validReleaseFlags)) {
+    if (releaseFlags != 0 && !(releaseFlags & validReleaseFlags)) {
         qDebug() << "非法释放标志: 0x" << Qt::hex << releaseFlags;
         return;
     }
 
-    // 坐标校验
     if (x < 0 || x >= _settings->DesktopWidth ||
         y < 0 || y >= _settings->DesktopHeight) {
         qDebug() << "坐标越界: (" << x << "," << y << ")";
         return;
     }
 
-    // 发送事件
     UINT16 remoteX = static_cast<UINT16>(x);
     UINT16 remoteY = static_cast<UINT16>(y);
 
     if (buttonFlags != 0) {
-        if (!freerdp_input_send_mouse_event(_instance->input, buttonFlags, remoteX, remoteY)) {
+        if (!freerdp_input_send_mouse_event(_instance->input, buttonFlags, remoteX, remoteY))
             qDebug() << "鼠标按下事件发送失败";
-        } else {
+        else
             qDebug() << "鼠标按下事件发送成功，横坐标：" << remoteX << "，纵坐标：" << remoteY;
-        }
     }
 
     if (releaseFlags != 0) {
         QTimer::singleShot(50, [=]() {
-            if (!freerdp_input_send_mouse_event(_instance->input, releaseFlags, remoteX, remoteY)) {
+            if (!freerdp_input_send_mouse_event(_instance->input, releaseFlags, remoteX, remoteY))
                 qDebug() << "鼠标释放事件发送失败";
-            } else {
+            else
                 qDebug() << "鼠标释放事件发送成功，横坐标：" << remoteX << "，纵坐标：" << remoteY;
-            }
         });
     }
 }
 
+// 发送键盘事件
 BOOL RemoteControl::sendKeyboardEvent(bool down, UINT16 keycode, bool extended) {
     if (!_instance || !_instance->input) {
         qDebug() << "Error: RDP input instance not initialized";
@@ -410,24 +466,21 @@ BOOL RemoteControl::sendKeyboardEvent(bool down, UINT16 keycode, bool extended) 
     }
 
     UINT16 flags = down ? KBD_FLAGS_DOWN : KBD_FLAGS_RELEASE;
-    if (extended) {
-        flags |= KBD_FLAGS_EXTENDED;
-    }
+    if (extended) flags |= KBD_FLAGS_EXTENDED;
 
     qDebug() << "Sending keyboard event: down=" << down
              << "keycode=0x" << Qt::hex << keycode
              << "flags=0x" << Qt::hex << flags;
 
     BOOL result = freerdp_input_send_keyboard_event(_instance->input, flags, keycode);
-    if (!result) {
-        qDebug() << "Failed to send keyboard event. Error code:"
-                 << freerdp_get_last_error(_instance->context);
-    } else {
+    if (!result)
+        qDebug() << "Failed to send keyboard event. Error code:" << freerdp_get_last_error(_instance->context);
+    else
         qDebug() << "Keyboard event sent successfully";
-    }
     return result;
 }
 
+// 发送 Unicode 键盘事件
 BOOL RemoteControl::sendUnicodeKeyboardEvent(bool down, UINT16 code, bool extended) {
     if (!_instance || !_instance->input) {
         qDebug() << "Error: RDP input instance not initialized";
@@ -435,31 +488,27 @@ BOOL RemoteControl::sendUnicodeKeyboardEvent(bool down, UINT16 code, bool extend
     }
 
     UINT16 flags = down ? KBD_FLAGS_DOWN : KBD_FLAGS_RELEASE;
-    if (extended) {
-        flags |= KBD_FLAGS_EXTENDED;
-    }
+    if (extended) flags |= KBD_FLAGS_EXTENDED;
 
     qDebug() << "Sending Unicode event: down=" << down
              << "code=0x" << Qt::hex << code
              << "flags=0x" << Qt::hex << flags;
 
     BOOL result = freerdp_input_send_unicode_keyboard_event(_instance->input, flags, code);
-    if (!result) {
-        qDebug() << "Failed to send Unicode event. Error code:"
-                 << freerdp_get_last_error(_instance->context);
-    } else {
+    if (!result)
+        qDebug() << "Failed to send Unicode event. Error code:" << freerdp_get_last_error(_instance->context);
+    else
         qDebug() << "Unicode event sent successfully";
-    }
     return result;
 }
 
-// **新的 `convertQtKeyToRdpKey` 适用于 QML 调用**
+// 重载 Qt 按键转换函数（适用于 QML调用）
 UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode) {
     bool extended = false;
     return convertQtKeyToRdpKey(qtKey, text, nativeScanCode, &extended);
 }
 
-// **原来的 `convertQtKeyToRdpKey`，用于 C++ 内部**
+// 内部使用的 Qt 按键转换函数
 UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int nativeScanCode, bool* extended) {
     if (extended)
         *extended = false;
@@ -468,31 +517,26 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
 
     switch (qtKey) {
         case Qt::Key_Backspace: return RDP_SCANCODE_BACKSPACE;
-        case Qt::Key_Tab: return RDP_SCANCODE_TAB;
+        case Qt::Key_Tab:       return RDP_SCANCODE_TAB;
         case Qt::Key_Return:
         case Qt::Key_Enter:
-            if (nativeScanCode == 0xE01C) {
-                if (extended) *extended = true;
-            }
+            if (nativeScanCode == 0xE01C && extended)
+                *extended = true;
             return RDP_SCANCODE_RETURN;
-
         case Qt::Key_Shift:
             return (nativeScanCode == 0x36) ? RDP_SCANCODE_RSHIFT : RDP_SCANCODE_LSHIFT;
-
         case Qt::Key_Control:
-            if (nativeScanCode == 0xE01D) {
-                if (extended) *extended = true;
+            if (nativeScanCode == 0xE01D && extended) {
+                *extended = true;
                 return RDP_SCANCODE_RCONTROL;
             }
             return RDP_SCANCODE_LCONTROL;
-
         case Qt::Key_Alt:
-            if (nativeScanCode == 0xE038) {
-                if (extended) *extended = true;
+            if (nativeScanCode == 0xE038 && extended) {
+                *extended = true;
                 return RDP_SCANCODE_RMENU;
             }
             return RDP_SCANCODE_LMENU;
-
         case Qt::Key_A: return RDP_SCANCODE_KEY_A;
         case Qt::Key_B: return RDP_SCANCODE_KEY_B;
         case Qt::Key_C: return RDP_SCANCODE_KEY_C;
@@ -519,9 +563,6 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
         case Qt::Key_X: return RDP_SCANCODE_KEY_X;
         case Qt::Key_Y: return RDP_SCANCODE_KEY_Y;
         case Qt::Key_Z: return RDP_SCANCODE_KEY_Z;
-
-
-        // 数字键 0-9
         case Qt::Key_0: return RDP_SCANCODE_KEY_0;
         case Qt::Key_1: return RDP_SCANCODE_KEY_1;
         case Qt::Key_2: return RDP_SCANCODE_KEY_2;
@@ -532,22 +573,18 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
         case Qt::Key_7: return RDP_SCANCODE_KEY_7;
         case Qt::Key_8: return RDP_SCANCODE_KEY_8;
         case Qt::Key_9: return RDP_SCANCODE_KEY_9;
-
-        // 功能键 F1-F12
-        case Qt::Key_F1: return RDP_SCANCODE_F1;
-        case Qt::Key_F2: return RDP_SCANCODE_F2;
-        case Qt::Key_F3: return RDP_SCANCODE_F3;
-        case Qt::Key_F4: return RDP_SCANCODE_F4;
-        case Qt::Key_F5: return RDP_SCANCODE_F5;
-        case Qt::Key_F6: return RDP_SCANCODE_F6;
-        case Qt::Key_F7: return RDP_SCANCODE_F7;
-        case Qt::Key_F8: return RDP_SCANCODE_F8;
-        case Qt::Key_F9: return RDP_SCANCODE_F9;
+        case Qt::Key_F1:  return RDP_SCANCODE_F1;
+        case Qt::Key_F2:  return RDP_SCANCODE_F2;
+        case Qt::Key_F3:  return RDP_SCANCODE_F3;
+        case Qt::Key_F4:  return RDP_SCANCODE_F4;
+        case Qt::Key_F5:  return RDP_SCANCODE_F5;
+        case Qt::Key_F6:  return RDP_SCANCODE_F6;
+        case Qt::Key_F7:  return RDP_SCANCODE_F7;
+        case Qt::Key_F8:  return RDP_SCANCODE_F8;
+        case Qt::Key_F9:  return RDP_SCANCODE_F9;
         case Qt::Key_F10: return RDP_SCANCODE_F10;
         case Qt::Key_F11: return RDP_SCANCODE_F11;
         case Qt::Key_F12: return RDP_SCANCODE_F12;
-
-        // 箭头键
         case Qt::Key_Left:
             if (extended) *extended = true;
             return RDP_SCANCODE_LEFT;
@@ -560,24 +597,11 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
         case Qt::Key_Down:
             if (extended) *extended = true;
             return RDP_SCANCODE_DOWN;
-
-        // 其他符号键
-        // case Qt::Key_Minus: return RDP_SCANCODE_MINUS;         // -
-        // case Qt::Key_Equal: return RDP_SCANCODE_EQUALS;        // =
-        // case Qt::Key_BracketLeft: return RDP_SCANCODE_LBRACKET; // [
-        // case Qt::Key_BracketRight: return RDP_SCANCODE_RBRACKET; // ]
-        // case Qt::Key_Backslash: return RDP_SCANCODE_BACKSLASH; // \
-        // case Qt::Key_Semicolon: return RDP_SCANCODE_SEMICOLON; // ;
-        // case Qt::Key_Apostrophe: return RDP_SCANCODE_APOSTROPHE; // '
-        // case Qt::Key_Comma: return RDP_SCANCODE_COMMA;         // ,
-        // case Qt::Key_Period: return RDP_SCANCODE_PERIOD;       // .
-        // case Qt::Key_Slash: return RDP_SCANCODE_SLASH;         // /
-        case Qt::Key_Space: return RDP_SCANCODE_SPACE;         // Space
-
+        case Qt::Key_Space: return RDP_SCANCODE_SPACE;
         default:
             qDebug() << "Unhandled key:" << qtKey;
             return 0;
     }
 }
 
-#endif
+#endif // LINUX

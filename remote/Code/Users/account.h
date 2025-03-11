@@ -27,6 +27,10 @@ public:
     Q_INVOKABLE bool userRegister(const QString &userName, const QString &passWord);
     Q_INVOKABLE void openFileManager();
 
+
+    static QString Remote_username;
+    static bool Security_lock;
+    Q_INVOKABLE static bool isOnline;
 signals:
     void userNameChanged();
 

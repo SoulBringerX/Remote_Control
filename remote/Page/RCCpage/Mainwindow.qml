@@ -361,6 +361,7 @@ Window {
             anchors.topMargin: parent.height * 0.075
             color: "transparent"
             radius: 5
+
             Rectangle {
                 id: personalSettingRectangle
                 width: 32

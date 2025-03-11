@@ -21,6 +21,7 @@
 #include "./Code/RDP/remotecontrol.h"
 #include "./Code/RDP/remotecontrolthread.h"
 #include "./Code/RDP/remoteimageprovider.h"
+#include "./Code/Users/userdevice.h"
 #endif
 
 bool isWindowHidden = false;
@@ -93,10 +94,11 @@ int main(int argc, char *argv[])
     // Linux 平台的远程控制功能
     RemoteControl client;
     RemoteImageProvider* imageProvider = new RemoteImageProvider(&client);
-    engine.addImageProvider("remote", imageProvider);
-
+    UserDevice userdevice;
     RemoteControlThread *thread = new RemoteControlThread(nullptr, &client);
     engine.rootContext()->setContextProperty("client", &client);
+    engine.rootContext()->setContextProperty("user_device", &userdevice);
+    engine.addImageProvider("remote", imageProvider);
     engine.rootContext()->setContextProperty("remoteControlThread", thread);
 #endif
 
