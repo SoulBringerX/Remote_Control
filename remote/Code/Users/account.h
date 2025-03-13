@@ -26,7 +26,9 @@ public:
     Q_INVOKABLE bool registerCheck(const QString &userName, const QString &passWord);
     Q_INVOKABLE bool userRegister(const QString &userName, const QString &passWord);
     Q_INVOKABLE void openFileManager();
-
+    Q_INVOKABLE bool changePassWord(const QString& oldPassword, const QString& newPassword);
+    Q_INVOKABLE bool saveNewUsername(const QString& name);
+    Q_INVOKABLE QString loadUsername();
 
     static QString Remote_username;
     static bool Security_lock;

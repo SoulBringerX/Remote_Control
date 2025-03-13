@@ -137,36 +137,36 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
 void RemoteControl::disconnect()
 {
     if (!_instance) {
-        qDebug() << "[RemoteControl] Info: No active connection to disconnect";
+            qDebug() << "[RemoteControl] Info: No active connection to disconnect";
+            emit disconnected();
+            return;
+        }
+
+        qDebug() << "Disconnecting from RDP server";
+
+        freerdp_disconnect(_instance);
+        freerdp_context_free(_instance);
+        freerdp_free(_instance);
+        _instance = nullptr;
+        _context = nullptr;
+
+        if (_settings) {
+            if (_settings->ServerHostname) {
+                free(_settings->ServerHostname);
+                _settings->ServerHostname = nullptr;
+            }
+            if (_settings->Username) {
+                free(_settings->Username);
+                _settings->Username = nullptr;
+            }
+            if (_settings->Password) {
+                free(_settings->Password);
+                _settings->Password = nullptr;
+            }
+            _settings = nullptr;
+        }
+
         emit disconnected();
-        return;
-    }
-
-    qDebug() << "Disconnecting from RDP server";
-
-    freerdp_disconnect(_instance);
-    freerdp_context_free(_instance);
-    freerdp_free(_instance);
-    _instance = nullptr;
-    _context = nullptr;
-
-    if (_settings) {
-        if (_settings->ServerHostname) {
-            free(_settings->ServerHostname);
-            _settings->ServerHostname = nullptr;
-        }
-        if (_settings->Username) {
-            free(_settings->Username);
-            _settings->Username = nullptr;
-        }
-        if (_settings->Password) {
-            free(_settings->Password);
-            _settings->Password = nullptr;
-        }
-        _settings = nullptr;
-    }
-
-    emit disconnected();
 }
 
 // 设置颜色深度（Bpp）
@@ -603,5 +603,9 @@ UINT16 RemoteControl::convertQtKeyToRdpKey(int qtKey, const QString& text, int n
             return 0;
     }
 }
-
+void RemoteControl::onDisconnectRequested() {
+    // 执行原来的断开连接逻辑
+    disconnect();
+    // 注意：disconnect() 内部已经 emit disconnected()，可根据需要调整
+}
 #endif // LINUX

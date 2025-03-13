@@ -39,5 +39,6 @@
         <file>images/xb2.jpg</file>
         <file>images/personalSetting1.svg</file>
         <file>images/personalSetting2.svg</file>
+        <file>images/lock.svg</file>
     </qresource>
 </RCC>

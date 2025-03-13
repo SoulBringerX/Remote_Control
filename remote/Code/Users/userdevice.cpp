@@ -31,3 +31,14 @@ QVariantList UserDevice::getUserDevices()
     if(Account::isOnline == false)
         return db.pullDeviceData("root");
 }
+void UserDevice::deleteUserDevice(const QString& hostname)
+{
+    DataBase db;
+    if(Account::isOnline == true)
+    {
+        if(db.deleteDeviceData(hostname))
+            logger.print("RemoteRDP","删除设备成功");
+        else
+            logger.print("RemoteRDP","删除设备失败");
+    }
+}

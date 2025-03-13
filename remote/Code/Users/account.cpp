@@ -107,9 +107,19 @@ void Account::openFileManager()
     }
 }
 
-// signals
-void userNameChanged()
+bool Account::changePassWord(const QString& oldPassword,const QString& newPassword)
 {
-    // 这里可以添加一些代码来处理用户名改变时的改变头像的逻辑（难度有点大，待后期实现）
+    if(Account::isOnline)
+        return DataBase::getInstance()->changePassword(oldPassword,newPassword);
 }
 
+bool Account::saveNewUsername(const QString& name)
+{
+    if(Account::isOnline)
+        return DataBase::getInstance()->saveNewUsername(name);
+}
+QString Account::loadUsername()
+{
+    if(Account::isOnline)
+        return DataBase::getInstance()->loadUsername();
+}

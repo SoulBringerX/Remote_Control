@@ -106,21 +106,12 @@ Window {
         }
     }
 
-    Connections {
-        target: client
-        function onDisconnected() {
-            console.log("Remote connection disconnected, stopping thread")
-            remoteControlThread.stopConnection()
-            Qt.callLater(function() {
-                remoteControlThread.destroy()
-                remoteView.close()
-            })
-        }
-    }
-
+    // 在窗口关闭时通知线程停止并释放资源
     onClosing: {
         console.log("Ending remote session --- Time: " + Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss.zzz ddd"))
+        remoteControlThread.stopConnection()
     }
+
 
     Component.onCompleted: {
         focusScope.forceActiveFocus()  // Set focus on load

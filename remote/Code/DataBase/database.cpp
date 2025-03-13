@@ -200,7 +200,7 @@ QVariantList DataBase::pullDeviceData(const QString& username)
         QVariantMap device;
         device["deviceName"] = query.value("device_name").toString();
         device["deviceIP"] = query.value("ip_address").toString();
-        device["account"] = username;  // 直接使用传入的 username
+        device["account"] = query.value("device_name").toString();  // 直接使用传入的 username
         device["password"] = query.value("password").toString();
         device["isConnected"] = false;
         device["extended"] = false;
@@ -210,4 +210,114 @@ QVariantList DataBase::pullDeviceData(const QString& username)
 
     qDebug() << "[Info] Fetched" << deviceList.size() << "devices for user" << username;
     return deviceList;  // 返回设备数据列表
+}
+bool DataBase::deleteDeviceData(const QString& ip_address)
+{
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        qDebug() << "[Error] Database not open!";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    // 删除数据库的设备数据
+    query.prepare("DELETE FROM devices WHERE ip_address = :ip_address");
+    query.bindValue(":ip_address", ip_address); // 修正绑定的键
+
+    if (!query.exec()) {
+        qDebug() << "[Error] Failed to delete device data:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+bool DataBase::changePassword(const QString& oldPassword, const QString& newPassword)
+{
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        qDebug() << "[Error] Database not open!";
+        return false;
+    }
+
+    // 第一步：验证旧密码是否正确
+    QSqlQuery query(db);
+    query.prepare("SELECT password FROM users WHERE account = :userName");
+    query.bindValue(":userName", Account::Remote_username);
+
+    if (!query.exec()) {
+        qDebug() << "[Error] Failed to fetch current password:" << query.lastError().text();
+        return false;
+    }
+
+    if (!query.next()) {
+        qDebug() << "[Error] User not found!";
+        return false;
+    }
+
+    QString currentPassword = query.value(0).toString();
+    if (currentPassword != oldPassword) {
+        qDebug() << "[Error] Old password is incorrect!";
+        return false;
+    }
+
+    // 第二步：更新密码
+    query.prepare("UPDATE users SET password = :newPassword WHERE account = :userName");
+    query.bindValue(":newPassword", newPassword);
+    query.bindValue(":userName", Account::Remote_username);
+
+    if (!query.exec()) {
+        qDebug() << "[Error] Failed to update password:" << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "Password updated successfully!";
+    return true;
+}
+
+bool DataBase::saveNewUsername(const QString& name)
+{
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        qDebug() << "[Error] Database not open!";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    // 更新用户的昵称
+    query.prepare("UPDATE users SET nickname = :nickname WHERE account = :account");
+    query.bindValue(":nickname", name);
+    query.bindValue(":account", Account::Remote_username);
+
+    if (!query.exec()) {
+        qDebug() << "[Error] Failed to update username:" << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "Username updated successfully!";
+    return true;
+}
+QString DataBase::loadUsername()
+{
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        qDebug() << "[Error] Database not open!";
+        return QString();
+    }
+
+    QSqlQuery query(db);
+    // 查询用户的昵称
+    query.prepare("SELECT nickname FROM users WHERE account = :account");
+    query.bindValue(":account", Account::Remote_username);
+
+    if (!query.exec()) {
+        qDebug() << "[Error] Failed to load username:" << query.lastError().text();
+        return QString();
+    }
+
+    if (query.next()) {
+        return query.value(0).toString();
+    }
+
+    qDebug() << "[Error] User not found or no nickname set!";
+    return QString();
 }

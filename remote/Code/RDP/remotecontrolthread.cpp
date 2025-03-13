@@ -1,8 +1,11 @@
 #ifdef LINUX
 #include "remotecontrolthread.h"
+#include <QMetaObject>
 
 RemoteControlThread::RemoteControlThread(QObject *parent, RemoteControl *remoteControl)
-    : QThread(parent), m_remoteControl(remoteControl), m_running(false), m_stopped(false)
+    : QThread(parent),
+      m_remoteControl(remoteControl),
+      m_exitRequested(0)
 {
     // 构造函数初始化
 }
@@ -14,39 +17,46 @@ RemoteControlThread::~RemoteControlThread()
 
 void RemoteControlThread::startConnection(const QString &hostname, const QString &username, const QString &password)
 {
-    this->m_hostname = hostname;
-    this->m_username = username;
-    this->m_password = password;
+    m_hostname = hostname;
+    m_username = username;
+    m_password = password;
     qDebug() << m_hostname << " " << m_username << " " << m_password;
-    m_running = true;
-    std::atomic<int> m_stopped{0};  // Include <atomic>  // 重置为 0，表示未停止
-    this->start();       // 启动线程
+    m_exitRequested = 0;  // 重置为 0，表示未退出
+    this->start();  // 启动线程
 }
 
 void RemoteControlThread::stopConnection()
 {
-    std::atomic<int> m_stopped{0};  // Include <atomic> // 设置停止标志
-    if (this->isRunning()) {
-        this->wait();    // 等待线程完全退出
-        m_remoteControl->disconnect();  // 断开连接
+    // 请求退出
+    m_exitRequested = 1;
+    if (isRunning() && m_remoteControl) {
+        // 异步调用断开连接（在 RemoteControl 所在的线程中执行）
+        QMetaObject::invokeMethod(m_remoteControl, "onDisconnectRequested", Qt::QueuedConnection);
+        // 等待线程结束
+        wait();
     }
 }
 
 void RemoteControlThread::run()
 {
+    // 如果在开始前就请求退出，则直接返回
+    if (m_exitRequested == 1)
+        return;
+
+    // 初始化 FreeRDP 环境
     if (!m_remoteControl->initialize()) {
         emit errorOccurred("Failed to initialize FreeRDP");
-        return;  // 直接返回，不调用 stopConnection()
+        return;
     }
+    // 建立连接
     if (!m_remoteControl->connect(m_hostname, m_username, m_password)) {
         emit errorOccurred("Failed to connect to RDP server");
-        return;  // 直接返回，不调用 stopConnection()
+        return;
     }
 
-    if (m_running) {
-        emit connectionFinished();      // 发出完成信号
-        m_remoteControl->runEventLoop();  // 运行事件循环，需确保其内部检查 m_stopped
-    }
+    emit connectionFinished();
+
+    // 进入事件循环，要求 runEventLoop() 内部能够检测断开操作并退出
+    m_remoteControl->runEventLoop();
 }
-
 #endif

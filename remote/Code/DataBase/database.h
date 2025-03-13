@@ -28,6 +28,10 @@ public:
     // 用户远端设备数据
     bool pushDeviceData(const QString& hostname, const QString& username, const QString& password);
     QVariantList pullDeviceData(const QString& username);
+    bool deleteDeviceData(const QString& hostname);
+    bool changePassword(const QString& oldPassword, const QString& newPassword);
+    bool saveNewUsername(const QString& name);
+    QString loadUsername();
 private:
     QSqlDatabase db;
     static DataBase* instance;

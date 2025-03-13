@@ -360,6 +360,7 @@ Window {
                         }
                         else
                         {
+                            systemErrorDialog.message = "CE_01:用户输入的密码有误！"
                             systemErrorDialog.show()
                             // 清空账户密码输入
                             userPasswordInput.clear()

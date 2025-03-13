@@ -212,11 +212,13 @@ Rectangle {
                             console.log("安装软件")
                         }
                     }
+                    // 在删除设备的 MenuItem 中修改代码
                     MenuItem {
                         text: "删除设备"
                         onTriggered: {
                             console.log("删除设备")
-                            deviceInformationModel.remove(index)
+                            currentIndex = index // 保存当前选中的设备索引
+                            confirmDeleteDialog.open() // 打开弹窗
                         }
                     }
                     MenuItem {
@@ -414,6 +416,7 @@ Rectangle {
                                     isConnected: currentData.isConnected,
                                     extended: currentData.extended
                                 })
+                                user_device.sendUserDevice(ip, account, password)
                             } else {
                                 deviceInformationModel.append({
                                     deviceName: ip,
@@ -423,6 +426,7 @@ Rectangle {
                                     isConnected: true,
                                     extended: false
                                 })
+                                user_device.sendUserDevice(ip, account, password)
                             }
                             console.log("设备已添加/更新:", ip, account, password)
                             ipField.text = ""
@@ -462,5 +466,47 @@ Rectangle {
     RemoteAppList {
         id: applistpage
         ip: currentIp
+    }
+    // 定义弹窗组件
+    Dialog {
+        id: confirmDeleteDialog
+        title: "确认删除"
+        visible: false
+
+        property string currentIp: "" // 用于存储当前设备的 IP 地址
+
+        contentItem: Text {
+            text: "是否确认删除该设备？远程服务器上的相关数据也将被删除。"
+        }
+
+        // 使用 DialogButtonBox 替代 DialogButton
+        footer: DialogButtonBox {
+            Button {
+                text: "确认"
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                onClicked: {
+                    console.log("用户确认删除")
+                    // 获取当前设备的 IP 地址
+                    var currentDevice = deviceInformationModel.get(currentIndex)
+                    currentIp = currentDevice.deviceIP
+                    console.log("当前设备 IP:", currentIp)
+                    // 从远端服务器删除该设备信息
+                    user_device.deleteUserDevice(currentIp)
+                    // 从模型中移除当前设备
+                    deviceInformationModel.remove(currentIndex)
+                    // 重置 currentIndex
+                    currentIndex = -1
+                    confirmDeleteDialog.accept()
+                }
+            }
+            Button {
+                text: "取消"
+                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                onClicked: {
+                    console.log("用户取消删除")
+                    confirmDeleteDialog.reject()
+                }
+            }
+        }
     }
 }
