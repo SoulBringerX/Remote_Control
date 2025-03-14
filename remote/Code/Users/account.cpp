@@ -6,7 +6,9 @@
 #include <QImage>
 #include <QFileDialog>
 #include "../LogUntils/AppLog.h"
-
+QString Account::Remote_username = QString();  // 初始为空字符串
+bool Account::Security_lock = false;           // 初始为 false
+bool Account::isOnline = false;
 Account::Account(QObject *parent)
     : QObject(parent), m_userName(""), m_passWord(""), m_userIconPath("")
 {
