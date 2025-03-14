@@ -6,9 +6,10 @@
 #include <QImage>
 #include <QFileDialog>
 #include "../LogUntils/AppLog.h"
-QString Account::Remote_username = QString();  // 初始为空字符串
-bool Account::Security_lock = false;           // 初始为 false
-bool Account::isOnline = false;
+// 定义和初始化 static 成员变量
+QString Account::Remote_username = "";  // 初始化为空字符串
+bool Account::isOnline = false;         // 初始化为 false
+bool Account::Security_lock = false;    // 初始化为 false，仅在 Linux 下定义
 Account::Account(QObject *parent)
     : QObject(parent), m_userName(""), m_passWord(""), m_userIconPath("")
 {
@@ -125,7 +126,7 @@ QString Account::loadUsername()
     if(Account::isOnline)
         return DataBase::getInstance()->loadUsername();
 }
-
+#ifdef LINUX
 bool Account::saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword)
 {
     if(Account::isOnline)
@@ -136,3 +137,4 @@ bool Account::checkSecurityLockPassword(const QString &inputpassword)
     if(Account::isOnline == true &&Account::Security_lock == true)
         return DataBase::getInstance()->checkSecurityLockPassword(inputpassword);
 }
+#endif

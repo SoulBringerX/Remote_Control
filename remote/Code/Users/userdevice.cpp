@@ -1,8 +1,5 @@
 #ifdef LINUX
 #include "userdevice.h"
-QString Account::Remote_username = QString();  // 初始为空字符串
-bool Account::Security_lock = false;           // 初始为 false
-bool Account::isOnline = false;
 UserDevice::UserDevice(QObject *parent)
     : QObject(parent)
 {
