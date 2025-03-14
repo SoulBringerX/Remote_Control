@@ -1,3 +1,4 @@
+#ifdef LINUX
 #include "userdevice.h"
 QString Account::Remote_username = QString();  // 初始为空字符串
 bool Account::Security_lock = false;           // 初始为 false
@@ -42,3 +43,4 @@ void UserDevice::deleteUserDevice(const QString& hostname)
             logger.print("RemoteRDP","删除设备失败");
     }
 }
+#endif

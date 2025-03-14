@@ -321,3 +321,81 @@ QString DataBase::loadUsername()
     qDebug() << "[Error] User not found or no nickname set!";
     return QString();
 }
+bool DataBase::saveSecurityLockPassword(const QString &oldPassword, const QString &newPassword) {
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        logger.print("Database", "Database not open");
+        return false;
+    }
+
+    QSqlQuery query(db);
+
+    // 查询当前用户的 securitylock 密码
+    query.prepare("SELECT securitylock FROM users WHERE account = :account");
+    query.bindValue(":account", Account::Remote_username);
+    if (!query.exec()) {
+        logger.print("Database", "Failed to query securitylock: " + query.lastError().text());
+        return false;
+    }
+
+    // 检查是否有查询结果
+    if (!query.next()) {
+        logger.print("Database", "User not found for account: " + Account::Remote_username);
+        return false;
+    }
+
+    // 获取当前的安全锁密码
+    QString currentPassword = query.value("securitylock").toString();
+
+    // 如果当前密码为空（首次设置），直接设置新密码
+    if (currentPassword.isEmpty()) {
+        query.prepare("UPDATE users SET securitylock = :securitylock WHERE account = :account");
+        query.bindValue(":securitylock", newPassword);
+        query.bindValue(":account", Account::Remote_username);
+        if (!query.exec()) {
+            logger.print("Database", "Failed to set initial securitylock: " + query.lastError().text());
+            return false;
+        }
+        logger.print("Database", "Initial security lock password set successfully!");
+        return true;
+    }
+
+    // 如果当前密码不为空，验证旧密码
+    if (currentPassword != oldPassword) {
+        logger.print("Database", "Old security lock password is incorrect");
+        return false;
+    }
+
+    // 更新新密码
+    query.prepare("UPDATE users SET securitylock = :securitylock WHERE account = :account");
+    query.bindValue(":securitylock", newPassword);
+    query.bindValue(":account", Account::Remote_username);
+    if (!query.exec()) {
+        logger.print("Database", "Failed to update securitylock: " + query.lastError().text());
+        return false;
+    }
+
+    logger.print("Database", "Updated user's security lock password successfully!");
+    return true;
+}
+
+bool DataBase::checkSecurityLockPassword(const QString &inputpassword){
+    // 确保数据库已打开
+    if (!db.isOpen()) {
+        logger.print("Database","Database not open");
+        return false;
+    }
+
+    QSqlQuery query(db);
+    // 查询用户的昵称
+    query.prepare("SELECT securitylock FROM users WHERE account = :account");
+    query.bindValue(":account", Account::Remote_username);
+    if (!query.exec()) {
+        logger.print("Database","Failed to load securitylockpassword:"+query.lastError().text());
+        return false;
+    }
+    if (query.next()) {
+        return query.value(0).toString() == inputpassword;
+    }
+    return false;
+}

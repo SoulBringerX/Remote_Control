@@ -1,6 +1,6 @@
 #ifndef USERDEVICE_H
 #define USERDEVICE_H
-
+#ifdef LINUX
 #include <QString>
 #include <QObject>
 #include "./Code/DataBase/database.h"
@@ -15,5 +15,5 @@ public:
     Q_INVOKABLE QVariantList getUserDevices();
     Q_INVOKABLE void deleteUserDevice(const QString& hostname);
 };
-
+#endif
 #endif // USERDEVICE_H

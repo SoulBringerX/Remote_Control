@@ -123,3 +123,14 @@ QString Account::loadUsername()
     if(Account::isOnline)
         return DataBase::getInstance()->loadUsername();
 }
+
+bool Account::saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword)
+{
+    if(Account::isOnline)
+        return DataBase::getInstance()->saveSecurityLockPassword(oldPassword,newpassword);
+}
+bool Account::checkSecurityLockPassword(const QString &inputpassword)
+{
+    if(Account::isOnline == true &&Account::Security_lock == true)
+        return DataBase::getInstance()->checkSecurityLockPassword(inputpassword);
+}

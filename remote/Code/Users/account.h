@@ -29,6 +29,8 @@ public:
     Q_INVOKABLE bool changePassWord(const QString& oldPassword, const QString& newPassword);
     Q_INVOKABLE bool saveNewUsername(const QString& name);
     Q_INVOKABLE QString loadUsername();
+    Q_INVOKABLE bool saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword);
+    Q_INVOKABLE bool checkSecurityLockPassword(const QString &inputpassword);
 
     static QString Remote_username;
     static bool Security_lock;

@@ -32,6 +32,8 @@ public:
     bool changePassword(const QString& oldPassword, const QString& newPassword);
     bool saveNewUsername(const QString& name);
     QString loadUsername();
+    bool saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword);
+    bool checkSecurityLockPassword(const QString &inputpassword);
 private:
     QSqlDatabase db;
     static DataBase* instance;

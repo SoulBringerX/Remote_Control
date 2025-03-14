@@ -53,7 +53,7 @@ Rectangle {
                         font.pixelSize: 28
                         readOnly: !editBtn.checked
                         color: editBtn.checked ? "#333333" : "#999999"
-                        selectionColor: "#0066ff" // 调整文字选中时的背景色
+                        selectionColor: "#0066ff"
                         maximumLength: 16
 
                         Rectangle {
@@ -88,7 +88,7 @@ Rectangle {
         // 账户安全设置
         Rectangle {
             Layout.fillWidth: true
-            height: 120
+            height: 160 // 增加高度以容纳新按钮
             color: "#ffffff"
             border.width: 1
             border.color: "#e0e0e0"
@@ -126,9 +126,8 @@ Rectangle {
                             border.color: "#e0e0e0"
                             radius: 4
                         }
-                        // 图标
                         Icon {
-                            iconSource: "qrc:/icons/lock.svg" // 替换为实际图标路径
+                            iconSource: "qrc:/icons/lock.svg"
                             width: 24
                             height: 24
                             anchors.baseline: parent.baseline
@@ -143,14 +142,31 @@ Rectangle {
                         Layout.fillWidth: true
                         text: "设备安全锁"
                         checked: false
-                        onCheckedChanged: {
-                            if (checked) {
-                                // 如果开启设备安全锁，弹出配置密码对话框
-                                securityLockDialog.open()
-                            } else {
-                                toggleSecurityLock(checked)
-                            }
-                        }
+                        onCheckedChanged: toggleSecurityLock(checked)
+                    }
+                }
+
+                // 修改设备安全锁密码按钮
+                Button {
+                    id: changeSecurityLockPasswordBtn
+                    Layout.fillWidth: true
+                    font.pixelSize: 16
+                    text: "修改设备安全锁密码"
+                    onClicked: securityLockDialog.open()
+                    padding: 15
+                    background: Rectangle {
+                        color: "#f5f5f5"
+                        border.width: 1
+                        border.color: "#e0e0e0"
+                        radius: 4
+                    }
+                    Icon {
+                        iconSource: "qrc:/icons/key.svg" // 替换为实际图标路径
+                        width: 24
+                        height: 24
+                        anchors.baseline: parent.baseline
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
                     }
                 }
             }
@@ -237,7 +253,7 @@ Rectangle {
                     border.color: "#e0e0e0"
                     radius: 4
                 }
-                width: parent.width * 0.8 // 统一输入框长度
+                width: parent.width * 0.8
             }
 
             TextField {
@@ -252,7 +268,7 @@ Rectangle {
                     border.color: "#e0e0e0"
                     radius: 4
                 }
-                width: parent.width * 0.8 // 统一输入框长度
+                width: parent.width * 0.8
             }
 
             TextField {
@@ -267,7 +283,7 @@ Rectangle {
                     border.color: "#e0e0e0"
                     radius: 4
                 }
-                width: parent.width * 0.8 // 统一输入框长度
+                width: parent.width * 0.8
             }
 
             RowLayout {
@@ -321,6 +337,121 @@ Rectangle {
         }
     }
 
+    // 设备安全锁密码修改对话框
+    Dialog {
+        id: securityLockDialog
+        title: "修改设备安全锁密码"
+        modal: true
+        width: 400
+        height: 300
+        background: Rectangle {
+            color: "#ffffff"
+            border.width: 1
+            border.color: "#e0e0e0"
+            radius: 8
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.topMargin: 20
+            spacing: 20
+
+            TextField {
+                id: currentSecurityLockPasswordField
+                placeholderText: "当前设备安全锁密码"
+                echoMode: TextInput.Password
+                font.pixelSize: 16
+                padding: 10
+                background: Rectangle {
+                    color: "#f5f5f5"
+                    border.width: 1
+                    border.color: "#e0e0e0"
+                    radius: 4
+                }
+                width: parent.width * 0.8
+            }
+
+            TextField {
+                id: newSecurityLockPasswordField
+                placeholderText: "新设备安全锁密码"
+                echoMode: TextInput.Password
+                font.pixelSize: 16
+                padding: 10
+                background: Rectangle {
+                    color: "#f5f5f5"
+                    border.width: 1
+                    border.color: "#e0e0e0"
+                    radius: 4
+                }
+                width: parent.width * 0.8
+            }
+
+            TextField {
+                id: confirmSecurityLockPasswordField
+                placeholderText: "确认新设备安全锁密码"
+                echoMode: TextInput.Password
+                font.pixelSize: 16
+                padding: 10
+                background: Rectangle {
+                    color: "#f5f5f5"
+                    border.width: 1
+                    border.color: "#e0e0e0"
+                    radius: 4
+                }
+                width: parent.width * 0.8
+            }
+
+            RowLayout {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 20
+                anchors.right: parent.right
+                anchors.rightMargin: 20
+                spacing: 10
+
+                Button {
+                    text: "取消"
+                    font.pixelSize: 14
+                    onClicked: securityLockDialog.close()
+                    width: 80
+                    padding: 10
+                    background: Rectangle {
+                        color: "#f5f5f5"
+                        border.width: 1
+                        border.color: "#e0e0e0"
+                        radius: 4
+                    }
+                }
+
+                Button {
+                    text: "确定"
+                    font.pixelSize: 14
+                    onClicked: {
+                        if (newSecurityLockPasswordField.text !== confirmSecurityLockPasswordField.text) {
+                            console.log("新设备安全锁密码和确认密码不一致");
+                            return;
+                        }
+                        if (newSecurityLockPasswordField.text.length < 6) {
+                            console.log("新设备安全锁密码长度至少为6位");
+                            return;
+                        }
+                        console.log("修改设备安全锁密码: 当前密码 =", currentSecurityLockPasswordField.text, "新密码 =", newSecurityLockPasswordField.text);
+                        changeSecurityLockPassword(currentSecurityLockPasswordField.text, newSecurityLockPasswordField.text);
+                        securityLockDialog.close();
+                    }
+                    width: 80
+                    padding: 10
+                    background: Rectangle {
+                        color: "#0066ff"
+                        border.width: 1
+                        border.color: "#0066ff"
+                        radius: 4
+                    }
+                    palette.buttonText: "#ffffff"
+                }
+            }
+        }
+    }
+
     // 图标组件
     component Icon: Image {
         property string iconSource
@@ -339,10 +470,8 @@ Rectangle {
     function toggleSecurityLock(enable) {
         // 设备安全锁逻辑
         if (enable) {
-            // 开启设备安全锁的逻辑
             console.log("设备安全锁已开启");
         } else {
-            // 关闭设备安全锁的逻辑
             console.log("设备安全锁已关闭");
         }
     }
@@ -357,9 +486,10 @@ Rectangle {
         }
     }
 
-    function setSecurityLockPassword(password) {
-        // 在这里调用你的 C++ 函数来设置设备安全锁密码
-        console.log("设置设备安全锁密码: ", password);
+    function changeSecurityLockPassword(oldPassword, newPassword) {
+        // 在这里调用你的 C++ 函数来修改设备安全锁密码
+        console.log("修改设备安全锁密码: 旧密码 =", oldPassword, "新密码 =", newPassword);
+        account.saveSecurityLockPassword(oldPassword, newPassword);
     }
 
     SystemErrorDialog {
@@ -368,8 +498,5 @@ Rectangle {
 
     SuecessDialog {
         id: suecessDialog
-    }
-    LockDialog{
-        id:securityLockDialog
     }
 }
