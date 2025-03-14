@@ -354,7 +354,7 @@ Window {
                         if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
                         {
                             if(Qt.platform.os === "windows")
-                                loader.sourceComponent = mainWindowPage
+                                loader.sourceComponent = rcrmanWindowPage
                             else
                                 loader.sourceComponent = mainWindowPage
                         }
