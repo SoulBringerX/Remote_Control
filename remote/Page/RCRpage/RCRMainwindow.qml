@@ -64,7 +64,7 @@ Window {
 
                         // 用户昵称
                         Text {
-                            text: qsTr("昵称：Xenoblade")
+                            text: account.loadUsername()
                             font.pixelSize: 14
                             color: "#333333"
                             horizontalAlignment: Text.AlignHCenter

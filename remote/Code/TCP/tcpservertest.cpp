@@ -42,18 +42,9 @@ void tcpservertest::exec() {
         }
 
         if (which == responder_) {
-            // 套接字有数据可读
-            int rc = zsock_recv(responder_, "b", &recvPacket_, sizeof(recvPacket_));
-            if (rc < 0) {
-                logger.print("RDP_Server", "Error receiving message");
-                continue;
-            }
-            logger.print("RDP_Server", "recvPacket数据包大小：" + QString::number(sizeof(recvPacket_)));
-
-            if (recvPacket_.RD_Type == OperationCommandType::TransmitAppAlias) {
-                appListsend();
-            }
-            zsock_send(responder_, "s", "WAIT");
+            char *str =  zstr_recv (responder_);
+            logger.print("TCP_SERVER","接受到消息：");
+            qDebug()<<str;
         }
 
         // 计时逻辑
