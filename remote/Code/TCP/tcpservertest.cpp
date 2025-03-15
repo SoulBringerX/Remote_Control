@@ -85,6 +85,10 @@ void tcpservertest::appListsend() {
         QString appName = entryMap["name"].toString();
         QString appIconPath = entryMap["mainExe"].toString();
 
+        // 打印应用信息
+        logger.print("RDP_Server", QString("应用名称: %1").arg(appName));
+        logger.print("RDP_Server", QString("主程序路径: %1").arg(appIconPath));
+
         // 发送应用名称
         RD_Packet namePacket;
         namePacket.RD_Type = OperationCommandType::TransmitAppAlias;
@@ -95,6 +99,17 @@ void tcpservertest::appListsend() {
         memcpy(buffer1, &namePacket, sizeof(namePacket));
         buffer1[sizeof(namePacket)] = '\0';
         zstr_send(responder_, buffer1);
+
+        // 打印发送的应用名称数据包内容
+        logger.print("RDP_Server", "发送应用名称数据包");
+        logger.print("RDP_Server", QString("RD_IP: %1").arg(namePacket.RD_IP));
+        logger.print("RDP_Server", QString("RD_Username: %1").arg(namePacket.RD_Username));
+        logger.print("RDP_Server", QString("RD_Password: %1").arg(namePacket.RD_Password));
+        logger.print("RDP_Server", QString("RD_Type: %1").arg(static_cast<int>(namePacket.RD_Type)));
+        logger.print("RDP_Server", QString("RD_APP_Name: %1").arg(namePacket.RD_APP_Name));
+        logger.print("RDP_Server", QString("RD_Command_Name: %1").arg(namePacket.RD_Command_Name));
+        logger.print("RDP_Server", QString("RD_MainExePath: %1").arg(namePacket.RD_MainExePath));
+        logger.print("RDP_Server", QString("RD_UninstallExePath: %1").arg(namePacket.RD_UninstallExePath));
 
         // 发送应用图标数据
         RD_Packet iconPacket;
@@ -110,6 +125,18 @@ void tcpservertest::appListsend() {
             memcpy(buffer2, &iconPacket, sizeof(iconPacket));
             buffer2[sizeof(iconPacket)] = '\0';
             zstr_send(responder_, buffer2);
+
+            // 打印发送的应用图标数据包内容
+            logger.print("RDP_Server", "发送应用图标数据包");
+            logger.print("RDP_Server", QString("RD_IP: %1").arg(iconPacket.RD_IP));
+            logger.print("RDP_Server", QString("RD_Username: %1").arg(iconPacket.RD_Username));
+            logger.print("RDP_Server", QString("RD_Password: %1").arg(iconPacket.RD_Password));
+            logger.print("RDP_Server", QString("RD_Type: %1").arg(static_cast<int>(iconPacket.RD_Type)));
+            logger.print("RDP_Server", QString("RD_ImageBit 大小: %1").arg(dataSize));
+            logger.print("RDP_Server", QString("RD_APP_Name: %1").arg(iconPacket.RD_APP_Name));
+            logger.print("RDP_Server", QString("RD_Command_Name: %1").arg(iconPacket.RD_Command_Name));
+            logger.print("RDP_Server", QString("RD_MainExePath: %1").arg(iconPacket.RD_MainExePath));
+            logger.print("RDP_Server", QString("RD_UninstallExePath: %1").arg(iconPacket.RD_UninstallExePath));
         }
 
         // 发送结束标志
@@ -121,9 +148,22 @@ void tcpservertest::appListsend() {
         memcpy(buffer3, &endPacket, sizeof(endPacket));
         buffer3[sizeof(endPacket)] = '\0';
         zstr_send(responder_, buffer3);
+
+        // 打印发送的结束标志数据包内容
+        logger.print("RDP_Server", "发送结束标志数据包");
+        logger.print("RDP_Server", QString("RD_IP: %1").arg(endPacket.RD_IP));
+        logger.print("RDP_Server", QString("RD_Username: %1").arg(endPacket.RD_Username));
+        logger.print("RDP_Server", QString("RD_Password: %1").arg(endPacket.RD_Password));
+        logger.print("RDP_Server", QString("RD_Type: %1").arg(static_cast<int>(endPacket.RD_Type)));
+        logger.print("RDP_Server", QString("RD_APP_Name: %1").arg(endPacket.RD_APP_Name));
+        logger.print("RDP_Server", QString("RD_Command_Name: %1").arg(endPacket.RD_Command_Name));
+        logger.print("RDP_Server", QString("RD_MainExePath: %1").arg(endPacket.RD_MainExePath));
+        logger.print("RDP_Server", QString("RD_UninstallExePath: %1").arg(endPacket.RD_UninstallExePath));
+
+        Sleep(1000);
     }
 
-    // 最后发送一个结束标志
+    // 发送最终的结束标志
     RD_Packet finalEndPacket;
     finalEndPacket.RD_Type = OperationCommandType::TransmitEnd;
 
@@ -132,8 +172,18 @@ void tcpservertest::appListsend() {
     memcpy(buffer4, &finalEndPacket, sizeof(finalEndPacket));
     buffer4[sizeof(finalEndPacket)] = '\0';
     zstr_send(responder_, buffer4);
-}
 
+    // 打印发送的最终结束标志数据包内容
+    logger.print("RDP_Server", "发送最终结束标志数据包");
+    logger.print("RDP_Server", QString("RD_IP: %1").arg(finalEndPacket.RD_IP));
+    logger.print("RDP_Server", QString("RD_Username: %1").arg(finalEndPacket.RD_Username));
+    logger.print("RDP_Server", QString("RD_Password: %1").arg(finalEndPacket.RD_Password));
+    logger.print("RDP_Server", QString("RD_Type: %1").arg(static_cast<int>(finalEndPacket.RD_Type)));
+    logger.print("RDP_Server", QString("RD_APP_Name: %1").arg(finalEndPacket.RD_APP_Name));
+    logger.print("RDP_Server", QString("RD_Command_Name: %1").arg(finalEndPacket.RD_Command_Name));
+    logger.print("RDP_Server", QString("RD_MainExePath: %1").arg(finalEndPacket.RD_MainExePath));
+    logger.print("RDP_Server", QString("RD_UninstallExePath: %1").arg(finalEndPacket.RD_UninstallExePath));
+}
 // 析构函数：销毁 CZMQ 套接字
 tcpservertest::~tcpservertest() {
     if (responder_) {
