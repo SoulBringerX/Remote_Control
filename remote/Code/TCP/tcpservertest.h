@@ -7,6 +7,7 @@
 #include "../AppData/devicedate.h"
 #include "../AppData/installedsoftware.h"
 #include <QObject>
+#include <string.h>
 #include <czmq.h>  // 使用 CZMQ 头文件
 
 class tcpservertest : public QObject

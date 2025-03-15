@@ -26,7 +26,8 @@ enum class OperationCommandType : unsigned char {
     TransmitConnectTest = 0x04,  // TCP传输结果测试
     TransmitEnd = 0x00           // 传输结束
 };
-
+// 函数：将 OperationCommandType 转换为对应的字符串
+const char* operationCommandTypeToString(OperationCommandType type);
 // 设定这个数据传输包
 #pragma pack(push, 1)  // 开启1字节对齐
 struct RD_Packet {

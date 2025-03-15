@@ -42,9 +42,15 @@ void tcpservertest::exec() {
         }
 
         if (which == responder_) {
-            char *str =  zstr_recv (responder_);
-            logger.print("TCP_SERVER","接受到消息：");
-            qDebug()<<str;
+            char *str = zstr_recv(responder_);
+            if (str == nullptr) // 修复 null 为 nullptr
+            {
+                logger.print("TCP_SERVER", "接受到无效消息");
+            }
+            else if (strcmp(str, operationCommandTypeToString(OperationCommandType::TransmitAppAlias)) == 0) // 修复比较逻辑
+            {
+                logger.print("TCP_SERVER", "接受到客户传输应用列表请求");
+            }
         }
 
         // 计时逻辑
