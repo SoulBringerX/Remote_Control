@@ -50,6 +50,7 @@ void tcpservertest::exec() {
             else if (strcmp(str, operationCommandTypeToString(OperationCommandType::TransmitAppAlias)) == 0) // 修复比较逻辑
             {
                 logger.print("TCP_SERVER", "接受到客户传输应用列表请求");
+                this->appListsend();
             }
         }
 
@@ -74,7 +75,6 @@ void tcpservertest::stop() {
     logger.print("RDP_Server", "Server stopping...");
 }
 
-// 传输应用别名和图标数据
 void tcpservertest::appListsend() {
     logger.print("RDP_Server", "传输应用别名");
     InstalledSoftware *pc_software = new InstalledSoftware();
@@ -89,7 +89,12 @@ void tcpservertest::appListsend() {
         RD_Packet namePacket;
         namePacket.RD_Type = OperationCommandType::TransmitAppAlias;
         strncpy(namePacket.RD_APP_Name, appName.toStdString().c_str(), sizeof(namePacket.RD_APP_Name) - 1);
-        zsock_send(responder_, "b", &namePacket, sizeof(namePacket));
+
+        // 将 RD_Packet 转换为字符串并发送
+        char buffer1[sizeof(namePacket) + 1]; // +1 用于 null 结尾
+        memcpy(buffer1, &namePacket, sizeof(namePacket));
+        buffer1[sizeof(namePacket)] = '\0';
+        zstr_send(responder_, buffer1);
 
         // 发送应用图标数据
         RD_Packet iconPacket;
@@ -99,14 +104,34 @@ void tcpservertest::appListsend() {
             QByteArray iconData = iconFile.readAll();
             int dataSize = qMin(iconData.size(), static_cast<int>(sizeof(iconPacket.RD_ImageBit)));
             memcpy(iconPacket.RD_ImageBit, iconData.constData(), dataSize);
-            zsock_send(responder_, "b", &iconPacket, sizeof(iconPacket));
+
+            // 将 RD_Packet 转换为字符串并发送
+            char buffer2[sizeof(iconPacket) + 1]; // +1 用于 null 结尾
+            memcpy(buffer2, &iconPacket, sizeof(iconPacket));
+            buffer2[sizeof(iconPacket)] = '\0';
+            zstr_send(responder_, buffer2);
         }
 
         // 发送结束标志
         RD_Packet endPacket;
         endPacket.RD_Type = OperationCommandType::TransmitEnd;
-        zsock_send(responder_, "b", &endPacket, sizeof(endPacket));
+
+        // 将 RD_Packet 转换为字符串并发送
+        char buffer3[sizeof(endPacket) + 1]; // +1 用于 null 结尾
+        memcpy(buffer3, &endPacket, sizeof(endPacket));
+        buffer3[sizeof(endPacket)] = '\0';
+        zstr_send(responder_, buffer3);
     }
+
+    // 最后发送一个结束标志
+    RD_Packet finalEndPacket;
+    finalEndPacket.RD_Type = OperationCommandType::TransmitEnd;
+
+    // 将 RD_Packet 转换为字符串并发送
+    char buffer4[sizeof(finalEndPacket) + 1]; // +1 用于 null 结尾
+    memcpy(buffer4, &finalEndPacket, sizeof(finalEndPacket));
+    buffer4[sizeof(finalEndPacket)] = '\0';
+    zstr_send(responder_, buffer4);
 }
 
 // 析构函数：销毁 CZMQ 套接字
