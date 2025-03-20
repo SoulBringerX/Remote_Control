@@ -24,6 +24,7 @@ enum class OperationCommandType : unsigned char {
     TransmitAppIconData = 0x02,  // 传输应用图标数据
     TransmitAppCommand = 0x03,   // 传输应用程序名
     TransmitOnceEnd = 0x04,      // TCP传输应用一次结束
+    TransmitDeviceInformaiton = 0x05, //TCP传输设备硬件以及资源占用信息
     TransmitEnd = 0x00           // 传输结束
 };
 // 函数：将 OperationCommandType 转换为对应的字符串
@@ -40,11 +41,23 @@ struct RD_Packet {
     char RD_Command_Name[65];           // 应用程序名
     char RD_MainExePath[512];           // 主程序路径
     char RD_UninstallExePath[512];      // 卸载程序路径
+    char data[1024];                    // 其他的一些通用数据 （这里是这个设备信息）
 
     RD_Packet() {
         memset(this, 0, sizeof(RD_Packet));  // 初始化时将所有字段清零
     }
 };
 #pragma pack(pop)  // 关闭1字节对齐
-
+#pragma pack(push, 1)  // 开启1字节对齐
+// 定义设备信息结构体
+struct DeviceInfo {
+    char cpuModel[256];   // CPU 型号
+    int cpuCores;         // CPU 核心数
+    double cpuUsage;      // CPU 使用率（%）
+    quint64 totalMemory;  // 总内存（字节）
+    quint64 usedMemory;   // 已用内存（字节）
+    quint64 totalDisk;    // 总磁盘容量（字节）
+    quint64 usedDisk;     // 已用磁盘容量（字节）
+};
+#pragma pack(pop)  // 关闭1字节对齐
 #endif // DEVICEDATE_H

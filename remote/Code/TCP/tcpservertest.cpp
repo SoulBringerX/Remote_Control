@@ -117,6 +117,79 @@ void tcpservertest::appListsend() {
     logger.print("RDP_Server", "应用列表发送完成");
 }
 
+// 获取到设备的相关硬件、资源占用信息并发送到客户端
+void tcpservertest::deviceInformationsend() {
+    logger.print("RDP_Server", "开始传输设备信息");
+
+    // Get CPU information (Windows example)
+    QProcess cpuProcess;
+    cpuProcess.start("wmic cpu get name, numberofcores");
+    cpuProcess.waitForFinished();
+    QString cpuOutput = cpuProcess.readAllStandardOutput();
+    QStringList cpuLines = cpuOutput.split("\n", Qt::SkipEmptyParts);
+    QString cpuModel = (cpuLines.size() > 1) ? cpuLines[1].split("  ", Qt::SkipEmptyParts)[0].trimmed() : "Unknown";
+    int cpuCores = (cpuLines.size() > 1) ? cpuLines[1].split("  ", Qt::SkipEmptyParts)[1].trimmed().toInt() : 0;
+
+    // Get memory information (Windows API)
+    MEMORYSTATUSEX memoryStatus;
+    memoryStatus.dwLength = sizeof(memoryStatus);
+    quint64 totalMemory = 0;
+    quint64 availableMemory = 0;
+    quint64 usedMemory = 0;
+    if (GlobalMemoryStatusEx(&memoryStatus)) {
+        totalMemory = memoryStatus.ullTotalPhys;
+        availableMemory = memoryStatus.ullAvailPhys;
+        usedMemory = totalMemory - availableMemory;
+    } else {
+        logger.print("RDP_Server", "Error: Failed to get memory status");
+    }
+
+    // Get disk information
+    QStorageInfo storage = QStorageInfo::root();
+    quint64 totalDisk = storage.bytesTotal();
+    quint64 usedDisk = totalDisk - storage.bytesFree();
+
+    // Get CPU usage (Windows example)
+    QProcess cpuUsageProcess;
+    cpuUsageProcess.start("wmic cpu get loadpercentage");
+    cpuUsageProcess.waitForFinished();
+    QString cpuUsageOutput = cpuUsageProcess.readAllStandardOutput();
+    double cpuUsage = (cpuUsageOutput.split("\n", Qt::SkipEmptyParts).size() > 1)
+                          ? cpuUsageOutput.split("\n")[1].trimmed().toDouble()
+                          : 0.0;
+
+    // Construct DeviceInfo instance
+    DeviceInfo info;
+    strncpy(info.cpuModel, cpuModel.toUtf8().constData(), sizeof(info.cpuModel) - 1);
+    info.cpuModel[sizeof(info.cpuModel) - 1] = '\0'; // Ensure null-terminated string
+    info.cpuCores = cpuCores;
+    info.cpuUsage = cpuUsage;
+    info.totalMemory = totalMemory;
+    info.usedMemory = usedMemory;
+    info.totalDisk = totalDisk;
+    info.usedDisk = usedDisk;
+
+    // Create ZeroMQ message
+    zmsg_t* response = zmsg_new();
+
+    // Add device info packet
+    RD_Packet devicePacket;
+    memset(&devicePacket, 0, sizeof(devicePacket));
+    devicePacket.RD_Type = OperationCommandType::TransmitDeviceInformaiton;
+    memcpy(devicePacket.data, &info, sizeof(DeviceInfo));
+    zmsg_addmem(response, &devicePacket, sizeof(devicePacket));
+
+    // Add end packet
+    RD_Packet endPacket;
+    memset(&endPacket, 0, sizeof(endPacket));
+    endPacket.RD_Type = OperationCommandType::TransmitEnd;
+    zmsg_addmem(response, &endPacket, sizeof(endPacket));
+
+    // Send the message
+    zmsg_send(&response, responder_);
+    logger.print("RDP_Server", "设备信息发送完成");
+}
+
 // 析构函数
 tcpservertest::~tcpservertest() {
     if (responder_) {

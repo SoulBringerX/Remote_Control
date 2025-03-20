@@ -8,6 +8,11 @@
 #include "../AppData/installedsoftware.h"
 #include <QObject>
 #include <string.h>
+#include <QSysInfo>
+#include <QStorageInfo>
+#include <windows.h>
+#include <QProcess>
+#include <QDebug>
 #include <czmq.h>  // 使用 CZMQ 头文件
 
 class tcpservertest : public QObject
@@ -21,6 +26,7 @@ public:
 
 private:
     void appListsend();
+    void deviceInformationsend();
     RD_Packet recvPacket_;
     zsock_t* responder_ = nullptr;
     bool m_running;
