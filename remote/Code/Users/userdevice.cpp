@@ -52,7 +52,12 @@ void UserDevice::deleteUserDevice(const QString& hostname)
     }
 }
 void UserDevice::saveAppsToDevice(const QString &ip, const QVariant &apps) {
-    QList<QVariantMap> appList = apps.value<QList<QVariantMap>>();
+    QVariantList list = apps.toList();
+    QList<QVariantMap> appList;
+    for (const QVariant &item : list) {
+        appList.append(item.toMap());
+    }
+
     qDebug() << "Saving apps to device:" << ip;
     qDebug() << "Apps to save:" << appList;
 
@@ -60,46 +65,30 @@ void UserDevice::saveAppsToDevice(const QString &ip, const QVariant &apps) {
     QDir().mkpath(configPath);
     QSettings settings(configPath + "/" + ip + ".ini", QSettings::IniFormat);
 
-    settings.beginGroup("Apps");
-    QStringList groups = settings.childGroups();
-    settings.endGroup();
-
-    QSet<QString> existingApps;
-    for (const QString &group : groups) {
-        settings.beginGroup("Apps/" + group);
-        QString appName = settings.value("AppName").toString();
-        settings.endGroup();
-        existingApps.insert(appName);
-    }
-
+    // **清空旧数据**
     settings.beginGroup("Apps");
     settings.remove("");
     settings.endGroup();
 
+    // **直接写入新数据**
+    settings.beginGroup("Apps");
     for (int i = 0; i < appList.size(); ++i) {
         const QVariantMap &app = appList[i];
         QString appName = app["AppName"].toString();
 
-        if (existingApps.contains(appName)) {
-            qDebug() << "App already exists, skipping:" << appName;
-            continue;
-        }
-
-        settings.beginGroup("Apps");
         settings.beginGroup(QString::number(i));
         settings.setValue("AppName", appName);
         settings.setValue("RdpAppName", app["RdpAppName"].toString());
         settings.setValue("AppIconPath", app["AppIconPath"].toString());
         settings.endGroup();
-        settings.endGroup();
 
         qDebug() << "App added:" << appName;
-
-        existingApps.insert(appName);
     }
+    settings.endGroup();
 
-    qDebug() << "Saving apps to device:" << ip;
+    qDebug() << "Saving apps to device completed:" << ip;
 }
+
 
 void UserDevice::uninstallApp(const QString &ip, const QString &appName) {
     QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -136,6 +125,14 @@ QVariantList UserDevice::loadAppfromini(const QString &ip)
     QStringList groups = settings.childGroups();
     settings.endGroup();
 
+    qDebug() << "Loading apps from device:" << ip;
+    qDebug() << "Found groups:" << groups;
+
+    if (groups.isEmpty()) {
+        qDebug() << "No saved applications found!";
+        return appList;
+    }
+
     for (const QString &group : groups) {
         settings.beginGroup("Apps/" + group);
         QVariantMap app;
@@ -146,9 +143,8 @@ QVariantList UserDevice::loadAppfromini(const QString &ip)
         appList.append(app);
     }
 
-    qDebug() << "Loaded apps from device:" << ip;
-    qDebug() << "Apps:" << appList;
-
+    qDebug() << "Loaded apps:" << appList;
     return appList;
 }
+
 #endif

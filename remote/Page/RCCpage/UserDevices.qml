@@ -1,28 +1,19 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
-import "../../Model" // 进入 Model 文件夹
+import "../../Model"
 import "."
 
 Rectangle {
     id: root
     color: "transparent"
 
-    // 设备数据模型，记录设备基本信息、扩展状态以及应用列表（存储在 userApps 字段中）
     ListModel {
         id: deviceInformationModel
     }
-    DeviceAppModel {
-        id: deviceAppListModel
-    }
     property int currentIndex: -1
     property string currentIp: ""
-    // 选中状态
-    property bool isSelected: false
-    // 悬停状态
-    property bool isHovered: false
 
-    // 计算当前展开的项数
     function calcExpandedCount() {
         var cnt = 0;
         for (var i = 0; i < deviceInformationModel.count; i++) {
@@ -41,18 +32,14 @@ Rectangle {
         delegate: Item {
             id: deviceListItem
             width: parent.width
-
-            // 基本高度（未展开时高度）
             property int normalHeight: 40
 
-            // 当该项展开时，高度 = 基本高度 + (剩余高度平均分给所有展开项)
             height: extended
                      ? normalHeight + ((userDeviceList.height - (deviceInformationModel.count * normalHeight)) / (calcExpandedCount() > 0 ? calcExpandedCount() : 1))
                      : normalHeight
 
             Behavior on height { PropertyAnimation { duration: 250 } }
 
-            // 设备基本信息区域
             Rectangle {
                 id: deviceInformationRectangle
                 anchors.left: parent.left
@@ -90,7 +77,6 @@ Rectangle {
 
                 RemoteDraw { id: remoteView }
 
-                // 右上角展开/收缩图标
                 Rectangle {
                     id: deviceExtendStatusRectangle
                     width: 16; height: 16
@@ -111,7 +97,6 @@ Rectangle {
                         id: userDeviceInformationExtendMouseArea
                         anchors.fill: parent
                         onClicked: {
-                            // 切换 expanded 状态，同时保留原有的 userApps 字段
                             var currentData = deviceInformationModel.get(index);
                             currentIndex = index;
                             deviceInformationModel.set(index, {
@@ -121,23 +106,23 @@ Rectangle {
                                 password: currentData.password,
                                 isConnected: currentData.isConnected,
                                 extended: !currentData.extended,
-                                userApps: currentData.userApps ? currentData.userApps : []
+                                userApps: currentData.userApps
                             });
 
-                            // 如果设备展开，则加载应用列表
                             if (deviceInformationModel.get(index).extended) {
-                                var ip = deviceInformationModel.get(index).deviceIP;
-                                var appList = user_device.loadAppfromini(ip);
-                                deviceAppListModel.clear();
-                                for (var i = 0; i < appList.length; i++) {
-                                    deviceAppListModel.append(appList[i]);
+                                var ip = currentData.deviceIP;
+                                if (currentData.userApps.count === 0) {
+                                    var appList = user_device.loadAppfromini(ip);
+                                    currentData.userApps.clear();
+                                    for (var i = 0; i < appList.length; i++) {
+                                        currentData.userApps.append(appList[i]);
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // 右侧设备信息图标
                 Rectangle {
                     id: userDeviceInformationIcon
                     width: 16; height: 16
@@ -163,7 +148,6 @@ Rectangle {
                     }
                 }
 
-                // 基本信息区域内的右键菜单
                 MouseArea {
                     id: deviceInformatioArea
                     anchors.fill: parent
@@ -192,10 +176,8 @@ Rectangle {
                     MenuItem {
                         text: "获取远端应用列表"
                         onTriggered: {
-                            console.log("获取远端应用列表");
                             currentIndex = index;
                             currentIp = deviceInformationModel.get(currentIndex).deviceIP;
-                            // 将设备 IP 传给 RemoteAppList
                             applistpage.ip = currentIp;
                             applistpage.visible = true;
                         }
@@ -204,7 +186,6 @@ Rectangle {
                     MenuItem {
                         text: "删除设备"
                         onTriggered: {
-                            console.log("删除设备");
                             currentIndex = index;
                             confirmDeleteDialog.open();
                         }
@@ -221,13 +202,12 @@ Rectangle {
                         }
                     }
                 }
-            } // end deviceInformationRectangle
+            }
 
-            // 展开详情区域：显示应用列表，绑定 userApps 属性
             Rectangle {
                 id: userDeviceDetailsInformationRectangle
                 width: parent.width - 2
-                height: deviceListItem.height - normalHeight - 5
+                height: extended ? (deviceListItem.height - normalHeight) : 0
                 anchors.top: deviceInformationRectangle.bottom
                 anchors.topMargin: 5
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -236,27 +216,29 @@ Rectangle {
                 Flickable {
                     id: flickable
                     width: parent.width
-                    height: parent.height - 40
+                    height: parent.height
                     contentWidth: parent.width
-                    contentHeight: parent.height - 40
-                    clip: false
-                    interactive: true  // 确保交互启用
+                    contentHeight: userDeviceAppListRectangle.height
+                    clip: true
+                    interactive: true
 
                     Rectangle {
                         id: userDeviceAppListRectangle
                         width: flickable.width
-                        height: 160
+                        height: Math.max(200, deviceListItem.height - normalHeight - 10)
+                        color: "transparent"
 
                         ListView {
                             id: deviceAppListView
                             anchors.fill: parent
-                            model: deviceAppListModel
+                            model: userApps  // 使用设备自己的应用列表模型
                             delegate: Item {
                                 id: appItem
                                 width: userDeviceAppListRectangle.width
-                                height: 32
-                                property bool isHovered: false
+                                height: 40
+
                                 property bool isSelected: false
+                                property bool isHovered: false
 
                                 Rectangle {
                                     anchors.fill: parent
@@ -271,6 +253,7 @@ Rectangle {
                                         anchors.left: parent.left
                                         anchors.leftMargin: 20
                                     }
+
                                     Text {
                                         id: appName
                                         text: model.AppName
@@ -278,84 +261,61 @@ Rectangle {
                                         anchors.left: appIcon.right
                                         anchors.leftMargin: 10
                                     }
+
                                     MouseArea {
                                         id: appMouseArea
                                         anchors.fill: parent
+                                        hoverEnabled: true  // 启用鼠标悬浮检测
+                                        acceptedButtons: Qt.LeftButton | Qt.RightButton  // 接受左键和右键
                                         propagateComposedEvents: true
 
-                                        // 悬停检测
                                         onEntered: appItem.isHovered = true
                                         onExited: appItem.isHovered = false
 
-                                        // 单击选中
-                                        onClicked: {
-                                            deviceAppListView.currentIndex = index
-                                            appItem.isSelected = true
+                                        onClicked: function(mouse) {
+                                            if (mouse.button === Qt.LeftButton) {
+                                                deviceAppListView.currentIndex = index
+                                                appItem.isSelected = !appItem.isSelected
+                                            }
                                         }
 
-                                        // 双击打开
-                                        onDoubleClicked: {
-                                            console.log("打开应用:", model.AppName)
-                                            // 调用远程打开接口
+                                        onDoubleClicked: function(mouse) {
+                                            if (mouse.button === Qt.LeftButton) {
+                                                console.log("打开应用:", model.AppName)
+                                            }
                                         }
 
-                                        // 右键菜单
-                                        onPressed: function(mouse) {  // 明确声明 mouse 参数
+                                        onPressed: function(mouse) {
                                             if (mouse.button === Qt.RightButton) {
-                                                // 设置菜单显示位置为鼠标点击位置
-                                                appContextMenu.x = mouse.x;
-                                                appContextMenu.y = mouse.y;
-                                                appContextMenu.popup();
+                                                appItem.isSelected = true  // 右键单击时显示灰色背景
+                                                appContextMenu.appData = model
+                                                appContextMenu.deviceIp = deviceInformationModel.get(currentIndex).deviceIP
+                                                appContextMenu.x = mouse.x
+                                                appContextMenu.y = mouse.y
+                                                appContextMenu.popup()
+                                                mouse.accepted = true
                                             }
                                         }
                                     }
 
-                                    MouseArea {
-                                        id: appitemMouseArea
-                                        anchors.fill: parent
-                                        propagateComposedEvents: true
-
-                                        // 悬停检测
-                                        onEntered: appItem.isHovered = true
-                                        onExited: appItem.isHovered = false
-
-                                        // 单击选中
-                                        onClicked: {
-                                            deviceAppListView.currentIndex = index
-                                            appItem.isSelected = true
-                                        }
-
-                                        // 双击打开
-                                        onDoubleClicked: {
-                                            console.log("打开应用:", model.AppName)
-                                            // 调用远程打开接口
-                                        }
-
-                                        // 右键菜单
-                                        onPressed: function(mouse) {  // 明确声明 mouse 参数
-                                            if (mouse.button === Qt.RightButton) {
-                                                // 设置菜单显示位置为鼠标点击位置
-                                                appContextMenu.x = mouse.x;
-                                                appContextMenu.y = mouse.y;
-                                                appContextMenu.popup();
-                                            }
-                                        }
-                                    }
-
-                                    // 应用右键菜单
                                     Menu {
                                         id: appContextMenu
-                                        property var appData: model  // 绑定当前应用数据
-                                        property string deviceIp: currentIp  // 绑定当前设备 IP
+                                        property var appData
+                                        property string deviceIp
+
+                                        // 菜单关闭时恢复未选中状态
+                                        onClosed: {
+                                            appItem.isSelected = false
+                                        }
 
                                         MenuItem {
                                             text: "打开应用"
                                             onTriggered: {
                                                 remoteControlThread.startApp(
-                                                    appContextMenu.deviceIp,
-                                                    appContextMenu.appData.RdpAppName,
-                                                    account,
-                                                    password
+                                                    deviceIp,
+                                                    appData.RdpAppName,
+                                                    deviceInformationModel.get(currentIndex).account,
+                                                    deviceInformationModel.get(currentIndex).password
                                                 )
                                             }
                                         }
@@ -363,20 +323,15 @@ Rectangle {
                                         MenuItem {
                                             text: "卸载应用"
                                             onTriggered: {
-                                                console.log("卸载应用:", appContextMenu.appData.AppName)
-                                                user_device.uninstallApp(
-                                                    appContextMenu.deviceIp,
-                                                    appContextMenu.appData.RdpAppName
-                                                )
-                                                deviceAppListModel.remove(index)
+                                                user_device.uninstallApp(deviceIp, appData.RdpAppName)
+                                                userApps.remove(index)
                                             }
                                         }
 
                                         MenuItem {
                                             text: "删除本地记录"
                                             onTriggered: {
-                                                console.log("删除应用记录:", appContextMenu.appData.AppName)
-                                                deviceAppListModel.remove(index)
+                                                userApps.remove(index)
                                             }
                                         }
                                     }
@@ -384,13 +339,11 @@ Rectangle {
                             }
                         }
                     }
-                    flickableDirection: Flickable.VerticalFlick
                 }
-            } // end userDeviceDetailsInformationRectangle
-        } // end delegate
-    } // end ListView
+            }
+        }
+    }
 
-    // 空白区域右键显示菜单
     MouseArea {
         id: userDeviceArea
         z: 3
@@ -421,10 +374,7 @@ Rectangle {
         id: userDeviceMenu
         MenuItem {
             text: "添加新的远程设备"
-            onTriggered: {
-                console.log("添加新的远程设备");
-                showInputDialog();
-            }
+            onTriggered: showInputDialog()
         }
     }
 
@@ -443,95 +393,57 @@ Rectangle {
             anchors.topMargin: 20
             spacing: 10
 
-            TextField {
-                id: ipField
-                placeholderText: "请输入IP地址"
-                width: parent.width
-            }
-            TextField {
-                id: accountField
-                placeholderText: "请输入账户"
-                width: parent.width
-            }
-            TextField {
-                id: passwordField
-                placeholderText: "请输入密码"
-                echoMode: TextInput.Password
-                width: parent.width
-            }
+            TextField { id: ipField; placeholderText: "IP地址" }
+            TextField { id: accountField; placeholderText: "账户" }
+            TextField { id: passwordField; placeholderText: "密码"; echoMode: TextInput.Password }
+
             Row {
-                anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 10
                 Button {
                     text: "确定"
                     onClicked: {
-                        var ip = ipField.text;
-                        var account = accountField.text;
-                        var password = passwordField.text;
-                        if (ip && account && password) {
+                        if (ipField.text && accountField.text && passwordField.text) {
+                            var newAppModel = Qt.createQmlObject('import QtQuick 2.15; ListModel {}', root);
                             if (inputWindow.currentIndex >= 0) {
-                                var currentData = deviceInformationModel.get(inputWindow.currentIndex);
                                 deviceInformationModel.set(inputWindow.currentIndex, {
-                                    deviceName: ip,
-                                    deviceIP: ip,
-                                    account: account,
-                                    password: password,
-                                    isConnected: currentData.isConnected,
-                                    extended: currentData.extended,
-                                    userApps: currentData.userApps ? currentData.userApps : []
-                                });
-                                user_device.sendUserDevice(ip, account, password);
-                            } else {
-                                deviceInformationModel.append({
-                                    deviceName: ip,
-                                    deviceIP: ip,
-                                    account: account,
-                                    password: password,
+                                    deviceName: ipField.text,
+                                    deviceIP: ipField.text,
+                                    account: accountField.text,
+                                    password: passwordField.text,
                                     isConnected: true,
                                     extended: false,
-                                    userApps: []
+                                    userApps: newAppModel
                                 });
-                                user_device.sendUserDevice(ip, account, password);
+                            } else {
+                                deviceInformationModel.append({
+                                    deviceName: ipField.text,
+                                    deviceIP: ipField.text,
+                                    account: accountField.text,
+                                    password: passwordField.text,
+                                    isConnected: true,
+                                    extended: false,
+                                    userApps: newAppModel
+                                });
                             }
-                            console.log("设备已添加/更新:", ip, account, password);
-                            ipField.text = "";
-                            accountField.text = "";
-                            passwordField.text = "";
-                            inputWindow.currentIndex = -1;
+                            user_device.sendUserDevice(ipField.text, accountField.text, passwordField.text);
                             inputWindow.close();
-                        } else {
-                            console.log("输入不完整，无法添加设备");
                         }
                     }
                 }
-                Button {
-                    text: "取消"
-                    onClicked: {
-                        console.log("添加设备操作已取消");
-                        inputWindow.close();
-                    }
-                }
+                Button { text: "取消"; onClicked: inputWindow.close() }
             }
         }
     }
 
-    function showInputDialog() {
-        inputWindow.show();
-    }
-
-    // 加载设备数据时，检查并确保 userApps 为数组（若存在冲突则重置）
     Component.onCompleted: {
         var devices = user_device.getUserDevices();
-        deviceInformationModel.clear();
         devices.forEach(function(device) {
-            // 创建 ListModel 存储应用
             var appsModel = Qt.createQmlObject('import QtQuick 2.15; ListModel {}', root);
             if (device.userApps) {
                 device.userApps.forEach(function(app) {
                     appsModel.append(app);
                 });
             }
-            // 将 ListModel 存入设备信息
             deviceInformationModel.append({
                 deviceName: device.deviceName,
                 deviceIP: device.deviceIP,
@@ -539,48 +451,28 @@ Rectangle {
                 password: device.password,
                 isConnected: device.isConnected,
                 extended: false,
-                userApps: appsModel  // ✅ 存储 ListModel 对象
+                userApps: appsModel
             });
         });
     }
 
-    RemoteAppList {
-        id: applistpage
-        ip: currentIp
-    }
+    RemoteAppList { id: applistpage; ip: currentIp }
 
-    // 删除设备确认弹窗
     Dialog {
         id: confirmDeleteDialog
         title: "确认删除"
-        visible: false
-        property string currentIp: ""
-        contentItem: Text {
-            text: "是否确认删除该设备？远程服务器上的相关数据也将被删除。"
-        }
+        contentItem: Text { text: "是否确认删除该设备？" }
         footer: DialogButtonBox {
             Button {
                 text: "确认"
-                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 onClicked: {
-                    console.log("用户确认删除");
-                    var currentDevice = deviceInformationModel.get(currentIndex);
-                    currentIp = currentDevice.deviceIP;
-                    console.log("当前设备 IP:", currentIp);
-                    user_device.deleteUserDevice(currentIp);
+                    var ip = deviceInformationModel.get(currentIndex).deviceIP;
+                    user_device.deleteUserDevice(ip);
                     deviceInformationModel.remove(currentIndex);
-                    currentIndex = -1;
-                    confirmDeleteDialog.accept();
+                    confirmDeleteDialog.close();
                 }
             }
-            Button {
-                text: "取消"
-                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
-                onClicked: {
-                    console.log("用户取消删除");
-                    confirmDeleteDialog.reject();
-                }
-            }
+            Button { text: "取消"; onClicked: confirmDeleteDialog.close() }
         }
     }
 }

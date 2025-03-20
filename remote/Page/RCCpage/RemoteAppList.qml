@@ -56,8 +56,12 @@ Window {
                     anchors.right: parent.right
                     anchors.rightMargin: 20
                     anchors.verticalCenter: parent.verticalCenter
-                    checked: isSelected
-                    onCheckedChanged: appListModel.setProperty(index, "isSelected", checked)
+                    // 使用模型中的 isSelected，如果未定义则默认 false
+                    checked: model.isSelected === undefined ? false : model.isSelected
+                    onCheckedChanged: {
+                        appListModel.setProperty(index, "isSelected", checked)
+                        console.log("App at index", index, "selected:", checked)
+                    }
                 }
             }
         }
@@ -77,7 +81,8 @@ Window {
                 var selectedApps = [];
                 for (var i = 0; i < appListModel.count; i++) {
                     var app = appListModel.get(i);
-                    if (app.isSelected) {
+                    // 确保 isSelected 为 true 时才加入
+                    if (app.isSelected === true) {
                         selectedApps.push({
                             AppName: app.AppName,
                             RdpAppName: app.AppName,
@@ -85,7 +90,7 @@ Window {
                         });
                     }
                 }
-                // 调用 C++ 方法保存应用列表
+                console.log("选中的应用：", JSON.stringify(selectedApps));
                 if (selectedApps.length > 0) {
                     user_device.saveAppsToDevice(ip, selectedApps);
                 } else {
@@ -93,6 +98,7 @@ Window {
                 }
             }
         }
+
         Button {
             text: "一键勾选"
             width: parent.width / 2 - 10
@@ -100,6 +106,7 @@ Window {
                 var allApps = [];
                 for (var i = 0; i < appListModel.count; i++) {
                     var app = appListModel.get(i);
+                    // 将所有项设为选中状态
                     appListModel.setProperty(i, "isSelected", true);
                     allApps.push({
                         AppName: app.AppName,
@@ -107,7 +114,7 @@ Window {
                         AppIconPath: app.AppIconPath
                     });
                 }
-                // 调用 C++ 方法保存所有应用
+                console.log("所有应用：", JSON.stringify(allApps));
                 if (allApps.length > 0) {
                     user_device.saveAppsToDevice(ip, allApps);
                 } else {
@@ -116,6 +123,7 @@ Window {
             }
         }
     }
+
 
     // 当窗口打开时初始化数据
     onVisibleChanged: {
