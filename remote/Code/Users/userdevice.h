@@ -14,6 +14,9 @@ public:
     Q_INVOKABLE void sendUserDevice(const QString& hostname, const QString& username, const QString& password);
     Q_INVOKABLE QVariantList getUserDevices();
     Q_INVOKABLE void deleteUserDevice(const QString& hostname);
+    Q_INVOKABLE void saveAppsToDevice(const QString &ip, const QVariant &apps);
+    Q_INVOKABLE void uninstallApp(const QString &ip, const QString &appName);
+    Q_INVOKABLE QVariantList loadAppfromini(const QString &ip);
 };
 #endif
 #endif // USERDEVICE_H

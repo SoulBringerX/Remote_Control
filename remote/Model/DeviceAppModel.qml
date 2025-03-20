@@ -14,7 +14,7 @@ ListModel {
         deviceIP: "192.168.1.1"
         deviceName: "Computer 1"
         AppName: "App 2"
-        RdpAppName: App2
+        RdpAppName: "App2"
         AppIconPath: "qrc:/images/wx.svg"
         isConnected: true
     }

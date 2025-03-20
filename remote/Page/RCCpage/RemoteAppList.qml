@@ -3,12 +3,15 @@ import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 
 Window {
+    id: remoteAppListWindow
     width: 640
     height: 480
     visible: false
     title: "远程应用列表"
 
-    property string ip:""
+    // 当前设备 IP 与选中应用列表信号
+    property string ip: ""
+
     // 应用信息模型
     ListModel {
         id: appListModel
@@ -22,12 +25,10 @@ Window {
         model: appListModel
 
         delegate: Item {
-            id: appListItem
             width: parent.width
             height: 40
 
             Rectangle {
-                id: appItem
                 anchors.fill: parent
                 border.color: "black"
                 border.width: 0.5
@@ -37,7 +38,7 @@ Window {
                     id: appIcon
                     width: 16
                     height: 16
-                    source: AppIconPath
+                    source: model.AppIconPath
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     anchors.leftMargin: 20
@@ -45,21 +46,18 @@ Window {
 
                 Text {
                     id: appName
-                    text: AppName
+                    text: model.AppName
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: appIcon.right
                     anchors.leftMargin: 10
                 }
 
                 CheckBox {
-                    id: appCheckBox
                     anchors.right: parent.right
                     anchors.rightMargin: 20
                     anchors.verticalCenter: parent.verticalCenter
                     checked: isSelected
-                    onCheckedChanged: {
-                        appListModel.setProperty(index, "isSelected", checked)
-                    }
+                    onCheckedChanged: appListModel.setProperty(index, "isSelected", checked)
                 }
             }
         }
@@ -76,29 +74,55 @@ Window {
             text: "添加勾选"
             width: parent.width / 2 - 10
             onClicked: {
-                // 添加勾选逻辑
-                console.log("添加勾选")
+                var selectedApps = [];
+                for (var i = 0; i < appListModel.count; i++) {
+                    var app = appListModel.get(i);
+                    if (app.isSelected) {
+                        selectedApps.push({
+                            AppName: app.AppName,
+                            RdpAppName: app.AppName,
+                            AppIconPath: app.AppIconPath
+                        });
+                    }
+                }
+                // 调用 C++ 方法保存应用列表
+                if (selectedApps.length > 0) {
+                    user_device.saveAppsToDevice(ip, selectedApps);
+                } else {
+                    console.log("没有勾选任何应用");
+                }
             }
         }
-
         Button {
             text: "一键勾选"
             width: parent.width / 2 - 10
             onClicked: {
-                // 一键勾选逻辑
+                var allApps = [];
                 for (var i = 0; i < appListModel.count; i++) {
-                    appListModel.setProperty(i, "isSelected", true)
+                    var app = appListModel.get(i);
+                    appListModel.setProperty(i, "isSelected", true);
+                    allApps.push({
+                        AppName: app.AppName,
+                        RdpAppName: app.AppName,
+                        AppIconPath: app.AppIconPath
+                    });
+                }
+                // 调用 C++ 方法保存所有应用
+                if (allApps.length > 0) {
+                    user_device.saveAppsToDevice(ip, allApps);
+                } else {
+                    console.log("没有应用可保存");
                 }
             }
         }
     }
 
-    // 在窗口打开时发送消息并接收应用列表
+    // 当窗口打开时初始化数据
     onVisibleChanged: {
         if (visible) {
-            console.log("当前设备的IP：" + ip);
+            appListModel.clear();
             if (tcp !== null) {
-                tcp.connectToServer(ip);  // 确保 tcp 连接是有效的
+                tcp.connectToServer(ip);
                 var appList = tcp.receiveAppList();
                 for (var i = 0; i < appList.length; i++) {
                     appListModel.append({
@@ -107,8 +131,6 @@ Window {
                         isSelected: false
                     });
                 }
-            } else {
-                console.error("tcp对象未初始化！");
             }
         }
     }
