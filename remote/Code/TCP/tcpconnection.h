@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QVariantList>
 #include <czmq.h>
+#include <iostream>
 #include "../AppData/devicedate.h"
 #include "../LogUntils/AppLog.h"
 

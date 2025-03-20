@@ -16,6 +16,7 @@ bool tcpConnection::connectToServer(const QString &host) {
         close();
     }
 
+    // 创建 REQ 类型 socket
     sockfd_ = zsock_new_req(NULL);
     if (!sockfd_) {
         emit connectionError("创建 ZMQ REQ socket 失败");
@@ -41,6 +42,7 @@ bool tcpConnection::sendPacket(const RD_Packet &packet) {
         return false;
     }
 
+    // 使用 "b" 格式直接发送整个结构体（二进制数据传输）
     if (zsock_send(sockfd_, "b", &packet, sizeof(packet)) != 0) {
         emit connectionError("目标发送数据包失败");
         return false;
@@ -81,46 +83,59 @@ QVariantList tcpConnection::receiveAppList() {
         return appList;
     }
 
-    // 发送请求
+    // 构造请求数据包，并以二进制方式发送
     RD_Packet requestPacket;
+    memset(&requestPacket, 0, sizeof(requestPacket));
     requestPacket.RD_Type = OperationCommandType::TransmitAppAlias;
-    memset(requestPacket.RD_APP_Name, 0, sizeof(requestPacket.RD_APP_Name));
-
     if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
         emit connectionError("请求应用列表失败");
         return appList;
     }
     qDebug() << "已发送应用列表请求";
 
-    // 接收数据
-    while (true) {
-        RD_Packet packet;
-        if (!receive(packet)) {
-            emit connectionError("接收应用信息失败");
-            return appList;
-        }
+    // 使用 zmsg_recv() 接收整个多帧回复
+    zmsg_t* reply = zmsg_recv(sockfd_);
+    if (!reply) {
+        emit connectionError("接收应用列表失败");
+        return appList;
+    }
 
+    // 遍历回复中的所有帧
+    zframe_t* frame;
+    while ((frame = zmsg_pop(reply)) != NULL) {
+        size_t size = zframe_size(frame);
+        if (size != sizeof(RD_Packet)) {
+            zframe_destroy(&frame);
+            continue;  // 跳过无效的帧
+        }
+        RD_Packet packet;
+        memcpy(&packet, zframe_data(frame), sizeof(RD_Packet));
+        zframe_destroy(&frame);
+
+        // 判断是否为结束标志
         if (packet.RD_Type == OperationCommandType::TransmitEnd) {
             qDebug() << "接收应用信息结束";
             break;
         }
 
+        // 如果是应用信息包，组装应用数据
         if (packet.RD_Type == OperationCommandType::TransmitAppAlias) {
             QVariantMap appInfo;
-            appInfo["name"] = QString(packet.RD_APP_Name);
-            appInfo["mainExe"] = QString(packet.RD_MainExePath);
-            appInfo["uninstallExe"] = QString(packet.RD_UninstallExePath);
+            appInfo["name"] = QString::fromUtf8(packet.RD_APP_Name);
+            appInfo["mainExe"] = QString::fromUtf8(packet.RD_MainExePath);
+            appInfo["uninstallExe"] = QString::fromUtf8(packet.RD_UninstallExePath);
             appInfo["iconData"] = QByteArray(packet.RD_ImageBit, sizeof(packet.RD_ImageBit));
-
             appList.append(appInfo);
         }
     }
+    zmsg_destroy(&reply);
 
     emit appListReceived(appList);
     return appList;
 }
 
-// 线程管理类
+
+// 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}
 
 TcpThread::~TcpThread() {
@@ -131,7 +146,7 @@ TcpThread::~TcpThread() {
 
 void TcpThread::run() {
     tcpConn = new tcpConnection();
-    emit tcpReady(tcpConn);  // 发出信号，通知外部 tcpConn 已准备好
+    emit tcpReady(tcpConn);  // 通知外部 tcpConn 已经准备好
     exec();  // 启动事件循环，保持线程运行
 }
 

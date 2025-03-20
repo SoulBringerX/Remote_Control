@@ -8,8 +8,8 @@ const char* operationCommandTypeToString(OperationCommandType type) {
         return "TransmitAppIconData";
     case OperationCommandType::TransmitAppCommand:
         return "TransmitAppCommand";
-    case OperationCommandType::TransmitConnectTest:
-        return "TransmitConnectTest";
+    case OperationCommandType::TransmitOnceEnd:
+        return "TransmitOnceEnd";
     case OperationCommandType::TransmitEnd:
         return "TransmitEnd";
     default:
