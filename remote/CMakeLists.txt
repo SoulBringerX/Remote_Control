@@ -57,6 +57,7 @@ qt_add_qml_module(appremote
     SOURCES Code/TCP/tcpserverthread.h Code/TCP/tcpserverthread.cpp
     SOURCES Code/Users/userdevice.h Code/Users/userdevice.cpp
     QML_FILES
+    SOURCES Code/AppData/deviceinfomanager.h Code/AppData/deviceinfomanager.cpp
 )
 
 # 如果您不是在开发 macOS 应用程序，可以注释掉以下行

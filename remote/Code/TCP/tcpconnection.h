@@ -7,6 +7,7 @@
 #include <czmq.h>
 #include <iostream>
 #include "../AppData/devicedate.h"
+#include "../AppData/deviceinfomanager.h"
 #include "../LogUntils/AppLog.h"
 
 #ifdef _WIN32
@@ -18,6 +19,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <QVariantMap>
 #endif
 
 #define SERVER_PORT 5555
@@ -34,10 +36,12 @@ public:
     void close();
 
     Q_INVOKABLE QVariantList receiveAppList();
+    Q_INVOKABLE QVariantMap receiveDeviceInfo();
     QVariantList parseAppList();
 
 signals:
     void appListReceived(const QVariantList &appList);
+    void deviceInfoReceived(QVariantMap deviceInfo);
     void connectionError(QString error); // 连接错误信号
 
 private:

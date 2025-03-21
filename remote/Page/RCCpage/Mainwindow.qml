@@ -420,6 +420,18 @@ Window {
         }
     }
 
+    Connections {
+        target: deviceInfoManager
+        onDeviceInfoChanged: {
+            userDeviceInformation.text =
+                "🖥️ CPU: " + deviceInfoManager.deviceInfo.cpuModel + "\n" +
+                "🧩 Cores: " + deviceInfoManager.deviceInfo.cpuCores + "\n" +
+                "⚡ Usage: " + deviceInfoManager.deviceInfo.cpuUsage + "%\n" +
+                "💾 Memory: " + deviceInfoManager.deviceInfo.usedMemory + "MB / " + deviceInfoManager.deviceInfo.totalMemory + "MB\n" +
+                "🗄️ Disk: " + deviceInfoManager.deviceInfo.usedDisk + "GB / " + deviceInfoManager.deviceInfo.totalDisk + "GB";
+        }
+    }
+
     Rectangle
     {
         id: userDevices
@@ -482,12 +494,19 @@ Window {
                     lastLogininformation.text = new Date().toLocaleString(Qt.locale("zh_CN"), "yyyy/MM/dd hh:mm ap")
                 }
             }
-            Text{
-                id:userDeviceInformation
-                text:" "
+            Text {
+                id: userDeviceInformation
+                text: "设备信息加载中..."
+                font.pixelSize: 14
+                font.bold: true
+                wrapMode: Text.WordWrap
+                color: "#333333"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                width: parent.width * 0.9
                 anchors.top: lastLogininformation.bottom
-                anchors.topMargin: parent.height * 0.05
-                anchors.horizontalCenter: userDeviceInformationRectangle.horizontalCenter
+                anchors.topMargin: 15
+                anchors.horizontalCenter: parent.horizontalCenter
             }
         }
     }

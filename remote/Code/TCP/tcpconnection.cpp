@@ -134,6 +134,63 @@ QVariantList tcpConnection::receiveAppList() {
     return appList;
 }
 
+QVariantMap tcpConnection::receiveDeviceInfo() {
+    QVariantMap deviceInfo;
+
+    if (!sockfd_) {
+        emit connectionError("无效的 socket，无法请求设备信息");
+        return deviceInfo;
+    }
+
+    // 发送设备信息请求
+    RD_Packet requestPacket;
+    memset(&requestPacket, 0, sizeof(requestPacket));
+    requestPacket.RD_Type = OperationCommandType::TransmitDeviceInformaiton;
+    if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
+        emit connectionError("请求设备信息失败");
+        return deviceInfo;
+    }
+    qDebug() << "📡 已发送设备信息请求";
+
+    // **接收 ZeroMQ 消息**
+    zmsg_t* reply = zmsg_recv(sockfd_);
+    if (!reply) {
+        emit connectionError("接收设备信息失败");
+        return deviceInfo;
+    }
+
+    // 读取第一个数据帧
+    zframe_t* frame = zmsg_pop(reply);
+    if (frame && zframe_size(frame) == sizeof(DeviceInfo)) {
+        DeviceInfo info;
+        memcpy(&info, zframe_data(frame), sizeof(DeviceInfo));
+        zframe_destroy(&frame);
+
+        // **存储设备信息**
+        deviceInfo["cpuModel"] = QString::fromUtf8(info.cpuModel).trimmed();
+        deviceInfo["cpuCores"] = info.cpuCores;
+        deviceInfo["cpuUsage"] = info.cpuUsage;
+        deviceInfo["totalMemory"] = info.totalMemory;
+        deviceInfo["usedMemory"] = info.usedMemory;
+        deviceInfo["totalDisk"] = info.totalDisk;
+        deviceInfo["usedDisk"] = info.usedDisk;
+
+        // **打印设备信息**
+        qDebug() << "✅ 设备信息解析成功:";
+        qDebug() << "   🖥️ CPU 型号: " << deviceInfo["cpuModel"].toString();
+        qDebug() << "   🧩 CPU 核心数: " << deviceInfo["cpuCores"].toInt();
+        qDebug() << "   ⚡ CPU 占用率: " << deviceInfo["cpuUsage"].toDouble() << "%";
+        qDebug() << "   💾 总内存: " << deviceInfo["totalMemory"].toInt() << " MB";
+        qDebug() << "   📊 已用内存: " << deviceInfo["usedMemory"].toInt() << " MB";
+        qDebug() << "   🗄️ 系统盘总磁盘大小: " << deviceInfo["totalDisk"].toInt() << " GB";
+        qDebug() << "   📂 已用磁盘: " << deviceInfo["usedDisk"].toInt() << " GB";
+    }
+
+    zmsg_destroy(&reply);
+    emit deviceInfoReceived(deviceInfo);
+    DeviceInfoManager::getInstance()->updateDeviceInfo(deviceInfo);
+    return deviceInfo;
+}
 
 // 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}

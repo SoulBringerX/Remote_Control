@@ -143,7 +143,8 @@ Rectangle {
                         anchors.fill: parent
                         z: 2
                         onClicked: {
-                            console.log("OS:Windows 10\nCPU:Intel i5-8500")
+                            tcp.connectToServer(deviceIP);
+                            var deviceInfo = tcp.receiveDeviceInfo();
                         }
                     }
                 }
@@ -311,12 +312,9 @@ Rectangle {
                                         MenuItem {
                                             text: "打开应用"
                                             onTriggered: {
-                                                remoteControlThread.startApp(
-                                                    deviceIp,
-                                                    appData.RdpAppName,
-                                                    deviceInformationModel.get(currentIndex).account,
-                                                    deviceInformationModel.get(currentIndex).password
-                                                )
+                                                // 校验是否为鼠标选择的应用名称
+                                                console.log(appName.text);
+                                                // 这里先去发送应用的名称然后接受应用执行路径在去启动freerdp
                                             }
                                         }
 
@@ -417,7 +415,7 @@ Rectangle {
                             } else {
                                 deviceInformationModel.append({
                                     deviceName: ipField.text,
-                                    deviceIP: ipField.text,
+                                    deviceIP: ip.text,
                                     account: accountField.text,
                                     password: passwordField.text,
                                     isConnected: true,

@@ -10,6 +10,7 @@
 #include "./Code/Users/account.h"
 #include "./Code/TCP/tcpconnection.h"
 #include "./Code/TCP/tcpserverthread.h"
+#include "./Code/AppData/deviceinfomanager.h"
 #include <QDir>
 #include <QLockFile>
 #ifdef WIN32
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty("tcp", tcp);  // 绑定 tcp 到 QML
     });
     tcpThread->start();  // 启动 TCP 线程
+    engine.rootContext()->setContextProperty("deviceInfoManager", DeviceInfoManager::getInstance());
 
     // 绑定其他必要的上下文属性
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
