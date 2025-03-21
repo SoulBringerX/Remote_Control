@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <QProcess>
 #include <QDebug>
+#include <QRegularExpression>
 #include <czmq.h>  // 使用 CZMQ 头文件
 
 class tcpservertest : public QObject
@@ -27,6 +28,7 @@ public:
 private:
     void appListsend();
     void deviceInformationsend();
+    void handlePacket(const RD_Packet& packet);  // 新增方法
     RD_Packet recvPacket_;
     zsock_t* responder_ = nullptr;
     bool m_running;
