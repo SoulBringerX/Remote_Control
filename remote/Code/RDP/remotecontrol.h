@@ -62,6 +62,7 @@ public:
     Q_INVOKABLE void requestRedraw();
 
     // 静态回调函数
+    Q_INVOKABLE void handleWheelEvent(QWheelEvent* event, QSize widgetSize);
     Q_INVOKABLE static BOOL handle_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code);
     Q_INVOKABLE static BOOL handle_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y);
 

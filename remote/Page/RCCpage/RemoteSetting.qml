@@ -122,17 +122,17 @@ Rectangle {
                 }
                 CheckBox {
                     id: driveMappingCheckBox
-                    text: qsTr("启用本地磁盘映射")
+                    text: qsTr("启用本地磁盘映射（需打开设备重定向）")
                     onCheckedChanged: client.setDriveMappingEnabled(checked)
                 }
                 CheckBox {
                     id: usbRedirectionCheckBox
-                    text: qsTr("开启 USB 重定向")
+                    text: qsTr("开启设备重定向")
                     onCheckedChanged: client.setUsbRedirectionEnabled(checked)
                 }
                 CheckBox {
                     id: clipboardRedirectionCheckBox
-                    text: qsTr("启用剪贴板重定向")
+                    text: qsTr("启用剪贴板重定向（需打开设备重定向）")
                     onCheckedChanged: client.setClipboardRedirectionEnabled(checked)
                 }
             }
