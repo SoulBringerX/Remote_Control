@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
 
 #ifdef WIN32
     // 请求管理员权限
+    qDebug() << "开始请求管理员权限";
     requestAdminPrivileges();
 #endif
 
