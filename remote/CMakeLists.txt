@@ -123,28 +123,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         PRIVATE ole32.lib)
 endif()
 
-if(MINGW)
-    # 指定 Manifest 文件路径
-    set(MANIFEST_FILE "${CMAKE_SOURCE_DIR}/RemoteApp.manifest")
-
-    # 使用 windres 编译 Manifest 文件为资源文件 (.res)
-    set(RESOURCE_FILE "${CMAKE_BINARY_DIR}/appremote.res")
-    add_custom_command(
-        OUTPUT ${RESOURCE_FILE}
-        COMMAND windres
-        ARGS ${MANIFEST_FILE} -O coff -o ${RESOURCE_FILE}
-        DEPENDS ${MANIFEST_FILE}
-        COMMENT "Generating appremote.res from manifest"
-    )
-
-    # 在链接时添加生成的资源文件
-    set_target_properties(appremote PROPERTIES
-        LINK_FLAGS "-Wl,--subsystem,windows -Wl,--resource=${RESOURCE_FILE}"
-    )
-
-    # 确保资源文件被编译
-    add_dependencies(appremote ${RESOURCE_FILE})
-
 target_link_libraries(appremote
     PRIVATE Qt6::Quick Qt6::Sql)
 target_link_libraries(appremote
