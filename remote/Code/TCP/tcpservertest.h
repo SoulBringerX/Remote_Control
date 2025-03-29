@@ -28,7 +28,8 @@ public:
 private:
     void appListsend();
     void deviceInformationsend();
-    void handlePacket(const RD_Packet& packet);  // 新增方法
+    void appPathsend(const RD_Packet &requestPacket);
+    void handlePacket(const RD_Packet& packet);
     RD_Packet recvPacket_;
     zsock_t* responder_ = nullptr;
     bool m_running;

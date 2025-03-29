@@ -226,6 +226,47 @@ void tcpservertest::deviceInformationsend() {
     logger.print("RDP_Server", "📤 设备信息发送完成 ✅");
 }
 
+void tcpservertest::appPathsend(const RD_Packet &requestPacket) {
+    logger.print("TCP_SERVER", "开始传输应用执行路径");
+
+    // 获取请求中的应用名称
+    QString requestedAppName = QString::fromUtf8(requestPacket.RD_APP_Name).trimmed();
+    logger.print("TCP_SERVER", "请求的应用名称: " + requestedAppName);
+
+    // 刷新并获取本机已安装的软件列表
+    InstalledSoftware installedSoftware;
+    installedSoftware.refreshSoftwareList();
+    QVariantList softwareList = installedSoftware.softwareList();
+
+    QString foundPath;
+    // 遍历软件列表，根据名称匹配（忽略大小写）
+    for (const QVariant &entry : softwareList) {
+        QVariantMap map = entry.toMap();
+        if (map["name"].toString().compare(requestedAppName, Qt::CaseInsensitive) == 0) {
+            foundPath = map["mainExe"].toString();
+            break;
+        }
+    }
+
+    // 构造响应数据包
+    RD_Packet responsePacket;
+    memset(&responsePacket, 0, sizeof(responsePacket));
+    responsePacket.RD_Type = OperationCommandType::TransmitAppCommand;
+    if (!foundPath.isEmpty()) {
+        // 复制完整的EXE路径到响应数据包
+        strncpy(responsePacket.RD_MainExePath, foundPath.toUtf8().constData(), sizeof(responsePacket.RD_MainExePath) - 1);
+        logger.print("TCP_SERVER", "找到应用路径: " + foundPath);
+    } else {
+        logger.print("TCP_SERVER", "未找到应用路径，应用名称: " + requestedAppName);
+    }
+
+    // 发送响应数据包
+    zmsg_t* response = zmsg_new();
+    zmsg_addmem(response, &responsePacket, sizeof(responsePacket));
+    zmsg_send(&response, responder_);
+    logger.print("TCP_SERVER", "应用执行路径发送完成");
+}
+
 
 
 // 析构函数
