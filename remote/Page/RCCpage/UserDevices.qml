@@ -315,6 +315,7 @@ Rectangle {
                                                 // 校验是否为鼠标选择的应用名称
                                                 console.log("正在打开软件："+appName.text);
                                                 // 这里先去发送应用的名称然后接受应用执行路径在去启动freerdp
+                                                tcp.receiveAppPath(appName.text);
                                             }
                                         }
 
