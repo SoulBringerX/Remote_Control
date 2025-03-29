@@ -29,6 +29,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QKeyEvent>
+#include <QProcess>
 #include <QDebug>
 #include <QSettings>
 #include <QString>
@@ -52,6 +53,7 @@ public:
     // 初始化与连接接口
     Q_INVOKABLE bool initialize();
     Q_INVOKABLE bool connect(const QString& hostname, const QString& username, const QString& password);
+    Q_INVOKABLE void connectApp(const QString& hostname, const QString& username, const QString& password,const QString& AppEXEPath);
     Q_INVOKABLE void disconnect();
 
     // 事件循环

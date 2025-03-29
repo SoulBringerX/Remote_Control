@@ -1,16 +1,16 @@
-#include "installedsoftware.h"
+#include "installedSoftware.h"
 #include <QVariantList>
 #include <QDebug>
 #include <QSettings>
 #include <QStandardPaths>
-#include <shlwapi.h>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QFileIconProvider>
 #include <QBuffer>
-#include <windows.h>
 
 #ifdef WIN32
+#include <shlwapi.h>
+#include <windows.h>
 // 注意：注册表操作需要管理员权限
 
 InstalledSoftware::InstalledSoftware(QObject *parent)

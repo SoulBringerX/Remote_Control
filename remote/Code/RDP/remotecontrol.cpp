@@ -110,21 +110,11 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
         _settings->NlaSecurity = FALSE;
         _settings->EnableWindowsKey = TRUE;
         _settings->LogonErrors = TRUE;
-        // _settings->HiDefRemoteApp = TRUE;
-        // _settings->SupportMultitransport = TRUE;
         _settings->ChannelCount = 4;
         _settings->PerformanceFlags = 4;
         _settings->DynamicChannelCount = 4;
         _settings->MouseAttached = TRUE;
         _settings->MouseHasWheel = TRUE;
-
-        // 测试
-        // _settings->RemoteApplicationMode = TRUE;
-        // // 设置远程应用程序的名称
-        // _settings->RemoteApplicationName = "Microsoft Edge";
-        // _settings->RemoteAppLanguageBarSupported = TRUE;
-        // // 设置远程应用程序的程序路径
-        // _settings->RemoteApplicationProgram = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 
         // 加载用户上次保存的配置
         loadSettings();
@@ -152,6 +142,36 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
     return true;
 }
 
+// 连接远程软件暂且使用xfreerdp代替
+void RemoteControl::connectApp(const QString& hostname, const QString& username, const QString& password, const QString& appEXEPath) {
+    // 确保路径是 Windows 格式（防止 Linux 路径误传）
+    if (!appEXEPath.startsWith("C:\\")) {
+        qDebug() << "[RemoteControl] 错误: appEXEPath 必须是完整的 Windows 路径";
+        return;
+    }
+
+    // 直接使用完整路径
+    QString appParam = QString("\"%1\"").arg(appEXEPath);
+
+    // 构造 xfreerdp 命令
+    QString command = QString("xfreerdp /v:%1 /u:%2 /p:%3 /app:%4 /size:1280x720 /bpp:16 /sec:rdp +bitmap-cache")
+                          .arg(hostname)
+                          .arg(username)
+                          .arg(password)
+                          .arg(appParam);
+
+    qDebug() << "[RemoteControl] 执行命令: " << command;
+
+    // 使用 QProcess 运行命令
+    QProcess* process = new QProcess(this);
+    process->setProcessChannelMode(QProcess::MergedChannels); // 合并输出，方便调试
+    process->start(command);
+
+    if (!process->waitForStarted()) {
+        qDebug() << "[RemoteControl] 启动 xfreerdp 进程失败";
+        delete process;
+    }
+}
 // 断开RDP连接，释放资源
 void RemoteControl::disconnect()
 {

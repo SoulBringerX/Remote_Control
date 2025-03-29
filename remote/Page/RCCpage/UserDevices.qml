@@ -313,7 +313,7 @@ Rectangle {
                                             text: "打开应用"
                                             onTriggered: {
                                                 // 校验是否为鼠标选择的应用名称
-                                                console.log(appName.text);
+                                                console.log("正在打开软件："+appName.text);
                                                 // 这里先去发送应用的名称然后接受应用执行路径在去启动freerdp
                                             }
                                         }
@@ -321,8 +321,12 @@ Rectangle {
                                         MenuItem {
                                             text: "卸载应用"
                                             onTriggered: {
-                                                user_device.uninstallApp(deviceIp, appData.RdpAppName)
-                                                userApps.remove(index)
+                                                var currentData = deviceInformationModel.get(index);
+                                                console.log("正在卸载软件："+appName.text);
+                                                console.log("远程机器IP："+currentData.deviceIP);
+                                                // user_device.uninstallApp(currentData.deviceIP, appData.RdpAppName)
+                                                // 启动xfreerdp去远程卸载软件
+                                                // userApps.remove(index)
                                             }
                                         }
 

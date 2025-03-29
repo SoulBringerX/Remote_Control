@@ -37,6 +37,7 @@ public:
 
     Q_INVOKABLE QVariantList receiveAppList();
     Q_INVOKABLE QVariantMap receiveDeviceInfo();
+    Q_INVOKABLE QString receiveAppPath(const QString& AppName);
     QVariantList parseAppList();
 
 signals:

@@ -192,6 +192,53 @@ QVariantMap tcpConnection::receiveDeviceInfo() {
     return deviceInfo;
 }
 
+// 获取远端App的EXE执行路径
+QString tcpConnection::receiveAppPath(const QString& AppName){
+    if (!sockfd_) {
+        emit connectionError("无效的 socket，无法请求应用路径");
+        return QString();
+    }
+
+    // 构造请求数据包，包含要查询的应用名称
+    RD_Packet requestPacket;
+    memset(&requestPacket, 0, sizeof(requestPacket));
+    requestPacket.RD_Type = OperationCommandType::TransmitAppCommand;
+    strncpy(requestPacket.RD_APP_Name, AppName.toUtf8().constData(), sizeof(requestPacket.RD_APP_Name) - 1);
+
+    // 发送请求数据包
+    if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
+        emit connectionError("请求应用路径失败：" + AppName);
+        return QString();
+    }
+    qDebug() << "📡 已发送应用路径请求：" << AppName;
+
+    // **接收 ZeroMQ 消息**
+    zmsg_t* reply = zmsg_recv(sockfd_);
+    if (!reply) {
+        emit connectionError("接收应用路径失败：" + AppName);
+        return QString();
+    }
+
+    QString appPath;
+    zframe_t* frame = zmsg_pop(reply);
+    if (frame && zframe_size(frame) == sizeof(RD_Packet)) {
+        RD_Packet packet;
+        memcpy(&packet, zframe_data(frame), sizeof(RD_Packet));
+        zframe_destroy(&frame);
+
+        // **检查是否是有效的路径返回**
+        if (packet.RD_Type == OperationCommandType::TransmitAppCommand) {
+            appPath = QString::fromUtf8(packet.RD_MainExePath).trimmed();
+            qDebug() << "✅ 远程应用路径：" << appPath;
+        } else {
+            qDebug() << "⚠️ 收到无效的应用路径数据";
+        }
+    }
+
+    zmsg_destroy(&reply);
+    return appPath;
+}
+
 // 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}
 
