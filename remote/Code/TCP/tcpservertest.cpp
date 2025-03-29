@@ -73,8 +73,12 @@ void tcpservertest::exec() {
                             logger.print("TCP_SERVER", "符合 0x05 (OperationCommandType::TransmitDeviceInformaiton)");
                             logger.print("TCP_SERVER","开始传输硬件以及资源占用信息");
                             this->deviceInformationsend();
+                        } else if (commandType == static_cast<unsigned char>(OperationCommandType::TransmitAppCommand)) {
+                            //处理获取应用EXE路径的请求
+                            logger.print("TCP_SERVER", "符合 0x03 (TransmitAppCommand)");
+                            this->appPathsend(*packet);
                         } else {
-                            logger.print("TCP_SERVER", "⚠️ 不是 0x01，实际收到: " + QString::number(commandType, 16));
+                            logger.print("TCP_SERVER", "⚠️ 不是预期的命令，实际收到: " + QString::number(commandType, 16));
                         }
                     } else {
                         logger.print("TCP_SERVER", "⚠️ 收到的数据包长度不符合 RD_Packet 预期大小");
