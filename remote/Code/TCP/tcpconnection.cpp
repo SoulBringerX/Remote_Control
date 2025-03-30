@@ -258,7 +258,7 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
 
     // 发送请求数据包
     if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
-        QString errorMsg = "请求卸载路径失败：" + AppName + " (Error: " + QString(zmq_strerror(zmq_errno())) + ")";
+        QString errorMsg = "请求卸载路径失败：" + AppName;
          // Use emit if tcpConnection inherits QObject and declares the signal
         // emit connectionError(errorMsg);
         qWarning() << errorMsg; // Use qWarning if not using signals here
@@ -269,7 +269,7 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
     // **接收 ZeroMQ 消息**
     zmsg_t* reply = zmsg_recv(sockfd_);
     if (!reply) {
-        QString errorMsg = "接收卸载路径失败：" + AppName + " (Error: " + QString(zmq_strerror(zmq_errno())) + ")";
+        QString errorMsg = "接收卸载路径失败：" + AppName;
          // Use emit if tcpConnection inherits QObject and declares the signal
         // emit connectionError(errorMsg);
         qWarning() << errorMsg; // Use qWarning if not using signals here
@@ -288,7 +288,7 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
             if (packet.RD_Type == OperationCommandType::TransmitUninstallAppCommand) {
                  // *** 从对应的卸载路径字段提取数据 (假设为 RD_UninstallPath) ***
                 // IMPORTANT: Ensure RD_Packet struct actually HAS a RD_UninstallPath field!
-                uninstallPath = QString::fromUtf8(packet.RD_UninstallPath).trimmed();
+                uninstallPath = QString::fromUtf8(packet.RD_UninstallExePath).trimmed();
                 if (!uninstallPath.isEmpty()) {
                     qDebug() << "✅ 远程卸载路径：" << uninstallPath;
                 } else {

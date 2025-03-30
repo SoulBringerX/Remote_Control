@@ -328,8 +328,8 @@ Rectangle {
                                             text: "卸载应用"
                                             onTriggered: {
                                                 var currentData = deviceInformationModel.get(index);
-                                                console.log("正在卸载软件："+appName.text);
-                                                console.log("远程机器IP："+currentData.deviceIP);
+                                                console.log("正在卸载软件："+ appName.text);
+                                                console.log("远程机器IP："+ currentData.deviceIP);
                                                 var exepath = tcp.receiveUninstallAppPath(appName.text);
                                                 //client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
                                                 // 启动xfreerdp去远程卸载软件
