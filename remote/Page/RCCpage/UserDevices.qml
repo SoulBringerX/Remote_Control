@@ -314,8 +314,13 @@ Rectangle {
                                             onTriggered: {
                                                 // 校验是否为鼠标选择的应用名称
                                                 console.log("正在打开软件："+appName.text);
-                                                // 这里先去发送应用的名称然后接受应用执行路径在去启动freerdp
-                                                tcp.receiveAppPath(appName.text);
+                                                // 这里先去发送应用的名称
+                                                var exepath = tcp.receiveAppPath(appName.text);
+                                                var currentData = deviceInformationModel.get(index);
+                                                // 然后接受应用执行路径在去启动xfreerdp
+                                                client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
+                                                // 测试代码
+                                                //client.connectApp('192.168.31.10', currentData.account, currentData.password, exepath);
                                             }
                                         }
 
@@ -325,9 +330,10 @@ Rectangle {
                                                 var currentData = deviceInformationModel.get(index);
                                                 console.log("正在卸载软件："+appName.text);
                                                 console.log("远程机器IP："+currentData.deviceIP);
-                                                // user_device.uninstallApp(currentData.deviceIP, appData.RdpAppName)
+                                                var exepath = tcp.receiveUninstallAppPath(appName.text);
+                                                //client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
                                                 // 启动xfreerdp去远程卸载软件
-                                                // userApps.remove(index)
+                                                //userApps.remove(index)
                                             }
                                         }
 

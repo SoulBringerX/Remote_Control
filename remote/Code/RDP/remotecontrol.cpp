@@ -144,34 +144,60 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
 
 // 连接远程软件暂且使用xfreerdp代替
 void RemoteControl::connectApp(const QString& hostname, const QString& username, const QString& password, const QString& appEXEPath) {
-    // 确保路径是 Windows 格式（防止 Linux 路径误传）
+    // 确保路径是 Windows 格式
     if (!appEXEPath.startsWith("C:\\")) {
         qDebug() << "[RemoteControl] 错误: appEXEPath 必须是完整的 Windows 路径";
         return;
     }
 
-    // 直接使用完整路径
-    QString appParam = QString("\"%1\"").arg(appEXEPath);
+    // 构造参数列表
+    QStringList arguments;
+    arguments << "/v:" + hostname
+              << "/u:" + username
+              << "/p:" + password
+              << "/app:" + appEXEPath
+              << "/size:1280x720"
+              << "/bpp:16"
+              << "/sec:rdp";
 
-    // 构造 xfreerdp 命令
-    QString command = QString("xfreerdp /v:%1 /u:%2 /p:%3 /app:%4 /size:1280x720 /bpp:16 /sec:rdp +bitmap-cache")
-                          .arg(hostname)
-                          .arg(username)
-                          .arg(password)
-                          .arg(appParam);
+    qDebug() << "[RemoteControl] 执行命令: xfreerdp" << arguments.join(" ");
 
-    qDebug() << "[RemoteControl] 执行命令: " << command;
+    // 使用 QProcess 运行 xfreerdp 命令
+    QProcess* xfProc = new QProcess(this);
+    xfProc->setWorkingDirectory(QDir::homePath());
+    xfProc->setProcessChannelMode(QProcess::MergedChannels); // 合并标准输出和错误输出
 
-    // 使用 QProcess 运行命令
-    QProcess* process = new QProcess(this);
-    process->setProcessChannelMode(QProcess::MergedChannels); // 合并输出，方便调试
-    process->start(command);
+    // 连接标准输出和错误输出
+    QObject::connect(xfProc, &QProcess::readyReadStandardOutput, this, &RemoteControl::onStandardOutputReady);
+    QObject::connect(xfProc, &QProcess::readyReadStandardError, this, &RemoteControl::onStandardErrorReady);
 
-    if (!process->waitForStarted()) {
+    // 启动进程
+    xfProc->start("xfreerdp", arguments);
+
+    if (!xfProc->waitForStarted()) {
         qDebug() << "[RemoteControl] 启动 xfreerdp 进程失败";
-        delete process;
+        qDebug() << "错误信息: " << xfProc->errorString();
+        delete xfProc;
+        return;
     }
 }
+
+// 处理标准输出的槽函数
+void RemoteControl::onStandardOutputReady() {
+    QProcess* process = qobject_cast<QProcess*>(sender());
+    if (process) {
+        qDebug() << "[RemoteControl] xfreerdp 标准输出: " << process->readAllStandardOutput();
+    }
+}
+
+// 处理标准错误输出的槽函数
+void RemoteControl::onStandardErrorReady() {
+    QProcess* process = qobject_cast<QProcess*>(sender());
+    if (process) {
+        qDebug() << "[RemoteControl] xfreerdp 错误输出: " << process->readAllStandardError();
+    }
+}
+
 // 断开RDP连接，释放资源
 void RemoteControl::disconnect()
 {

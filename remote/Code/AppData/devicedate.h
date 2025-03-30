@@ -25,6 +25,7 @@ enum class OperationCommandType : unsigned char {
     TransmitAppCommand = 0x03,   // 传输应用程序名
     TransmitOnceEnd = 0x04,      // TCP传输应用一次结束
     TransmitDeviceInformaiton = 0x05, //TCP传输设备硬件以及资源占用信息
+    TransmitUninstallAppCommand = 0x06, //传输卸载软件的路径
     TransmitEnd = 0x00           // 传输结束
 };
 // 函数：将 OperationCommandType 转换为对应的字符串

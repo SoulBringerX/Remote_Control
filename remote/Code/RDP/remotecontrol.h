@@ -31,6 +31,7 @@
 #include <QKeyEvent>
 #include <QProcess>
 #include <QDebug>
+#include <QDir>
 #include <QSettings>
 #include <QString>
 
@@ -107,6 +108,8 @@ public slots:
     Q_INVOKABLE void sendMouseEvent(int x, int y, int buttonFlags, int releaseFlags);
     Q_INVOKABLE BOOL sendKeyboardEvent(bool down, UINT16 keycode, bool extended);
     Q_INVOKABLE BOOL sendUnicodeKeyboardEvent(bool down, UINT16 code, bool extended);
+    void onStandardErrorReady();
+    void onStandardOutputReady();
     void onDisconnectRequested();
 signals:
     void imageUpdated(const QImage& image);

@@ -239,6 +239,79 @@ QString tcpConnection::receiveAppPath(const QString& AppName){
     return appPath;
 }
 
+// 获取远端App的卸载程序执行路径
+QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
+    if (!sockfd_) {
+        // Use emit if tcpConnection inherits QObject and declares the signal
+        // emit connectionError("无效的 socket，无法请求卸载路径");
+        qWarning() << "无效的 socket，无法请求卸载路径"; // Use qWarning if not using signals here
+        return QString();
+    }
+
+    // 构造请求数据包，包含要查询的应用名称
+    RD_Packet requestPacket;
+    memset(&requestPacket, 0, sizeof(requestPacket));
+    // *** 设置请求类型为卸载路径请求 ***
+    requestPacket.RD_Type = OperationCommandType::TransmitUninstallAppCommand;
+    // 仍然需要应用名称来识别是哪个应用的卸载程序
+    strncpy(requestPacket.RD_APP_Name, AppName.toUtf8().constData(), sizeof(requestPacket.RD_APP_Name) - 1);
+
+    // 发送请求数据包
+    if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
+        QString errorMsg = "请求卸载路径失败：" + AppName + " (Error: " + QString(zmq_strerror(zmq_errno())) + ")";
+         // Use emit if tcpConnection inherits QObject and declares the signal
+        // emit connectionError(errorMsg);
+        qWarning() << errorMsg; // Use qWarning if not using signals here
+        return QString();
+    }
+    qDebug() << "📡 已发送卸载路径请求：" << AppName;
+
+    // **接收 ZeroMQ 消息**
+    zmsg_t* reply = zmsg_recv(sockfd_);
+    if (!reply) {
+        QString errorMsg = "接收卸载路径失败：" + AppName + " (Error: " + QString(zmq_strerror(zmq_errno())) + ")";
+         // Use emit if tcpConnection inherits QObject and declares the signal
+        // emit connectionError(errorMsg);
+        qWarning() << errorMsg; // Use qWarning if not using signals here
+        return QString();
+    }
+
+    QString uninstallPath;
+    zframe_t* frame = zmsg_pop(reply);
+    if (frame) { // Check if frame is not null before using it
+        if (zframe_size(frame) == sizeof(RD_Packet)) {
+            RD_Packet packet;
+            memcpy(&packet, zframe_data(frame), sizeof(RD_Packet));
+
+            // **检查是否是有效的卸载路径返回**
+            // *** 确保响应类型与请求类型匹配 ***
+            if (packet.RD_Type == OperationCommandType::TransmitUninstallAppCommand) {
+                 // *** 从对应的卸载路径字段提取数据 (假设为 RD_UninstallPath) ***
+                // IMPORTANT: Ensure RD_Packet struct actually HAS a RD_UninstallPath field!
+                uninstallPath = QString::fromUtf8(packet.RD_UninstallPath).trimmed();
+                if (!uninstallPath.isEmpty()) {
+                    qDebug() << "✅ 远程卸载路径：" << uninstallPath;
+                } else {
+                     qDebug() << "⚠️ 收到空的卸载路径数据 for" << AppName;
+                }
+            } else {
+                qDebug() << "⚠️ 收到无效的卸载路径数据 (Type mismatch: expected"
+                         << static_cast<unsigned char>(OperationCommandType::TransmitUninstallAppCommand)
+                         << ", got" << static_cast<unsigned char>(packet.RD_Type) << ") for" << AppName;
+            }
+        } else {
+             qDebug() << "⚠️ 收到大小错误的卸载路径响应帧 (Expected" << sizeof(RD_Packet) << ", Got" << zframe_size(frame) << ") for" << AppName;
+        }
+         zframe_destroy(&frame); // Destroy the frame after processing
+    } else {
+         qDebug() << "⚠️ 收到空的响应消息 for" << AppName;
+    }
+
+
+    zmsg_destroy(&reply); // Destroy the message container
+    return uninstallPath;
+}
+
 // 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}
 
