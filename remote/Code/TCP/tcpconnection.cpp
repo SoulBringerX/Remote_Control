@@ -1,6 +1,7 @@
 #include "tcpconnection.h"
 #include <iostream>
 #include <stdexcept>
+#include <QDir>
 #include <QDebug>
 
 QString tcpConnection::TCP_IP = "192.168.31.8";
@@ -312,7 +313,7 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
     return uninstallPath;
 }
 
-bool tcpConnection::sendInstallPackage(const QString& filePath) {
+bool tcpConnection::sendInstallPackage(const QString &filePath) {
     if (!sockfd_) {
         emit connectionError("无效的 socket，发送失败");
         return false;
@@ -323,7 +324,6 @@ bool tcpConnection::sendInstallPackage(const QString& filePath) {
         emit connectionError("无法打开文件：" + filePath);
         return false;
     }
-
     QByteArray fileData = file.readAll();
     file.close();
 
@@ -332,49 +332,76 @@ bool tcpConnection::sendInstallPackage(const QString& filePath) {
         return false;
     }
 
-    RD_Packet packet;
-    memset(&packet, 0, sizeof(packet));
-    packet.RD_Type = OperationCommandType::TramsmitAppData; // 假设发送类型为传输安装包
+    QString fileName = QFileInfo(filePath).fileName();
+    int totalSize = fileData.size();
+    const int CHUNK_SIZE = 1024 * 1024; // 每块1MB
+    int offset = 0;
+    int chunkIndex = 0;
 
-    // 填充文件信息
-    InstallPackageInfo packageInfo;
-    packageInfo.filePath = filePath;
-    packageInfo.fileName = QFileInfo(filePath).fileName();
-    packageInfo.fileSize = fileData.size();
+    // 分块发送数据，每个数据包包含头部 + 数据块内容
+    while (offset < totalSize) {
+        int currentChunkSize = qMin(CHUNK_SIZE, totalSize - offset);
+        int headerSize = sizeof(ChunkHeader);
+        int packetSize = headerSize + currentChunkSize;
+        QByteArray packetBuffer;
+        packetBuffer.resize(packetSize);
 
-    memcpy(&packet.installPackage, &packageInfo, sizeof(packageInfo));
+        // 构造数据包头部
+        ChunkHeader header;
+        header.RD_Type = OperationCommandType::TramsmitAppData; // 表示安装包数据
+        memset(header.fileName, 0, sizeof(header.fileName));
+        QByteArray nameBytes = fileName.toUtf8();
+        int copyLen = qMin((int)sizeof(header.fileName) - 1, nameBytes.size());
+        memcpy(header.fileName, nameBytes.constData(), copyLen);
+        header.chunkSize = currentChunkSize;
 
-    // 发送文件数据
-    if (zsock_send(sockfd_, "b", &packet, sizeof(packet)) != 0) {
-        emit connectionError("发送安装包数据失败");
+        // 复制头部到数据包缓冲区
+        memcpy(packetBuffer.data(), &header, headerSize);
+        // 复制当前数据块
+        memcpy(packetBuffer.data() + headerSize, fileData.constData() + offset, currentChunkSize);
+
+        // 发送数据包（"b"格式发送原始二进制数据）
+        int ret = zsock_send(sockfd_, "b", packetBuffer.constData(), packetSize);
+        if (ret != 0) {
+            qWarning() << "Error sending chunk packet at offset" << offset;
+            emit connectionError("发送安装包数据失败");
+            return false;
+        }
+
+        offset += currentChunkSize;
+        chunkIndex++;
+        int progress = (offset * 100) / totalSize;
+        qDebug() << "发送数据进度: " << progress << "%";
+        QThread::msleep(50);
+    }
+
+    // 发送结束包，告知对端文件传输完成
+    RD_Packet endPacket;
+    memset(&endPacket, 0, sizeof(endPacket));
+    endPacket.RD_Type = OperationCommandType::TransmitEnd;
+    int ret = zsock_send(sockfd_, "b", &endPacket, sizeof(endPacket));
+    if (ret != 0) {
+        qWarning() << "Error sending end packet";
+        emit connectionError("发送结束包失败");
         return false;
     }
 
-    if (zsock_send(sockfd_, "b", fileData.data(), fileData.size()) != 0) {
-        emit connectionError("发送文件数据失败");
-        return false;
-    }
-
-    qDebug() << "安装包发送成功";
+    qDebug() << "安装包数据发送成功，共发送" << chunkIndex << "个数据块";
     return true;
 }
-
 
 // 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}
 
 TcpThread::~TcpThread() {
-    quit();
-    wait();
-    delete tcpConn;
+    if (tcpConn) {
+        tcpConn->deleteLater();
+    }
 }
 
 void TcpThread::run() {
     tcpConn = new tcpConnection();
-    emit tcpReady(tcpConn);  // 通知外部 tcpConn 已经准备好
-    exec();  // 启动事件循环，保持线程运行
-}
-
-tcpConnection* TcpThread::getTcpConnection() {
-    return tcpConn;
+    tcpConn->moveToThread(this);  // Move to the worker thread
+    emit tcpReady(tcpConn);  // Emit signal when tcpConnection is ready
+    exec();  // Start the event loop for the thread
 }

@@ -46,10 +46,12 @@ signals:
     void appListReceived(const QVariantList &appList);
     void deviceInfoReceived(QVariantMap deviceInfo);
     void connectionError(QString error); // 连接错误信号
+    void progressUpdated(int progress);  // Signal to update progress
 
 private:
     zsock_t *sockfd_ = nullptr;
     static QString TCP_IP;
+    int progress = 0;
 };
 
 class TcpThread : public QThread {
@@ -61,11 +63,12 @@ public:
     tcpConnection *getTcpConnection();
 
 protected:
-    void run() override; // 线程入口
+    void run() override; // Thread entry point
+
 signals:
-    void tcpReady(tcpConnection* tcpConn);
+    void tcpReady(tcpConnection* tcpConn); // Signal when tcpConnection is ready
 private:
-    tcpConnection *tcpConn;
+    tcpConnection *tcpConn;  // Pointer to tcpConnection object
 };
 
 #endif // TCPCONNECTION_H

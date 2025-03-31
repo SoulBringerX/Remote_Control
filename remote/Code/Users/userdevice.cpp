@@ -150,6 +150,8 @@ QVariantList UserDevice::loadAppfromini(const QString &ip)
 // 获取安装包信息（供 QML 调用）
 QVariantMap UserDevice::getInstallPackageInfo(const QString &filePath)
 {
+    qDebug() << "发送函数已被调用";
+
     // 如果路径不是绝对路径，添加前导 "/" 以将其视为根目录下的路径
     QString absolutePath = filePath;
     if (!QDir::isAbsolutePath(filePath)) {

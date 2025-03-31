@@ -14,6 +14,8 @@ Window {
     property string errorMessage: ""
     property string selectedFileInfo: ""
     property string deviceIP: ""  // 设备IP地址
+    property string filePath: ""
+    property int fileTransferProgress: 0  // Progress of file transfer (0 to 100)
 
     Column {
         anchors.fill: parent
@@ -66,10 +68,14 @@ Window {
             text: "传输安装包"
             font.pointSize: 16
             anchors.horizontalCenter: parent.horizontalCenter
-            enabled: filePath !== ""  // 只有选择了文件时按钮可用
+            enabled: filePath !== ""  // Only enabled if file is selected
             onClicked: {
-                // 在此处调用传输安装包的函数
-                transferPackage(filePath);
+                if(tcp.sendInstallPackage(filePath)){
+                    showSucess("传输成功")
+                }
+                else {
+                    showError("传输失败")
+                }
             }
         }
     }
@@ -83,9 +89,13 @@ Window {
 
         onAccepted: {
             if (fileDialog.selectedFile) {
-                let filePath = fileDialog.selectedFile.toString();
+                filePath = fileDialog.selectedFile.toString();
                 filePath = filePath.replace("file:///", "");
                 console.log("选中的文件路径:", filePath);
+
+                if (!filePath.startsWith("/")) {
+                    filePath = "/" + filePath;
+                }
 
                 if (!filePath.toLowerCase().endsWith(".exe")) {
                     showError("文件类型错误：请选择一个 .exe 安装包文件。");
@@ -109,26 +119,23 @@ Window {
         }
     }
 
-    SystemErrorDialog {
-        id: errorDialog
-        message: filedialog.errorMessage
-    }
-
     function showError(message) {
         errorMessage = message;
-        errorDialog.message = message;
         errorDialog.show();
     }
 
-    function transferPackage(fileInfo) {
-        // 检查数据包是否为空
-        if (!fileInfo || fileInfo.trim() === "") {
-            showError("错误：数据包为空，无法传输！");
-            return;
-        }
-        console.log("正在传输安装包的路径：", fileInfo);
-        console.log("正在将安装包传输到设备IP：", deviceIP);
-        // 这里加入传输安装包的相关代码
+    function showSucess(message)
+    {
+        errorMessage = message
+        registerDialog.show();
+    }
 
+    SuecessDialog{
+        id:registerDialog
+        message: filedialog.errorMessage
+    }
+    SystemErrorDialog{
+        id:errorDialog
+        message: filedialog.errorMessage
     }
 }
