@@ -39,6 +39,7 @@ public:
     Q_INVOKABLE QVariantMap receiveDeviceInfo();
     Q_INVOKABLE QString receiveAppPath(const QString& AppName);
     Q_INVOKABLE QString receiveUninstallAppPath(const QString& AppName);
+    Q_INVOKABLE bool sendInstallPackage(const QString& filePath);
     QVariantList parseAppList();
 
 signals:

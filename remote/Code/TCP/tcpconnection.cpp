@@ -312,6 +312,54 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
     return uninstallPath;
 }
 
+bool tcpConnection::sendInstallPackage(const QString& filePath) {
+    if (!sockfd_) {
+        emit connectionError("无效的 socket，发送失败");
+        return false;
+    }
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        emit connectionError("无法打开文件：" + filePath);
+        return false;
+    }
+
+    QByteArray fileData = file.readAll();
+    file.close();
+
+    if (fileData.isEmpty()) {
+        emit connectionError("文件为空，发送失败");
+        return false;
+    }
+
+    RD_Packet packet;
+    memset(&packet, 0, sizeof(packet));
+    packet.RD_Type = OperationCommandType::TramsmitAppData; // 假设发送类型为传输安装包
+
+    // 填充文件信息
+    InstallPackageInfo packageInfo;
+    packageInfo.filePath = filePath;
+    packageInfo.fileName = QFileInfo(filePath).fileName();
+    packageInfo.fileSize = fileData.size();
+
+    memcpy(&packet.installPackage, &packageInfo, sizeof(packageInfo));
+
+    // 发送文件数据
+    if (zsock_send(sockfd_, "b", &packet, sizeof(packet)) != 0) {
+        emit connectionError("发送安装包数据失败");
+        return false;
+    }
+
+    if (zsock_send(sockfd_, "b", fileData.data(), fileData.size()) != 0) {
+        emit connectionError("发送文件数据失败");
+        return false;
+    }
+
+    qDebug() << "安装包发送成功";
+    return true;
+}
+
+
 // 线程管理类实现
 TcpThread::TcpThread(QObject *parent) : QThread(parent), tcpConn(nullptr) {}
 

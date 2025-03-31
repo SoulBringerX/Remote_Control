@@ -56,7 +56,7 @@ qt_add_qml_module(appremote
     SOURCES Code/RDP/remoteimageprovider.h Code/RDP/remoteimageprovider.cpp
     SOURCES Code/TCP/tcpserverthread.h Code/TCP/tcpserverthread.cpp
     SOURCES Code/Users/userdevice.h Code/Users/userdevice.cpp
-    QML_FILES
+    QML_FILES Page/RCCpage/FileDialogs.qml
     SOURCES Code/AppData/deviceinfomanager.h Code/AppData/deviceinfomanager.cpp
 )
 

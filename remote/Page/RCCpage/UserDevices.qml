@@ -183,7 +183,14 @@ Rectangle {
                             applistpage.visible = true;
                         }
                     }
-                    MenuItem { text: "安装软件"; onTriggered: { console.log("安装软件") } }
+                    MenuItem { text: "安装软件";
+                        onTriggered: {
+                            currentIndex = index;
+                            currentIp = deviceInformationModel.get(currentIndex).deviceIP;
+                            console.log("安装软件")
+                            filedialog.show()
+                        }
+                    }
                     MenuItem {
                         text: "删除设备"
                         onTriggered: {
@@ -317,6 +324,7 @@ Rectangle {
                                                 // 这里先去发送应用的名称
                                                 var exepath = tcp.receiveAppPath(appName.text);
                                                 var currentData = deviceInformationModel.get(index);
+                                                console.log("远程机器IP："+ currentData.deviceIP);
                                                 // 然后接受应用执行路径在去启动xfreerdp
                                                 client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
                                                 // 测试代码
@@ -466,6 +474,7 @@ Rectangle {
     }
 
     RemoteAppList { id: applistpage; ip: currentIp }
+    FileDialogs { id: filedialog; deviceIP: currentIp }
 
     Dialog {
         id: confirmDeleteDialog

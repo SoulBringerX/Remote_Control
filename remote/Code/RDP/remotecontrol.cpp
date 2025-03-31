@@ -144,11 +144,6 @@ bool RemoteControl::connect(const QString& hostname, const QString& username, co
 
 // 连接远程软件暂且使用xfreerdp代替
 void RemoteControl::connectApp(const QString& hostname, const QString& username, const QString& password, const QString& appEXEPath) {
-    // 确保路径是 Windows 格式
-    if (!appEXEPath.startsWith("C:\\")) {
-        qDebug() << "[RemoteControl] 错误: appEXEPath 必须是完整的 Windows 路径";
-        return;
-    }
 
     // 构造参数列表
     QStringList arguments;

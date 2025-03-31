@@ -17,6 +17,8 @@ public:
     Q_INVOKABLE void saveAppsToDevice(const QString &ip, const QVariant &apps);
     Q_INVOKABLE void uninstallApp(const QString &ip, const QString &appName);
     Q_INVOKABLE QVariantList loadAppfromini(const QString &ip);
+    // 安装包管理相关
+    Q_INVOKABLE QVariantMap getInstallPackageInfo(const QString &filePath);
 };
 #endif
 #endif // USERDEVICE_H

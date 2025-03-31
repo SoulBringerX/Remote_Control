@@ -147,4 +147,39 @@ QVariantList UserDevice::loadAppfromini(const QString &ip)
     return appList;
 }
 
+// 获取安装包信息（供 QML 调用）
+QVariantMap UserDevice::getInstallPackageInfo(const QString &filePath)
+{
+    // 如果路径不是绝对路径，添加前导 "/" 以将其视为根目录下的路径
+    QString absolutePath = filePath;
+    if (!QDir::isAbsolutePath(filePath)) {
+        absolutePath = "/" + filePath;
+    }
+
+    qDebug() << "当前工作目录：" << QDir::currentPath();
+    qDebug() << "传入路径：" << filePath;
+    qDebug() << "修正后的绝对路径：" << absolutePath;
+
+    // 使用清理后的绝对路径创建 QFileInfo 对象
+    QFileInfo fileInfo(QDir::cleanPath(absolutePath));
+    QVariantMap packageInfo;
+
+    // 检查文件是否存在且是有效文件
+    if (!fileInfo.exists() || !fileInfo.isFile()) {
+        qDebug() << "文件不存在或不是有效文件：" << absolutePath;
+        packageInfo["filePath"] = "";
+        packageInfo["fileName"] = "";
+        packageInfo["fileSize"] = -1;
+        return packageInfo;
+    }
+
+    // 文件存在，返回详细信息
+    packageInfo["filePath"] = fileInfo.absoluteFilePath();
+    packageInfo["fileName"] = fileInfo.fileName();
+    packageInfo["fileSize"] = fileInfo.size();
+
+    return packageInfo;
+}
+
+
 #endif
