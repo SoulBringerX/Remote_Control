@@ -23,7 +23,7 @@ Rectangle {
             Column {
                 Text { text: "名称：" + modelData.name }
                 Text { text: "版本：" + modelData.version }
-                Text { text: "本机IP：" + modelData.localIPs.join(", ") }
+                Text { text: "卸载路径：" + modelData.uninstallExePath }
 
                 // 显示图标
                 Image {

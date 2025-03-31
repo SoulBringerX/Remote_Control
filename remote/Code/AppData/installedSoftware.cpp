@@ -37,7 +37,8 @@ void InstalledSoftware::refreshSoftwareList() {
 
     for (const QString &desktopPath : desktopPaths) {
         QDir desktopDir(desktopPath);
-        if (!desktopDir.exists()) continue;
+        if (!desktopDir.exists())
+            continue;
 
         QStringList shortcuts = desktopDir.entryList(QStringList() << "*.lnk", QDir::Files);
         for (const QString &shortcut : shortcuts) {
@@ -49,7 +50,7 @@ void InstalledSoftware::refreshSoftwareList() {
                 continue;
             }
 
-            // 仅输出软件名称和执行路径
+            // 输出软件名称和执行路径
             QFileInfo shortcutInfo(shortcutPath);
             QString softwareName = shortcutInfo.completeBaseName();
             qDebug() << "[Info] Found software:" << softwareName
@@ -60,8 +61,36 @@ void InstalledSoftware::refreshSoftwareList() {
             info.mainExePath = targetPath;
             info.installLocation = QFileInfo(targetPath).absolutePath();
             info.iconPath = findIconPath(targetPath);
-            info.uninstallExePath = findUninstaller(info.installLocation);
             info.localIPs = localIPs;
+
+            // 通过注册表查找卸载程序路径
+            // 先查询64位应用信息，再查询32位应用信息（WOW6432Node）
+            QString uninstallString;
+            const QStringList registryPaths = {
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+            };
+
+            for (const QString &regPath : registryPaths) {
+                QSettings settings(regPath, QSettings::NativeFormat);
+                QStringList subKeys = settings.childGroups();
+                for (const QString &subKey : subKeys) {
+                    settings.beginGroup(subKey);
+                    QString displayName = settings.value("DisplayName").toString().trimmed();
+                    QString tempUninstallString = settings.value("UninstallString").toString().trimmed();
+                    settings.endGroup();
+
+                    // 如果显示名称中包含软件名称，则认为匹配成功
+                    if (!displayName.isEmpty() && displayName.contains(softwareName, Qt::CaseInsensitive)) {
+                        uninstallString = tempUninstallString;
+                        break;
+                    }
+                }
+                if (!uninstallString.isEmpty()) {
+                    break;
+                }
+            }
+            info.uninstallExePath = uninstallString;
 
             // 扫描到软件后立即注册到注册表中
             bool regSuccess = saveSoftwareInfo(info);

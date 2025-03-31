@@ -29,6 +29,14 @@ enum class OperationCommandType : unsigned char {
     TramsmitAppData = 0x07,             //传输数据安装包
     TransmitEnd = 0x00                  // 传输结束
 };
+
+#pragma pack(push, 1)  // 开启1字节对齐
+struct InstallPackageInfo {
+    QString filePath;   // 安装包完整路径
+    QString fileName;   // 安装包文件名
+    qint64 fileSize;    // 安装包文件大小（字节）
+};
+#pragma pack(pop)  // 关闭1字节对齐
 // 函数：将 OperationCommandType 转换为对应的字符串
 const char* operationCommandTypeToString(OperationCommandType type);
 // 设定这个数据传输包
@@ -64,12 +72,5 @@ struct DeviceInfo {
 };
 #pragma pack(pop)  // 关闭1字节对齐
 
-#pragma pack(push, 1)  // 开启1字节对齐
-struct InstallPackageInfo {
-    QString filePath;   // 安装包完整路径
-    QString fileName;   // 安装包文件名
-    qint64 fileSize;    // 安装包文件大小（字节）
-};
-#pragma pack(pop)  // 关闭1字节对齐
 
 #endif // DEVICEDATE_H

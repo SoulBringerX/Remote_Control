@@ -30,6 +30,7 @@ private:
     void deviceInformationsend();
     void appPathsend(const RD_Packet &requestPacket);
     void handlePacket(const RD_Packet& packet);
+    void appUninstallPathSend(const RD_Packet &requestPacket);
     RD_Packet recvPacket_;
     zsock_t* responder_ = nullptr;
     bool m_running;

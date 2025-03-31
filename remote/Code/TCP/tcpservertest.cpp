@@ -77,6 +77,9 @@ void tcpservertest::exec() {
                             //处理获取应用EXE路径的请求
                             logger.print("TCP_SERVER", "符合 0x03 (TransmitAppCommand)");
                             this->appPathsend(*packet);
+                        } else if (commandType == static_cast<unsigned char>(OperationCommandType::TransmitUninstallAppCommand)) {
+                            logger.print("TCP_SERVER", "符合 0x06 (TransmitUninstallAppCommand)");
+                            this->appUninstallPathSend(*packet); // Call the new function
                         } else {
                             logger.print("TCP_SERVER", "⚠️ 不是预期的命令，实际收到: " + QString::number(commandType, 16));
                         }
@@ -271,6 +274,59 @@ void tcpservertest::appPathsend(const RD_Packet &requestPacket) {
     logger.print("TCP_SERVER", "应用执行路径发送完成");
 }
 
+void tcpservertest::appUninstallPathSend(const RD_Packet &requestPacket) {
+    // logger.print("TCP_SERVER", "开始传输应用卸载路径");
+    qDebug() << "TCP_SERVER: Starting app uninstall path transmission...";
+
+    // 1. Get requested application name
+    QString requestedAppName = QString::fromUtf8(requestPacket.RD_APP_Name).trimmed();
+    // logger.print("TCP_SERVER", "请求卸载路径的应用名称: " + requestedAppName);
+    qDebug() << "TCP_SERVER: Requested app name for uninstall path:" << requestedAppName;
+
+    // 2. Find the uninstall path/command
+    InstalledSoftware installedSoftware;
+    installedSoftware.refreshSoftwareList();
+    QVariantList softwareList = installedSoftware.softwareList();
+
+    QString foundUninstallPath;
+    // Iterate through the list to find the matching app
+    for (const QVariant &entry : softwareList) {
+        QVariantMap map = entry.toMap();
+        if (map["name"].toString().compare(requestedAppName, Qt::CaseInsensitive) == 0) {
+            foundUninstallPath = map["uninstallString"].toString();
+            if (!foundUninstallPath.isEmpty()) {
+                break; // Found it, no need to continue loop
+            }
+        }
+    }
+
+    // 3. Construct the response packet
+    RD_Packet responsePacket;
+    memset(&responsePacket, 0, sizeof(responsePacket));
+    // *** Set the correct response type ***
+    responsePacket.RD_Type = OperationCommandType::TransmitUninstallAppCommand;
+
+    if (!foundUninstallPath.isEmpty()) {
+        // *** Copy the path into the CORRECT field (RD_UninstallPath) ***
+        // Ensure RD_Packet struct has RD_UninstallPath field!
+        strncpy(responsePacket.RD_UninstallExePath, foundUninstallPath.toUtf8().constData(), sizeof(responsePacket.RD_UninstallExePath) - 1);
+        logger.print("TCP_SERVER", "找到应用卸载路径: " + foundUninstallPath);
+    } else {
+        // logger.print("TCP_SERVER", "⚠️ 未找到应用卸载路径，应用名称: " + requestedAppName);
+        qWarning() << "TCP_SERVER: Uninstall path not found for app:" << requestedAppName;
+    }
+
+    // 4. Send the response
+    zmsg_t* response = zmsg_new();
+    zmsg_addmem(response, &responsePacket, sizeof(responsePacket)); // Add packet data
+
+    if (zmsg_send(&response, responder_) == 0) {
+        logger.print("TCP_SERVER", "应用卸载路径发送完成");
+    } else {
+        qWarning() << "TCP_SERVER: Failed to send app uninstall path response for" << requestedAppName << ":" << zmq_strerror(zmq_errno());
+        zmsg_destroy(&response); // Clean up message if send fails
+    }
+}
 
 
 // 析构函数
