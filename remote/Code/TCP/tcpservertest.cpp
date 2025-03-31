@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <czmq.h>  // 使用 CZMQ
+#include <Shlobj.h>  // 用于获取特殊文件夹路径
 
 // 构造函数：使用 CZMQ 创建 REP 套接字并绑定到 tcp://*:5555
 tcpservertest::tcpservertest() : m_running(true) {
@@ -64,22 +65,26 @@ void tcpservertest::exec() {
                                          .arg(operationCommandTypeToString(static_cast<OperationCommandType>(commandType)))
                                      );
 
-                        // 判断是否为 0x01 (TransmitAppAlias)
+                        // 判断命令类型并调用相应的函数
                         if (commandType == static_cast<unsigned char>(OperationCommandType::TransmitAppAlias)) {
                             logger.print("TCP_SERVER", "符合 0x01 (TransmitAppAlias)");
-                            logger.print("TCP_SERVER","开始传输应用信息");
+                            logger.print("TCP_SERVER", "开始传输应用信息");
                             this->appListsend();
                         } else if(commandType == static_cast<unsigned char>(OperationCommandType::TransmitDeviceInformaiton)){
                             logger.print("TCP_SERVER", "符合 0x05 (OperationCommandType::TransmitDeviceInformaiton)");
-                            logger.print("TCP_SERVER","开始传输硬件以及资源占用信息");
+                            logger.print("TCP_SERVER", "开始传输硬件以及资源占用信息");
                             this->deviceInformationsend();
                         } else if (commandType == static_cast<unsigned char>(OperationCommandType::TransmitAppCommand)) {
-                            //处理获取应用EXE路径的请求
+                            // 处理获取应用EXE路径的请求
                             logger.print("TCP_SERVER", "符合 0x03 (TransmitAppCommand)");
                             this->appPathsend(*packet);
                         } else if (commandType == static_cast<unsigned char>(OperationCommandType::TransmitUninstallAppCommand)) {
                             logger.print("TCP_SERVER", "符合 0x06 (TransmitUninstallAppCommand)");
                             this->appUninstallPathSend(*packet); // Call the new function
+                        } else if (commandType == static_cast<unsigned char>(OperationCommandType::TramsmitAppData)) {
+                            // 处理安装包数据
+                            logger.print("TCP_SERVER", "符合 0x07 (TramsmitAppData)");
+                            this->receiveInstallPackage();
                         } else {
                             logger.print("TCP_SERVER", "⚠️ 不是预期的命令，实际收到: " + QString::number(commandType, 16));
                         }
@@ -99,10 +104,6 @@ void tcpservertest::exec() {
         if (elapsedSec - lastStatusTime >= 5) {
             logger.print("RDP_Server", QString("当前等待客户端连接，已等待 %1 秒").arg(elapsedSec));
             lastStatusTime = elapsedSec;
-        }
-        if (elapsedSec >= 300) {
-            logger.print("RDP_Server", "等待客户端连接超时300秒，自动关闭线程");
-            break;
         }
     }
 
@@ -325,6 +326,77 @@ void tcpservertest::appUninstallPathSend(const RD_Packet &requestPacket) {
     } else {
         qWarning() << "TCP_SERVER: Failed to send app uninstall path response for" << requestedAppName << ":" << zmq_strerror(zmq_errno());
         zmsg_destroy(&response); // Clean up message if send fails
+    }
+}
+
+void tcpservertest::receiveInstallPackage() {
+    // 使用 zmsg_recv() 接收整个多帧消息
+    zmsg_t* message = zmsg_recv(responder_);
+    if (!message) {
+        logger.print("TCP_SERVER", "未接收到安装包消息");
+        return;
+    }
+
+    // 第一帧为 RD_Packet 元数据帧
+    zframe_t* metaFrame = zmsg_pop(message);
+    if (!metaFrame || zframe_size(metaFrame) < sizeof(RD_Packet)) {
+        logger.print("TCP_SERVER", "接收到的元数据帧无效");
+        if (metaFrame)
+            zframe_destroy(&metaFrame);
+        zmsg_destroy(&message);
+        return;
+    }
+
+    RD_Packet packet;
+    memcpy(&packet, zframe_data(metaFrame), sizeof(RD_Packet));
+    zframe_destroy(&metaFrame);
+
+    // 打印元数据信息
+    InstallPackageInfo pkgInfo = packet.installPackage;
+    logger.print("TCP_SERVER", QString("Install package filename: %1").arg(pkgInfo.fileName));
+    logger.print("TCP_SERVER", QString("Install package file size: %1 bytes").arg(pkgInfo.fileSize));
+
+    // 拼接所有剩余帧为完整文件数据
+    QByteArray fileData;
+    zframe_t* dataFrame = nullptr;
+    while ((dataFrame = zmsg_pop(message)) != nullptr) {
+        fileData.append(QByteArray::fromRawData(reinterpret_cast<const char*>(zframe_data(dataFrame)),
+                                                zframe_size(dataFrame)));
+        zframe_destroy(&dataFrame);
+    }
+    zmsg_destroy(&message);
+
+    // 检查数据大小是否与元数据中描述的大小一致
+    if (fileData.size() != pkgInfo.fileSize) {
+        logger.print("TCP_SERVER", QString("警告：接收的文件数据大小 (%1 bytes) 与预期 (%2 bytes) 不匹配")
+                                       .arg(fileData.size()).arg(pkgInfo.fileSize));
+    }
+
+    // 获取当前用户的 Downloads 文件夹路径（使用 Windows API）
+    WCHAR downloadsPath[MAX_PATH];
+    if (SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, downloadsPath) != S_OK) {
+        logger.print("TCP_SERVER", "无法获取用户目录路径");
+        return;
+    }
+    std::wstring downloadFolder(downloadsPath);
+    downloadFolder += L"\\Downloads\\";
+
+    // 将 pkgInfo.fileName (QString) 转换为 std::wstring
+    std::wstring fileName;
+    for (int i = 0; i < pkgInfo.fileName.length(); ++i) {
+        fileName += static_cast<wchar_t>(pkgInfo.fileName[i].unicode());
+    }
+    downloadFolder += fileName;
+    std::string downloadFilePath(downloadFolder.begin(), downloadFolder.end());
+
+    // 将文件数据写入本地文件
+    QFile file(QString::fromStdString(downloadFilePath));
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(fileData);
+        file.close();
+        logger.print("TCP_SERVER", QString("安装包已保存至: %1").arg(downloadFilePath.c_str()));
+    } else {
+        logger.print("TCP_SERVER", "无法保存安装包文件");
     }
 }
 
