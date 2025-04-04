@@ -260,8 +260,6 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
     // 发送请求数据包
     if (zsock_send(sockfd_, "b", &requestPacket, sizeof(requestPacket)) != 0) {
         QString errorMsg = "请求卸载路径失败：" + AppName;
-         // Use emit if tcpConnection inherits QObject and declares the signal
-        // emit connectionError(errorMsg);
         qWarning() << errorMsg; // Use qWarning if not using signals here
         return QString();
     }
@@ -271,8 +269,6 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
     zmsg_t* reply = zmsg_recv(sockfd_);
     if (!reply) {
         QString errorMsg = "接收卸载路径失败：" + AppName;
-         // Use emit if tcpConnection inherits QObject and declares the signal
-        // emit connectionError(errorMsg);
         qWarning() << errorMsg; // Use qWarning if not using signals here
         return QString();
     }
@@ -283,9 +279,6 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
         if (zframe_size(frame) == sizeof(RD_Packet)) {
             RD_Packet packet;
             memcpy(&packet, zframe_data(frame), sizeof(RD_Packet));
-
-            // **检查是否是有效的卸载路径返回**
-            // *** 确保响应类型与请求类型匹配 ***
             if (packet.RD_Type == OperationCommandType::TransmitUninstallAppCommand) {
                  // *** 从对应的卸载路径字段提取数据 (假设为 RD_UninstallPath) ***
                 // IMPORTANT: Ensure RD_Packet struct actually HAS a RD_UninstallPath field!
@@ -314,79 +307,88 @@ QString tcpConnection::receiveUninstallAppPath(const QString& AppName) {
 }
 
 bool tcpConnection::sendInstallPackage(const QString &filePath) {
-    if (!sockfd_) {
-        emit connectionError("无效的 socket，发送失败");
-        return false;
-    }
-
+    // 打开安装包文件
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        emit connectionError("无法打开文件：" + filePath);
-        return false;
-    }
-    QByteArray fileData = file.readAll();
-    file.close();
-
-    if (fileData.isEmpty()) {
-        emit connectionError("文件为空，发送失败");
+        qWarning() << "无法打开文件:" << filePath;
         return false;
     }
 
-    QString fileName = QFileInfo(filePath).fileName();
-    int totalSize = fileData.size();
-    const int CHUNK_SIZE = 1024 * 1024; // 每块1MB
-    int offset = 0;
-    int chunkIndex = 0;
+    QFileInfo fileInfo(file);
+    qint64 fileSize = fileInfo.size();
+    QString fileName = fileInfo.fileName();
 
-    // 分块发送数据，每个数据包包含头部 + 数据块内容
-    while (offset < totalSize) {
-        int currentChunkSize = qMin(CHUNK_SIZE, totalSize - offset);
-        int headerSize = sizeof(ChunkHeader);
-        int packetSize = headerSize + currentChunkSize;
-        QByteArray packetBuffer;
-        packetBuffer.resize(packetSize);
+    // 构造传输头 RD_Packet_Net，记录文件元数据
+    RD_Packet packet;
+    packet.RD_Type = OperationCommandType::TramsmitAppData;  // 指定数据传输类型为安装包数据
+    // 根据实际需求，可填充 RD_IP、RD_Username、RD_Password 等字段
+    QByteArray filePathBA = filePath.toUtf8();
+    QByteArray fileNameBA = fileName.toUtf8();
+    strncpy(packet.installPackage.filePath, filePathBA.constData(), sizeof(packet.installPackage.filePath) - 1);
+    strncpy(packet.installPackage.fileName, fileNameBA.constData(), sizeof(packet.installPackage.fileName) - 1);
+    packet.installPackage.fileSize = fileSize;
 
-        // 构造数据包头部
-        ChunkHeader header;
-        header.RD_Type = OperationCommandType::TramsmitAppData; // 表示安装包数据
-        memset(header.fileName, 0, sizeof(header.fileName));
-        QByteArray nameBytes = fileName.toUtf8();
-        int copyLen = qMin((int)sizeof(header.fileName) - 1, nameBytes.size());
-        memcpy(header.fileName, nameBytes.constData(), copyLen);
-        header.chunkSize = currentChunkSize;
+    // 创建 czmq 多帧消息
+    zmsg_t *msg = zmsg_new();
+    if (!msg) {
+        qWarning() << "无法创建 czmq 消息";
+        file.close();
+        return false;
+    }
 
-        // 复制头部到数据包缓冲区
-        memcpy(packetBuffer.data(), &header, headerSize);
-        // 复制当前数据块
-        memcpy(packetBuffer.data() + headerSize, fileData.constData() + offset, currentChunkSize);
+    // 将 RD_Packet_Net 数据打包为第一帧
+    zframe_t *headerFrame = zframe_new(&packet, sizeof(packet));
+    if (!headerFrame) {
+        qWarning() << "无法创建传输头帧";
+        zmsg_destroy(&msg);
+        file.close();
+        return false;
+    }
+    zmsg_append(msg, &headerFrame);
 
-        // 发送数据包（"b"格式发送原始二进制数据）
-        int ret = zsock_send(sockfd_, "b", packetBuffer.constData(), packetSize);
-        if (ret != 0) {
-            qWarning() << "Error sending chunk packet at offset" << offset;
-            emit connectionError("发送安装包数据失败");
-            return false;
+    // 按固定块大小读取文件内容，并分块传输
+    const int CHUNK_SIZE = 1024;  // 每块传输 1024 字节，根据需要调整
+    while (!file.atEnd()) {
+        QByteArray chunkData = file.read(CHUNK_SIZE);
+        if (chunkData.isEmpty()) {
+            break;
         }
 
-        offset += currentChunkSize;
-        chunkIndex++;
-        int progress = (offset * 100) / totalSize;
-        qDebug() << "发送数据进度: " << progress << "%";
-        QThread::msleep(50);
-    }
+        // 构造数据块头
+        ChunkHeader chunk;
+        memset(&chunk, 0, sizeof(chunk));
+        chunk.RD_Type = OperationCommandType::TramsmitAppData;  // 与传输头中类型一致
+        strncpy(chunk.fileName, fileNameBA.constData(), sizeof(chunk.fileName) - 1);
+        chunk.chunkSize = chunkData.size();
 
-    // 发送结束包，告知对端文件传输完成
-    RD_Packet endPacket;
-    memset(&endPacket, 0, sizeof(endPacket));
-    endPacket.RD_Type = OperationCommandType::TransmitEnd;
-    int ret = zsock_send(sockfd_, "b", &endPacket, sizeof(endPacket));
-    if (ret != 0) {
-        qWarning() << "Error sending end packet";
-        emit connectionError("发送结束包失败");
+        // 将数据块头添加为一帧
+        zframe_t *chunkHeaderFrame = zframe_new(&chunk, sizeof(chunk));
+        if (!chunkHeaderFrame) {
+            qWarning() << "无法创建数据块头帧";
+            zmsg_destroy(&msg);
+            file.close();
+            return false;
+        }
+        zmsg_append(msg, &chunkHeaderFrame);
+
+        // 将数据块内容作为下一帧添加
+        zframe_t *dataFrame = zframe_new(chunkData.constData(), chunkData.size());
+        if (!dataFrame) {
+            qWarning() << "无法创建数据块数据帧";
+            zmsg_destroy(&msg);
+            file.close();
+            return false;
+        }
+        zmsg_append(msg, &dataFrame);
+    }
+    file.close();
+
+    // 发送整个多帧消息，假设 tcpConnection 内已有 czmq 套接字成员 socket_
+    int rc = zmsg_send(&msg, sockfd_);
+    if (rc != 0) {
+        qWarning() << "发送安装包失败";
         return false;
     }
-
-    qDebug() << "安装包数据发送成功，共发送" << chunkIndex << "个数据块";
     return true;
 }
 

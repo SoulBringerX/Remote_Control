@@ -69,6 +69,7 @@ signals:
     void tcpReady(tcpConnection* tcpConn); // Signal when tcpConnection is ready
 private:
     tcpConnection *tcpConn;  // Pointer to tcpConnection object
+    zsock_t *sockfd_;
 };
 
 #endif // TCPCONNECTION_H
