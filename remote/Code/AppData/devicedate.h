@@ -30,10 +30,10 @@ enum class OperationCommandType : unsigned char {
     TransmitEnd = 0x00                  // 传输结束
 };
 
-struct InstallPackageInfo {
-    QString filePath;   // 安装包完整路径
-    QString fileName;   // 安装包文件名
-    qint64 fileSize;    // 安装包文件大小（字节）
+struct InstallPackageInfoNet {
+    char filePath[512];   // 安装包完整路径
+    char fileName[256];   // 安装包文件名
+    qint64 fileSize;      // 安装包大小
 };
 
 // 函数：将 OperationCommandType 转换为对应的字符串
@@ -51,7 +51,7 @@ struct RD_Packet {
     char RD_MainExePath[512];           // 主程序路径
     char RD_UninstallExePath[512];      // 卸载程序路径
     char data[1024];                    // 其他的一些通用数据 （这里是这个设备信息）
-    InstallPackageInfo installPackage;
+    InstallPackageInfoNet installPackage;
 
     RD_Packet() {
         memset(this, 0, sizeof(RD_Packet));  // 初始化时将所有字段清零
