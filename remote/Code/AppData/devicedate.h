@@ -70,13 +70,16 @@ struct ChunkHeader {
 
 // 定义设备信息结构体
 struct DeviceInfo {
-    char cpuModel[256];   // CPU 型号
-    int cpuCores;         // CPU 核心数
-    double cpuUsage;      // CPU 使用率（%）
-    quint64 totalMemory;  // 总内存（字节）
-    quint64 usedMemory;   // 已用内存（字节）
-    quint64 totalDisk;    // 总磁盘容量（字节）
-    quint64 usedDisk;     // 已用磁盘容量（字节）
+    char cpuModel[256];       // CPU 型号
+    int cpuCores;             // CPU 核心数
+    double cpuUsage;          // CPU 使用率（%）
+    float cpuTemperature;     // CPU 温度（°C）
+    quint64 totalMemory;      // 总内存（字节）
+    quint64 usedMemory;       // 已用内存（字节）
+    quint64 totalDisk;        // 总磁盘容量（字节）
+    quint64 usedDisk;         // 已用磁盘容量（字节）
+    char gpuModel[256];       // 显卡型号
+    float gpuTemperature;     // 显卡温度（°C）
 };
 
 #endif // DEVICEDATE_H

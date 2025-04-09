@@ -63,34 +63,8 @@ void InstalledSoftware::refreshSoftwareList() {
             info.iconPath = findIconPath(targetPath);
             info.localIPs = localIPs;
 
-            // 通过注册表查找卸载程序路径
-            // 先查询64位应用信息，再查询32位应用信息（WOW6432Node）
-            QString uninstallString;
-            const QStringList registryPaths = {
-                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-                "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
-            };
-
-            for (const QString &regPath : registryPaths) {
-                QSettings settings(regPath, QSettings::NativeFormat);
-                QStringList subKeys = settings.childGroups();
-                for (const QString &subKey : subKeys) {
-                    settings.beginGroup(subKey);
-                    QString displayName = settings.value("DisplayName").toString().trimmed();
-                    QString tempUninstallString = settings.value("UninstallString").toString().trimmed();
-                    settings.endGroup();
-
-                    // 如果显示名称中包含软件名称，则认为匹配成功
-                    if (!displayName.isEmpty() && displayName.contains(softwareName, Qt::CaseInsensitive)) {
-                        uninstallString = tempUninstallString;
-                        break;
-                    }
-                }
-                if (!uninstallString.isEmpty()) {
-                    break;
-                }
-            }
-            info.uninstallExePath = uninstallString;
+            // 调用 findUninstaller 函数查找卸载程序路径
+            info.uninstallExePath = findUninstaller(info.installLocation);
 
             // 扫描到软件后立即注册到注册表中
             bool regSuccess = saveSoftwareInfo(info);
@@ -112,7 +86,6 @@ void InstalledSoftware::refreshSoftwareList() {
 
     emit softwareListChanged();
 }
-
 QString InstalledSoftware::findIconPath(const QString &exePath) const {
     QFileIconProvider iconProvider;
     QIcon icon = iconProvider.icon(QFileInfo(exePath));
@@ -169,22 +142,18 @@ QString InstalledSoftware::findUninstaller(const QString &installPath) const {
     if (installPath.isEmpty()) return "";
 
     static const QStringList uninstallExes = {
-        "uninstall.exe", "uninstaller.exe", "setup.exe",
-        "uninstall.bat", "uninstaller.bat", "uninstall.msi"
+        "Uninstall.exe", "Uninstaller.exe",
+        "Uninstall.msi", "uninstall.msi",
+        "uninstall.exe", "uninstaller.exe",
     };
 
     QDir installDir(installPath);
     for (const QString &uninstallExe : uninstallExes) {
         QString path = installDir.filePath(uninstallExe);
-        if (QFile::exists(path))
+        if (QFile::exists(path)) {
+            qDebug() << "[Info] Found uninstaller in install directory:" << path;
             return path;
-    }
-
-    QString parentDir = QFileInfo(installPath).absolutePath();
-    for (const QString &uninstallExe : uninstallExes) {
-        QString path = QDir(parentDir).filePath(uninstallExe);
-        if (QFile::exists(path))
-            return path;
+        }
     }
 
     const QStringList regPaths = {
@@ -201,11 +170,13 @@ QString InstalledSoftware::findUninstaller(const QString &installPath) const {
             settings.endGroup();
 
             if (installPath.contains(regInstallLocation) && !uninstallString.isEmpty()) {
+                qDebug() << "[Info] Found uninstaller in registry:" << uninstallString;
                 return uninstallString;
             }
         }
     }
 
+    qDebug() << "[Info] No uninstaller found for installation path:" << installPath;
     return "";
 }
 

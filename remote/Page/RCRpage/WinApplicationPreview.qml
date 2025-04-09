@@ -22,8 +22,8 @@ Rectangle {
 
             Column {
                 Text { text: "名称：" + modelData.name }
-                Text { text: "版本：" + modelData.version }
-                Text { text: "卸载路径：" + modelData.uninstallExePath }
+                Text { text: "主程序路径：" + modelData.mainExe }
+                Text { text: "卸载路径：" + modelData.uninstallExe }
 
                 // 显示图标
                 Image {

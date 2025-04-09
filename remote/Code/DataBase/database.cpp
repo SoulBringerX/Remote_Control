@@ -157,6 +157,7 @@ bool DataBase::pushDeviceData(const QString& hostname,
     qDebug() << "[Info] Insert into 'device' succeeded!";
     return true;
 }
+
 QVariantList DataBase::pullDeviceData(const QString& username)
 {
     QVariantList deviceList;  // 存储查询到的设备信息

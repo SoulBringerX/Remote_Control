@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QString>
+#include <QThread>
 
 tcpservertest::tcpservertest() : m_running(true) {
     responder_ = zsock_new_rep("tcp://*:5555");
@@ -179,35 +180,123 @@ void tcpservertest::appListsend() {
 
 void tcpservertest::deviceInformationsend() {
     DeviceInfo info{};
-    QProcess cpuProcess;
-    cpuProcess.start("wmic cpu get name, numberofcores");
-    cpuProcess.waitForFinished();
-    QString cpuOutput = cpuProcess.readAllStandardOutput();
-    QStringList cpuLines = cpuOutput.split("\n", Qt::SkipEmptyParts);
-    if (cpuLines.size() > 1) {
-        QStringList parts = cpuLines[1].split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-        strncpy(info.cpuModel, parts[0].toUtf8().constData(), sizeof(info.cpuModel) - 1);
-        info.cpuCores = parts[1].toInt();
+
+    // 获取 CPU 核心数（使用 Qt 自带的 API）
+    info.cpuCores = QThread::idealThreadCount();
+    qDebug() << "[Info] CPU Cores:" << info.cpuCores;
+
+    // 获取 CPU 型号（使用系统命令）
+    QProcess cpuModelProcess;
+    cpuModelProcess.start("wmic cpu get name");
+    cpuModelProcess.waitForFinished();
+    QString cpuModelOutput = cpuModelProcess.readAllStandardOutput();
+    QStringList cpuModelLines = cpuModelOutput.split("\n", Qt::SkipEmptyParts);
+    if (cpuModelLines.size() > 1) {
+        QString cpuModel = cpuModelLines[1].trimmed();
+        strncpy(info.cpuModel, cpuModel.toUtf8().constData(), sizeof(info.cpuModel) - 1);
+        qDebug() << "[Info] CPU Model:" << info.cpuModel;
+    } else {
+        qDebug() << "[Error] Failed to get CPU model";
     }
 
+    // 获取显卡型号（使用 nvidia-smi 命令）
+    QProcess gpuModelProcess;
+    gpuModelProcess.start("nvidia-smi --query-gpu=name --format=csv,noheader");
+    gpuModelProcess.waitForFinished();
+    QString gpuModelOutput = gpuModelProcess.readAllStandardOutput();
+    QStringList gpuModelLines = gpuModelOutput.split("\n", Qt::SkipEmptyParts);
+    if (gpuModelLines.size() > 0) {
+        QString gpuModel = gpuModelLines[0].trimmed();
+        strncpy(info.gpuModel, gpuModel.toUtf8().constData(), sizeof(info.gpuModel) - 1);
+        qDebug() << "[Info] GPU Model:" << info.gpuModel;
+    } else {
+        qDebug() << "[Error] Failed to get GPU model";
+    }
+
+    // 获取内存信息（使用 Windows API）
     MEMORYSTATUSEX memoryStatus{};
     memoryStatus.dwLength = sizeof(memoryStatus);
     if (GlobalMemoryStatusEx(&memoryStatus)) {
-        info.totalMemory = memoryStatus.ullTotalPhys / (1024 * 1024);
-        info.usedMemory = info.totalMemory - (memoryStatus.ullAvailPhys / (1024 * 1024));
+        info.totalMemory = memoryStatus.ullTotalPhys / (1024 * 1024); // MB
+        info.usedMemory = (memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys) / (1024 * 1024); // MB
+        qDebug() << "[Info] Total Memory:" << info.totalMemory << "MB" << "Used Memory:" << info.usedMemory << "MB";
+    } else {
+        qDebug() << "[Error] Failed to get memory information";
     }
 
+    // 获取磁盘信息（使用 Qt 自带的 API）
     QStorageInfo storage = QStorageInfo::root();
-    info.totalDisk = storage.bytesTotal() / (1024 * 1024 * 1024);
-    info.usedDisk = info.totalDisk - (storage.bytesFree() / (1024 * 1024 * 1024));
+    info.totalDisk = storage.bytesTotal() / (1024 * 1024 * 1024); // GB
+    info.usedDisk = (storage.bytesTotal() - storage.bytesFree()) / (1024 * 1024 * 1024); // GB
+    qDebug() << "[Info] Total Disk:" << info.totalDisk << "GB" << "Used Disk:" << info.usedDisk << "GB";
 
+    // 获取 CPU 使用率（使用系统命令）
     QProcess cpuUsageProcess;
     cpuUsageProcess.start("wmic cpu get loadpercentage");
     cpuUsageProcess.waitForFinished();
     QString cpuUsageOutput = cpuUsageProcess.readAllStandardOutput();
-    info.cpuUsage = cpuUsageOutput.split("\n", Qt::SkipEmptyParts).size() > 1 ?
-                        cpuUsageOutput.split("\n")[1].trimmed().toDouble() : 0.0;
+    QStringList cpuUsageLines = cpuUsageOutput.split("\n", Qt::SkipEmptyParts);
 
+    if (cpuUsageLines.size() > 1) {
+        QStringList parts = cpuUsageLines[1].split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        if (!parts.isEmpty()) {
+            info.cpuUsage = parts[0].toDouble();
+            qDebug() << "[Info] CPU Usage:" << info.cpuUsage << "%";
+        } else {
+            qDebug() << "[Error] Invalid CPU usage output format";
+        }
+    } else {
+        qDebug() << "[Error] Failed to get CPU usage";
+    }
+
+    // 获取 CPU 温度（使用 wmic 命令）
+    QProcess cpuTempProcess;
+    cpuTempProcess.start("wmic /namespace:\\\\root\\wmi PATH MSAcpi_ThermalZoneTemperature get CurrentTemperature");
+    cpuTempProcess.waitForFinished();
+    QString cpuTempOutput = cpuTempProcess.readAllStandardOutput();
+    QStringList cpuTempLines = cpuTempOutput.split("\n", Qt::SkipEmptyParts);
+    if (cpuTempLines.size() > 1) {
+        QStringList parts = cpuTempLines[1].split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        if (!parts.isEmpty()) {
+            bool ok = false;
+            int t = parts[0].toInt(&ok);
+            if (ok) {
+                info.cpuTemperature = (t - 2732) * 1.0f / 10;
+                qDebug() << "[Info] CPU Temperature:" << info.cpuTemperature << "°C";
+            } else {
+                qDebug() << "[Error] Invalid CPU temperature output format";
+            }
+        } else {
+            qDebug() << "[Error] Invalid CPU temperature output format";
+        }
+    } else {
+        qDebug() << "[Error] Failed to get CPU temperature";
+    }
+
+    // 获取显卡温度（使用 nvidia-smi 命令）
+    QProcess gpuTempProcess;
+    gpuTempProcess.start("nvidia-smi --query-gpu=temperature --format=csv,noheader");
+    gpuTempProcess.waitForFinished();
+    QString gpuTempOutput = gpuTempProcess.readAllStandardOutput();
+    QStringList gpuTempLines = gpuTempOutput.split("\n", Qt::SkipEmptyParts);
+    if (gpuTempLines.size() > 0) {
+        QStringList parts = gpuTempLines[0].split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        if (!parts.isEmpty()) {
+            bool ok = false;
+            info.gpuTemperature = parts[0].toInt(&ok);
+            if (ok) {
+                qDebug() << "[Info] GPU Temperature:" << info.gpuTemperature << "°C";
+            } else {
+                qDebug() << "[Error] Invalid GPU temperature output format";
+            }
+        } else {
+            qDebug() << "[Error] Invalid GPU temperature output format";
+        }
+    } else {
+        qDebug() << "[Error] Failed to get GPU temperature";
+    }
+
+    // 发送设备信息
     zmsg_t* response = zmsg_new();
     zmsg_addmem(response, &info, sizeof(info));
     zmsg_send(&response, responder_);
