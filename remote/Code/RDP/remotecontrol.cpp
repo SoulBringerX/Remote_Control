@@ -147,10 +147,17 @@ void RemoteControl::connectApp(const QString& hostname, const QString& username,
 
     // 构造参数列表
     QStringList arguments;
-    arguments << "/v:" + hostname
-              << "/u:" + username
-              << "/p:" + password
-              << "/app:" + appEXEPath
+    // arguments << "/v:" + hostname
+    //           << "/u:" + username
+    //           << "/p:" + password
+    //           << "/app:" + appEXEPath
+    //           << "/size:1280x720"
+    //           << "/bpp:16"
+    //           << "/sec:rdp";
+    arguments << "/v:192.168.31.10"
+              << "/u:Kirito"
+              << "/p:20030801"
+              << "/app:C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
               << "/size:1280x720"
               << "/bpp:16"
               << "/sec:rdp";

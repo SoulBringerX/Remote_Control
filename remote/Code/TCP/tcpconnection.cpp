@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <QDir>
 #include <QDebug>
+#include <QSettings>
+#include <QByteArray>
 
 QString tcpConnection::TCP_IP = "192.168.31.8";
 
@@ -131,6 +133,9 @@ QVariantList tcpConnection::receiveAppList() {
     }
     zmsg_destroy(&reply);
 
+    // 将应用列表写入到配置文件
+    this->writeAppListToConfig(appList, TCP_IP);
+
     emit appListReceived(appList);
     return appList;
 }
@@ -171,20 +176,26 @@ QVariantMap tcpConnection::receiveDeviceInfo() {
         deviceInfo["cpuModel"] = QString::fromUtf8(info.cpuModel).trimmed();
         deviceInfo["cpuCores"] = info.cpuCores;
         deviceInfo["cpuUsage"] = info.cpuUsage;
+        deviceInfo["cpuTemperature"] = info.cpuTemperature;
         deviceInfo["totalMemory"] = info.totalMemory;
         deviceInfo["usedMemory"] = info.usedMemory;
         deviceInfo["totalDisk"] = info.totalDisk;
         deviceInfo["usedDisk"] = info.usedDisk;
+        deviceInfo["gpuModel"] = QString::fromUtf8(info.gpuModel).trimmed();
+        deviceInfo["gpuTemperature"] = info.gpuTemperature;
 
         // **打印设备信息**
         qDebug() << "✅ 设备信息解析成功:";
         qDebug() << "   🖥️ CPU 型号: " << deviceInfo["cpuModel"].toString();
         qDebug() << "   🧩 CPU 核心数: " << deviceInfo["cpuCores"].toInt();
         qDebug() << "   ⚡ CPU 占用率: " << deviceInfo["cpuUsage"].toDouble() << "%";
-        qDebug() << "   💾 总内存: " << deviceInfo["totalMemory"].toInt() << " MB";
-        qDebug() << "   📊 已用内存: " << deviceInfo["usedMemory"].toInt() << " MB";
-        qDebug() << "   🗄️ 系统盘总磁盘大小: " << deviceInfo["totalDisk"].toInt() << " GB";
-        qDebug() << "   📂 已用磁盘: " << deviceInfo["usedDisk"].toInt() << " GB";
+        qDebug() << "   🌡️ CPU 温度: " << deviceInfo["cpuTemperature"].toDouble() << "°C";
+        qDebug() << "   💾 总内存: " << deviceInfo["totalMemory"].toULongLong() << " Bytes";
+        qDebug() << "   📊 已用内存: " << deviceInfo["usedMemory"].toULongLong() << " Bytes";
+        qDebug() << "   🗄️ 总磁盘: " << deviceInfo["totalDisk"].toULongLong() << " Bytes";
+        qDebug() << "   📂 已用磁盘: " << deviceInfo["usedDisk"].toULongLong() << " Bytes";
+        qDebug() << "   🎮 GPU 型号: " << deviceInfo["gpuModel"].toString();
+        qDebug() << "   🌡️ GPU 温度: " << deviceInfo["gpuTemperature"].toDouble() << "°C";
     }
 
     zmsg_destroy(&reply);
@@ -390,6 +401,49 @@ bool tcpConnection::sendInstallPackage(const QString &filePath) {
         return false;
     }
     return true;
+}
+
+// 将应用列表写入到配置文件
+void tcpConnection::writeAppListToConfig(const QVariantList &appList, const QString &ip) {
+    // 创建或打开配置文件
+    QDir configDir(QDir::homePath());
+    if (!configDir.exists("config")) {
+        configDir.mkdir("config");
+    }
+    configDir.cd("config");
+
+    // 使用目标IP作为配置文件名
+    QString configFileName = configDir.filePath(ip + "_app_list.ini");
+    QSettings settings(configFileName, QSettings::IniFormat);
+
+    // 清空现有配置
+    settings.clear();
+
+    // 写入应用列表
+    for (int i = 0; i < appList.size(); ++i) {
+        const QVariantMap &appInfo = appList[i].toMap();
+        settings.beginGroup(QString("App_%1").arg(i));
+
+        // 写入应用信息
+        settings.setValue("name", appInfo["name"].toString());
+        settings.setValue("mainExe", appInfo["mainExe"].toString());
+        settings.setValue("uninstallExe", appInfo["uninstallExe"].toString());
+
+        // 图标数据需要进行 Base64 编码，以便存储为字符串
+        QByteArray iconData = appInfo["iconData"].toByteArray();
+        settings.setValue("iconData", iconData.toBase64());
+
+        settings.endGroup();
+    }
+
+    // 确保所有更改都已写入到文件中
+    settings.sync();
+
+    if (settings.status() != QSettings::NoError) {
+        qDebug() << "[Error] Failed to write application list to config file:" << settings.status();
+    } else {
+        qDebug() << "[Info] Application list written to config file successfully:" << configFileName;
+    }
 }
 
 // 线程管理类实现

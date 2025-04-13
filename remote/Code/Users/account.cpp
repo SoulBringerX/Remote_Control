@@ -67,6 +67,8 @@ bool Account::loginCheck(const QString &userName, const QString &passWord)
     }
     else
         return false;
+    Account::isOnline = true;
+    Account::Security_lock = DataBase::getInstance()->isSecurityLocked(userName);
     return true;
 }
 
@@ -136,5 +138,16 @@ bool Account::checkSecurityLockPassword(const QString &inputpassword)
 {
     if(Account::isOnline == true &&Account::Security_lock == true)
         return DataBase::getInstance()->checkSecurityLockPassword(inputpassword);
+}
+bool Account::saveSecurityLock(bool isOpened)
+{
+    Account::Security_lock = isOpened;
+    if(Account::isOnline == true)
+        return DataBase::getInstance()->saveSecurityLock(Account::Remote_username,Account::Security_lock);
+}
+bool Account::checkIsLocked()
+{
+    if(Account::isOnline == true)
+        return DataBase::getInstance()->isSecurityLocked(Account::Remote_username);
 }
 #endif

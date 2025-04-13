@@ -33,11 +33,13 @@ public:
     #ifdef LINUX
     Q_INVOKABLE bool saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword);
     Q_INVOKABLE bool checkSecurityLockPassword(const QString &inputpassword);
+    Q_INVOKABLE bool saveSecurityLock(bool isOpened);
+    Q_INVOKABLE bool checkIsLocked();
     #endif
 
     static QString Remote_username;
     Q_INVOKABLE static bool isOnline;
-    static bool Security_lock;
+    Q_INVOKABLE static bool Security_lock;
 signals:
     void userNameChanged();
 

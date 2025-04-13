@@ -351,12 +351,20 @@ Window {
                     onClicked:
                     {
                         //登录逻辑
-                        if(account.loginCheck(userAccountInput.text,userPasswordInput.text))
+                        if(Account.loginCheck(userAccountInput.text,userPasswordInput.text))
                         {
                             if(Qt.platform.os === "windows")
+                            {
                                 loader.sourceComponent = rcrmanWindowPage
+                                Account.isOnline = true
+                                console.log(Account.isOnline ? "true":"false");
+                            }
                             else
+                            {
                                 loader.sourceComponent = mainWindowPage
+                                Account.isOnline = true
+                                console.log(Account.isOnline ? "true":"false");
+                            }
                         }
                         else
                         {
@@ -444,13 +452,15 @@ Window {
                     if(Qt.platform.os === "linux")
                     {
                         console.log('该用户使用的是Linux')
-                        account.loginCheck("user","123456")
+                        Account.loginCheck("user","123456")
+                        Account.isOnline = false
                         loader.sourceComponent = mainWindowPage
                     }
                     else
                     {
                         console.log('该用户使用的是Windows')
-                        account.loginCheck("user","123456")
+                        Account.loginCheck("user","123456")
+                        Account.isOnline = false
                         loader.sourceComponent = rcrmanWindowPage
                     }
                 }

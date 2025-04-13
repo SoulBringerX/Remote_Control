@@ -41,6 +41,7 @@ public:
     Q_INVOKABLE QString receiveUninstallAppPath(const QString& AppName);
     Q_INVOKABLE bool sendInstallPackage(const QString& filePath);
     QVariantList parseAppList();
+    void writeAppListToConfig(const QVariantList &appList, const QString &ip);
 
 signals:
     void appListReceived(const QVariantList &appList);

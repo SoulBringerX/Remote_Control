@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
     // 绑定其他必要的上下文属性
     engine.rootContext()->setContextProperty("GlobalProperties", QVariant::fromValue(GlobalProperties::getInstance()));
-    engine.rootContext()->setContextProperty("account", &user_account);
+    engine.rootContext()->setContextProperty("Account", &user_account);
 
 #ifdef LINUX
     // Linux 平台的远程控制功能

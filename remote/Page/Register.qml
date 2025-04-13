@@ -281,8 +281,8 @@ Window {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: {
-                    if(account.registerCheck(userAccountInput.text,userPasswordInput.text)) {
-                        if(account.userRegister(userAccountInput.text,userPasswordInput.text)) {
+                    if(Account.registerCheck(userAccountInput.text,userPasswordInput.text)) {
+                        if(Account.userRegister(userAccountInput.text,userPasswordInput.text)) {
                             registerDialog.show()
                         } else {
                             errorMessage = "CE_05 账户失败"

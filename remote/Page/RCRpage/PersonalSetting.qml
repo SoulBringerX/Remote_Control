@@ -9,6 +9,8 @@ Rectangle {
     height: Screen.desktopAvailableHeight * 0.675
     color: "#f0f2f5"
 
+    property bool checked;
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 20
@@ -49,7 +51,7 @@ Rectangle {
 
                     TextInput {
                         id: usernameInput
-                        text: account.loadUsername()
+                        text: Account.loadUsername()
                         font.pixelSize: 28
                         readOnly: !editBtn.checked
                         color: editBtn.checked ? "#333333" : "#999999"
@@ -93,6 +95,7 @@ Rectangle {
             border.width: 1
             border.color: "#e0e0e0"
             radius: 8
+            visible: Account.isOnline ?  true : false;
 
             ColumnLayout {
                 anchors.fill: parent
@@ -141,8 +144,10 @@ Rectangle {
                         id: securityLockSwitch
                         Layout.fillWidth: true
                         text: "设备安全锁"
-                        checked: false
-                        onCheckedChanged: toggleSecurityLock(checked)
+                        checked: Account.checkIsLocked();
+                        onCheckedChanged: {
+                            Account.saveSecurityLock(checked)
+                        }
                     }
                 }
 
@@ -465,15 +470,6 @@ Rectangle {
             return;
         }
         account.saveNewUsername(usernameInput.text);
-    }
-
-    function toggleSecurityLock(enable) {
-        // 设备安全锁逻辑
-        if (enable) {
-            console.log("设备安全锁已开启");
-        } else {
-            console.log("设备安全锁已关闭");
-        }
     }
 
     function changePassword(oldPassword, newPassword) {

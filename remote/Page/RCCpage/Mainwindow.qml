@@ -427,8 +427,11 @@ Window {
                 "🖥️ CPU: " + deviceInfoManager.deviceInfo.cpuModel + "\n" +
                 "🧩 Cores: " + deviceInfoManager.deviceInfo.cpuCores + "\n" +
                 "⚡ Usage: " + deviceInfoManager.deviceInfo.cpuUsage + "%\n" +
-                "💾 Memory: " + deviceInfoManager.deviceInfo.usedMemory + "MB / " + deviceInfoManager.deviceInfo.totalMemory + "MB\n" +
-                "🗄️ Disk: " + deviceInfoManager.deviceInfo.usedDisk + "GB / " + deviceInfoManager.deviceInfo.totalDisk + "GB";
+                "🌡️ CPU Temp: " + deviceInfoManager.deviceInfo.cpuTemperature + "°C\n" +
+                "💾 Memory: " + Math.floor(deviceInfoManager.deviceInfo.usedMemory / (1024 * 1024)) + "MB / " + Math.floor(deviceInfoManager.deviceInfo.totalMemory / (1024 * 1024)) + "MB\n" +
+                "🗄️ Disk: " + Math.floor(deviceInfoManager.deviceInfo.usedDisk / (1024 * 1024 * 1024)) + "GB / " + Math.floor(deviceInfoManager.deviceInfo.totalDisk / (1024 * 1024 * 1024)) + "GB\n" +
+                "🎮 GPU: " + deviceInfoManager.deviceInfo.gpuModel + "\n" +
+                "🌡️ GPU Temp: " + deviceInfoManager.deviceInfo.gpuTemperature + "°C";
         }
     }
 

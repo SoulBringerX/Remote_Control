@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QTimer>
 #include <QMutex>
 #include "../LogUntils/AppLog.h"
 #include "../Users/account.h"
@@ -34,10 +35,17 @@ public:
     QString loadUsername();
     bool saveSecurityLockPassword(const QString &oldPassword,const QString &newpassword);
     bool checkSecurityLockPassword(const QString &inputpassword);
+    bool isSecurityLocked(const QString& name);
+    bool saveSecurityLock(const QString &account, bool isOpened);
 private:
     QSqlDatabase db;
     static DataBase* instance;
+    QTimer* keepAliveTimer;
     static QMutex mutex; // 静态成员变量声明
+    bool checkAndReconnect();
+
+private slots:
+    void sendHeartbeat();
 };
 
 #endif // DATABASE_H

@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 import "../../Model"
 import "."
 
@@ -13,6 +14,7 @@ Rectangle {
     }
     property int currentIndex: -1
     property string currentIp: ""
+    property string currentDeviceName:""
 
     function calcExpandedCount() {
         var cnt = 0;
@@ -69,7 +71,7 @@ Rectangle {
                         anchors.fill: parent
                         onDoubleClicked: {
                             console.log("Connecting to device:", deviceIP)
-                            remoteControlThread.startConnection(deviceIP, account, password)
+                            remoteControlThread.startConnection(deviceIP, useraccount, password)
                             remoteView.visible = true
                         }
                     }
@@ -102,7 +104,7 @@ Rectangle {
                             deviceInformationModel.set(index, {
                                 deviceName: currentData.deviceName,
                                 deviceIP: currentData.deviceIP,
-                                account: currentData.account,
+                                useraccount: currentData.account,
                                 password: currentData.password,
                                 isConnected: currentData.isConnected,
                                 extended: !currentData.extended,
@@ -321,14 +323,19 @@ Rectangle {
                                             onTriggered: {
                                                 // 校验是否为鼠标选择的应用名称
                                                 console.log("正在打开软件："+appName.text);
-                                                // 这里先去发送应用的名称
-                                                var exepath = tcp.receiveAppPath(appName.text);
-                                                var currentData = deviceInformationModel.get(index);
-                                                console.log("远程机器IP："+ currentData.deviceIP);
-                                                // 然后接受应用执行路径在去启动xfreerdp
-                                                client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
-                                                // 测试代码
-                                                //client.connectApp('192.168.31.10', currentData.account, currentData.password, exepath);
+                                                console.log(Account.checkIsLocked() ? "true" : "false")
+                                                if(Account.checkIsLocked())
+                                                {
+                                                    deviceLockDialog.open()
+                                                }
+                                                // // 这里先去发送应用的名称
+                                                // var exepath = tcp.receiveAppPath(appName.text);
+                                                // var currentData = deviceInformationModel.get(index);
+                                                // console.log("远程机器IP："+ currentData.deviceIP);
+                                                // // 然后接受应用执行路径在去启动xfreerdp
+                                                // client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
+                                                // // 测试代码
+                                                // //client.connectApp('192.168.31.10', currentData.account, currentData.password, exepath);
                                             }
                                         }
 
@@ -391,7 +398,7 @@ Rectangle {
         id: userDeviceMenu
         MenuItem {
             text: "添加新的远程设备"
-            onTriggered: showInputDialog()
+            onTriggered: inputWindow.show()
         }
     }
 
@@ -491,6 +498,68 @@ Rectangle {
                 }
             }
             Button { text: "取消"; onClicked: confirmDeleteDialog.close() }
+        }
+    }
+
+    Dialog {
+        id: deviceLockDialog
+        property string deviceName: ""
+        property int deviceIndex: -1
+        property string correctPassword: ""
+        property string appName:""
+
+        title: deviceName + " - 安全锁验证"
+        modal: true
+        width: 350
+        height: 220
+        standardButtons: Dialog.NoButton
+        visible: false
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 15
+
+            Text {
+                text: "请输入安全锁密码以解锁设备"
+                font.pointSize: 14
+                wrapMode: Text.WordWrap
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            TextField {
+                id: passwordInput
+                placeholderText: "输入密码"
+                echoMode: TextInput.Password
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 10
+
+                Button {
+                    text: "确认解锁"
+                    onClicked: {
+                        if (Account.checkSecurityLockPassword(passwordInput.text)) {
+                            deviceLockDialog.close()
+                        } else {
+                            passwordInput.placeholderText = "密码错误，请重试"
+                        }
+                    }
+                }
+
+                Button {
+                    text: "取消"
+                    onClicked: deviceLockDialog.close()
+                }
+            }
+        }
+
+        onVisibleChanged: {
+            if (visible) {
+                passwordInput.text = ""
+            }
         }
     }
 }
