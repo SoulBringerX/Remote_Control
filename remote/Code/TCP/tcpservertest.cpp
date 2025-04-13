@@ -217,18 +217,18 @@ void tcpservertest::deviceInformationsend() {
     MEMORYSTATUSEX memoryStatus{};
     memoryStatus.dwLength = sizeof(memoryStatus);
     if (GlobalMemoryStatusEx(&memoryStatus)) {
-        info.totalMemory = memoryStatus.ullTotalPhys / (1024 * 1024); // MB
-        info.usedMemory = (memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys) / (1024 * 1024); // MB
-        qDebug() << "[Info] Total Memory:" << info.totalMemory << "MB" << "Used Memory:" << info.usedMemory << "MB";
+        info.totalMemory = memoryStatus.ullTotalPhys;
+        info.usedMemory = memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys;
+        qDebug() << "[Info] Total Memory:" << info.totalMemory << "Bytes" << "Used Memory:" << info.usedMemory << "Bytes";
     } else {
         qDebug() << "[Error] Failed to get memory information";
     }
 
     // 获取磁盘信息（使用 Qt 自带的 API）
     QStorageInfo storage = QStorageInfo::root();
-    info.totalDisk = storage.bytesTotal() / (1024 * 1024 * 1024); // GB
-    info.usedDisk = (storage.bytesTotal() - storage.bytesFree()) / (1024 * 1024 * 1024); // GB
-    qDebug() << "[Info] Total Disk:" << info.totalDisk << "GB" << "Used Disk:" << info.usedDisk << "GB";
+    info.totalDisk = storage.bytesTotal();
+    info.usedDisk = storage.bytesTotal() - storage.bytesFree();
+    qDebug() << "[Info] Total Disk:" << info.totalDisk << "Bytes" << "Used Disk:" << info.usedDisk << "Bytes";
 
     // 获取 CPU 使用率（使用系统命令）
     QProcess cpuUsageProcess;

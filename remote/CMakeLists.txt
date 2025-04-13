@@ -2,17 +2,38 @@ cmake_minimum_required(VERSION 3.16)
 
 project(remote VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_CXX_STANDARD 11) # 指定 C++ 标准版本
+# ------------------------------------------------------------------------------
+# 全局宏定义：必须在 find_package(Qt6 ...) 之前定义，以作用于 moc/autogen
+# ------------------------------------------------------------------------------
+add_compile_definitions(
+    WIN32_LEAN_AND_MEAN  # 排除 rarely-used Windows headers（含 winsock.h）
+    NOMINMAX             # 禁止定义 min/max 宏，避免与 std::min/std::max 冲突
+)
+
+# ------------------------------------------------------------------------------
+# 基本设置
+# ------------------------------------------------------------------------------
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(QT_NO_SHOW_OLD_POLICY_WARNINGS ON)
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/86184/Desktop/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 COMPONENTS Sql REQUIRED)
-find_package(Qt6 COMPONENTS Quick REQUIRED)
-find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+# ------------------------------------------------------------------------------
+# 查找 Qt 组件
+# ------------------------------------------------------------------------------
+find_package(Qt6 REQUIRED COMPONENTS
+    Core
+    Gui
+    Widgets
+    Quick
+    Sql
+    Multimedia
+)
+
+# ------------------------------------------------------------------------------
+# 可执行文件 & QML 模块
+# ------------------------------------------------------------------------------
 qt_add_executable(appremote
     App.rc
 )
@@ -60,46 +81,46 @@ qt_add_qml_module(appremote
     SOURCES Code/AppData/deviceinfomanager.h Code/AppData/deviceinfomanager.cpp
 )
 
-# 如果您不是在开发 macOS 应用程序，可以注释掉以下行
-# set_target_properties(appremote PROPERTIES
-#     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-#     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-#     MACOSX_BUNDLE TRUE
-# )
-
-# 如果您的应用程序不是在 Windows 平台上，可以注释掉以下行
+# Windows 下隐藏控制台窗口
 set_target_properties(appremote PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-# 判断操作系统类型
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+# 链接 Qt 库
+target_link_libraries(appremote
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::Sql
+        Qt6::Multimedia
+)
+
+# ------------------------------------------------------------------------------
+# 平台特定依赖
+# ------------------------------------------------------------------------------
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(STATUS "Compiling for Linux")
 
-    # 查找 FreeRDP 和 WinPR
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(FREERDP REQUIRED freerdp2)
-    pkg_check_modules(WINPR REQUIRED winpr2)
+    pkg_check_modules(WINPR   REQUIRED winpr2)
 
-    find_library(CZMQ_LIB NAMES czmq PATHS /usr/lib/x86_64-linux-gnu)
-    if(NOT CZMQ_LIB)
-        message(FATAL_ERROR "CZMQ library not found!")
-    endif()
+    find_library(CZMQ_LIB czmq REQUIRED)
 
-    # 包含头文件路径
-    include_directories(${FREERDP_INCLUDE_DIRS} ${WINPR_INCLUDE_DIRS})
-
-    # Link libraries
-    target_link_libraries(appremote PRIVATE ${CZMQ_LIB})
-    # 链接库
-    target_link_libraries(appremote PRIVATE
-        ${FREERDP_LIBRARIES} ${WINPR_LIBRARIES}
+    target_include_directories(appremote PRIVATE
+        ${FREERDP_INCLUDE_DIRS}
+        ${WINPR_INCLUDE_DIRS}
     )
-    # Link Qt and CZMQ libraries
-    target_link_libraries(appremote PRIVATE czmq)
 
-    # 添加 Linux 特定的编译定义
-    add_definitions(-DLINUX)
+    target_link_libraries(appremote PRIVATE
+        ${FREERDP_LIBRARIES}
+        ${WINPR_LIBRARIES}
+        ${CZMQ_LIB}
+    )
+
+    target_compile_definitions(appremote PRIVATE LINUX)
 endif()
 
 # 如果是 Windows 系统
@@ -114,23 +135,30 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     else()
         message(WARNING "shlwapi.lib not found.")
     endif()
-    find_package(ZeroMQ CONFIG REQUIRED)
-    target_link_libraries(appremote PRIVATE libzmq libzmq-static)
-    find_package(czmq CONFIG REQUIRED)
-    target_link_libraries(appremote PRIVATE czmq czmq-static)
-    target_link_libraries(appremote
-        PRIVATE shell32.lib
-        PRIVATE ole32.lib)
+    set(CZMQ_LIB_DIR "C:/Users/86184/Desktop/vcpkg/packages/czmq_x64-windows/lib")
+    set(CZMQ_DLL_DIR "C:/Users/86184/Desktop/vcpkg/packages/czmq_x64-windows/bin")
+    set(CZMQ_INCLUDE_DIR "C:/Users/86184/Desktop/vcpkg/packages/czmq_x64-windows/include")
+    set(ZeroMQ_LIB_DIR "C:/Users/86184/Desktop/vcpkg/packages/zeromq_x64-windows/lib")
+    set(ZeroMQ_DLL_DIR "C:/Users/86184/Desktop/vcpkg/packages/zeromq_x64-windows/bin")
+    set(ZeroMQ_INCLUDE_DIR "C:/Users/86184/Desktop/vcpkg/packages/zeromq_x64-windows/include")
+    include_directories(${CZMQ_INCLUDE_DIR})
+    include_directories(${ZeroMQ_INCLUDE_DIR})
+    link_directories(${CZMQ_DLL_DIR} ${ZeroMQ_DLL_DIR})
+
+    # 链接库
+    target_link_libraries(appremote PRIVATE
+        shell32.lib
+        ole32.lib
+        ${CZMQ_LIB_DIR}/czmq.lib
+        ${ZeroMQ_LIB_DIR}/libzmq-mt-4_3_5.lib
+    )
 endif()
 
-target_link_libraries(appremote
-    PRIVATE Qt6::Quick Qt6::Sql)
-target_link_libraries(appremote
-    PRIVATE Qt6::Widgets)
-target_link_libraries(appremote
-    PRIVATE Qt6::Multimedia)
-
+# ------------------------------------------------------------------------------
+# 安装规则
+# ------------------------------------------------------------------------------
 include(GNUInstallDirs)
 install(TARGETS appremote
     BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
