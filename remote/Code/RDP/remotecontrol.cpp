@@ -150,17 +150,16 @@ void RemoteControl::connectApp(const QString& hostname, const QString& username,
     // arguments << "/v:" + hostname
     //           << "/u:" + username
     //           << "/p:" + password
-    //           << "/app:" + appEXEPath
+    //           << "/app:" + appEXEPathT
     //           << "/size:1280x720"
     //           << "/bpp:16"
     //           << "/sec:rdp";
-    arguments << "/v:192.168.31.10"
+    arguments << "/v:192.168.31.8"
               << "/u:Kirito"
               << "/p:20030801"
               << "/app:C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-              << "/size:1280x720"
-              << "/bpp:16"
-              << "/sec:rdp";
+              << "/bpp:8"
+              << "/cert:ignore";
 
     qDebug() << "[RemoteControl] 执行命令: xfreerdp" << arguments.join(" ");
 

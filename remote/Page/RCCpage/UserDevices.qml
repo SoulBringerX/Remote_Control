@@ -329,11 +329,11 @@ Rectangle {
                                                     deviceLockDialog.open()
                                                 }
                                                 // // 这里先去发送应用的名称
-                                                // var exepath = tcp.receiveAppPath(appName.text);
-                                                // var currentData = deviceInformationModel.get(index);
-                                                // console.log("远程机器IP："+ currentData.deviceIP);
+                                                var exepath = tcp.receiveAppPath(appName.text);
+                                                var currentData = deviceInformationModel.get(index);
+                                                console.log("远程机器IP："+ currentData.deviceIP);
                                                 // // 然后接受应用执行路径在去启动xfreerdp
-                                                // client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
+                                                client.connectApp(currentData.deviceIP, currentData.account, currentData.password, exepath);
                                                 // // 测试代码
                                                 // //client.connectApp('192.168.31.10', currentData.account, currentData.password, exepath);
                                             }
